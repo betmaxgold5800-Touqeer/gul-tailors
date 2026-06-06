@@ -1,15 +1,14 @@
 import React, { useState } from 'react';
 import Dashboard from './views/Dashboard';
-import ClientsView from './views/ClientsView';
-import WorkersView from './views/WorkersView';
-import WholesalersView from './views/WholesalersView';
+import Clients from './views/Clients';
+import Workers from './views/Workers';
+import Wholesalers from './views/Wholesalers';
 import MoreSection from './views/MoreSection';
 
 export default function App() {
-  // Application tabs control karne ke liye centralized state
   const [activeTab, setActiveTab] = useState('home');
 
-  // Static mockup data - industry standard structures ke sath
+  // Industry standard mockup state data
   const [clients, setClients] = useState([
     { id: 1, name: 'Asif Ali', phone: '923001234567', udhaar: 4500, suitType: 'Shalwar Kameez', deliveryDate: '2026-06-15' },
     { id: 2, name: 'Kamran Khan', phone: '923219876543', udhaar: 0, suitType: 'Kurta Pajama', deliveryDate: '2026-06-12' }
@@ -24,7 +23,7 @@ export default function App() {
     { id: 1, name: 'Faisalabad Cloth House', phone: '923007654321', balance: 25000, item: 'Latha & Wash n Wear' }
   ]);
 
-  // Global functions for Edit/Delete actions (Industry standard handler structure)
+  // Global handlers for Edit and Delete
   const handleDelete = (type, id) => {
     if (window.confirm(`Kya aap is ${type} ko waqai delete karna chahte hain?`)) {
       if (type === 'client') setClients(clients.filter(c => c.id !== id));
@@ -37,18 +36,11 @@ export default function App() {
     const newName = prompt(`Enter new name for ${item.name}:`, item.name);
     if (!newName) return;
     
-    if (type === 'client') {
-      setClients(clients.map(c => c.id === item.id ? { ...c, name: newName } : c));
-    }
-    if (type === 'worker') {
-      setWorkers(workers.map(w => w.id === item.id ? { ...w, name: newName } : w));
-    }
-    if (type === 'wholesaler') {
-      setWholesalers(wholesalers.map(ws => ws.id === item.id ? { ...ws, name: newName } : ws));
-    }
+    if (type === 'client') setClients(clients.map(c => c.id === item.id ? { ...c, name: newName } : c));
+    if (type === 'worker') setWorkers(workers.map(w => w.id === item.id ? { ...w, name: newName } : w));
+    if (type === 'wholesaler') setWholesalers(wholesalers.map(ws => ws.id === item.id ? { ...ws, name: newName } : ws));
   };
 
-  // Safe navigation function jo top cards se call ho sakti hai
   const navigateTo = (tabName) => {
     setActiveTab(tabName);
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -56,8 +48,8 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-[#fdf6e9] pb-24 font-sans text-[#1a1a1a]">
-      {/* Premium Sticky Header */}
-      <header className="sticky top-0 z-50 flex items-center justify-between bg-[#1f1610] px-4 py-4 shadow-xl border-b border-[#cca464]/20">
+      {/* Premium Header */}
+      <header className="sticky top-0 z-50 flex items-center justify-between bg-[#1f1610] px-4 py-4 shadow-xl border-b border-[#cca464]/25">
         <div className="flex items-center gap-2">
           <span className="text-2xl">✂️</span>
           <h1 className="text-xl font-black tracking-wider text-[#cca464]">GUL TAILORS</h1>
@@ -67,7 +59,7 @@ export default function App() {
         </div>
       </header>
 
-      {/* Main Dynamically Rendered Content Area */}
+      {/* Main Dynamic View Controller */}
       <main className="mx-auto max-w-md px-4 pt-4">
         {activeTab === 'home' && (
           <Dashboard 
@@ -78,21 +70,21 @@ export default function App() {
           />
         )}
         {activeTab === 'clients' && (
-          <ClientsView data={clients} onEdit={(c) => handleEdit('client', c)} onDelete={(id) => handleDelete('client', id)} />
+          <Clients data={clients} onEdit={(c) => handleEdit('client', c)} onDelete={(id) => handleDelete('client', id)} />
         )}
         {activeTab === 'workers' && (
-          <WorkersView data={workers} onEdit={(w) => handleEdit('worker', w)} onDelete={(id) => handleDelete('worker', id)} />
+          <Workers data={workers} onEdit={(w) => handleEdit('worker', w)} onDelete={(id) => handleDelete('worker', id)} />
         )}
         {activeTab === 'ws' && (
-          <WholesalersView data={wholesalers} onEdit={(ws) => handleEdit('wholesaler', ws)} onDelete={(id) => handleDelete('wholesaler', id)} />
+          <Wholesalers data={wholesalers} onEdit={(ws) => handleEdit('wholesaler', ws)} onDelete={(id) => handleDelete('wholesaler', id)} />
         )}
         {activeTab === 'aur' && (
           <MoreSection navigateTo={navigateTo} />
         )}
       </main>
 
-      {/* Modern High-Vibrancy Bottom Navigation Bar */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50 mx-auto max-w-md border-t border-[#cca464]/30 bg-[#1f1610] px-2 py-2 shadow-[0_-8px_24px_rgba(0,0,0,0.25)] rounded-t-2xl">
+      {/* Bottom Nav Bar */}
+      <nav className="fixed bottom-0 left-0 right-0 z-50 mx-auto max-w-md border-t border-[#cca464]/30 bg-[#1f1610] px-2 py-2 shadow-xl rounded-t-2xl">
         <div className="grid grid-cols-5 text-center">
           {[
             { id: 'home', label: 'Home', icon: '🏠' },
@@ -106,7 +98,7 @@ export default function App() {
               <button
                 key={tab.id}
                 onClick={() => navigateTo(tab.id)}
-                className={`flex flex-col items-center justify-center py-1 transition-all duration-300 ${
+                className={`flex flex-col items-center justify-center py-1 transition-all duration-200 ${
                   isActive ? 'scale-110 text-[#d4af37]' : 'text-gray-400 opacity-60'
                 }`}
               >

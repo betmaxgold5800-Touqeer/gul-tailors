@@ -1,76 +1,125 @@
-import React, { useState } from 'react'
-import { Home, Users, Briefcase, ShoppingBag, MoreHorizontal } from 'lucide-react'
-import Dashboard from './views/Dashboard'
-import Clients from './views/Clients'
-import Workers from './views/Workers'
-import Wholesalers from './views/Wholesalers'
-import MoreOptions from './views/MoreOptions' // System Settings Import ki
+import React, { useState } from 'react';
+import Dashboard from './views/Dashboard';
+import ClientsView from './views/ClientsView';
+import WorkersView from './views/WorkersView';
+import WholesalersView from './views/WholesalersView';
+import MoreSection from './views/MoreSection';
 
 export default function App() {
-  const [currentPage, setCurrentPage] = useState('dashboard')
+  // Application tabs control karne ke liye centralized state
+  const [activeTab, setActiveTab] = useState('home');
 
-  const navItems = [
-    { id: 'dashboard', label: 'Home', icon: Home },
-    { id: 'clients', label: 'Clients', icon: Users },
-    { id: 'workers', label: 'Workers', icon: Briefcase },
-    { id: 'wholesalers', label: 'WS', icon: ShoppingBag },
-    { id: 'more', label: 'Aur', icon: MoreHorizontal },
-  ]
+  // Static mockup data - industry standard structures ke sath
+  const [clients, setClients] = useState([
+    { id: 1, name: 'Asif Ali', phone: '923001234567', udhaar: 4500, suitType: 'Shalwar Kameez', deliveryDate: '2026-06-15' },
+    { id: 2, name: 'Kamran Khan', phone: '923219876543', udhaar: 0, suitType: 'Kurta Pajama', deliveryDate: '2026-06-12' }
+  ]);
 
-  // Centralized Page Switch Matrix Router
-  const renderContent = () => {
-    switch (currentPage) {
-      case 'dashboard':
-        return <Dashboard />
-      case 'clients':
-        return <Clients />
-      case 'workers':
-        return <Workers />
-      case 'wholesalers':
-        return <Wholesalers />
-      case 'more':
-        return <MoreOptions /> // Final utility matrix component link kar diya
-      default:
-        return <Dashboard />
+  const [workers, setWorkers] = useState([
+    { id: 1, name: 'Zahid Karigar', phone: '923123456789', payable: 12000, specializedIn: 'Suit Stitching', activeSuits: 5 },
+    { id: 2, name: 'Sajid Master', phone: '923334445555', payable: 3500, specializedIn: 'Cutting', activeSuits: 2 }
+  ]);
+
+  const [wholesalers, setWholesalers] = useState([
+    { id: 1, name: 'Faisalabad Cloth House', phone: '923007654321', balance: 25000, item: 'Latha & Wash n Wear' }
+  ]);
+
+  // Global functions for Edit/Delete actions (Industry standard handler structure)
+  const handleDelete = (type, id) => {
+    if (window.confirm(`Kya aap is ${type} ko waqai delete karna chahte hain?`)) {
+      if (type === 'client') setClients(clients.filter(c => c.id !== id));
+      if (type === 'worker') setWorkers(workers.filter(w => w.id !== id));
+      if (type === 'wholesaler') setWholesalers(wholesalers.filter(ws => ws.id !== id));
     }
-  }
+  };
+
+  const handleEdit = (type, item) => {
+    const newName = prompt(`Enter new name for ${item.name}:`, item.name);
+    if (!newName) return;
+    
+    if (type === 'client') {
+      setClients(clients.map(c => c.id === item.id ? { ...c, name: newName } : c));
+    }
+    if (type === 'worker') {
+      setWorkers(workers.map(w => w.id === item.id ? { ...w, name: newName } : w));
+    }
+    if (type === 'wholesaler') {
+      setWholesalers(wholesalers.map(ws => ws.id === item.id ? { ...ws, name: newName } : ws));
+    }
+  };
+
+  // Safe navigation function jo top cards se call ho sakti hai
+  const navigateTo = (tabName) => {
+    setActiveTab(tabName);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#fdf6e9] text-[#1a1006] font-sans selection:bg-[#e8b84b]">
-      
-      {/* Premium Top Bar */}
-      <header className="bg-[#1a1006] px-4 py-3 sticky top-0 z-50 flex items-center justify-between border-b border-[#e2cfa0]/10 shadow-md">
-        <h1 className="text-[#e8b84b] font-serif text-lg font-bold tracking-wide flex items-center gap-2">
-          <span>✂️</span> Gul Tailors
-        </h1>
+    <div className="min-h-screen bg-[#fdf6e9] pb-24 font-sans text-[#1a1a1a]">
+      {/* Premium Sticky Header */}
+      <header className="sticky top-0 z-50 flex items-center justify-between bg-[#1f1610] px-4 py-4 shadow-xl border-b border-[#cca464]/20">
+        <div className="flex items-center gap-2">
+          <span className="text-2xl">✂️</span>
+          <h1 className="text-xl font-black tracking-wider text-[#cca464]">GUL TAILORS</h1>
+        </div>
+        <div className="rounded-full bg-[#cca464]/10 px-3 py-1 border border-[#cca464]/30">
+          <span className="text-xs font-bold text-[#cca464] tracking-widest uppercase">PRO SYSTEM</span>
+        </div>
       </header>
 
-      {/* Main Content Area */}
-      <main className="flex-1 max-w-md w-full mx-auto p-4 pb-24">
-        {renderContent()}
+      {/* Main Dynamically Rendered Content Area */}
+      <main className="mx-auto max-w-md px-4 pt-4">
+        {activeTab === 'home' && (
+          <Dashboard 
+            navigateTo={navigateTo} 
+            clientsCount={clients.length}
+            workersCount={workers.length}
+            wholesalersCount={wholesalers.length}
+          />
+        )}
+        {activeTab === 'clients' && (
+          <ClientsView data={clients} onEdit={(c) => handleEdit('client', c)} onDelete={(id) => handleDelete('client', id)} />
+        )}
+        {activeTab === 'workers' && (
+          <WorkersView data={workers} onEdit={(w) => handleEdit('worker', w)} onDelete={(id) => handleDelete('worker', id)} />
+        )}
+        {activeTab === 'ws' && (
+          <WholesalersView data={wholesalers} onEdit={(ws) => handleEdit('wholesaler', ws)} onDelete={(id) => handleDelete('wholesaler', id)} />
+        )}
+        {activeTab === 'aur' && (
+          <MoreSection navigateTo={navigateTo} />
+        )}
       </main>
 
-      {/* Modern Bottom Navigation Bar */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-[#1a1006] border-t border-white/10 flex justify-around items-center z-50 shadow-[0_-4px_20px_rgba(0,0,0,0.3)]">
-        {navItems.map((item) => {
-          const IconComponent = item.icon
-          const isActive = currentPage === item.id
-          
-          return (
-            <button
-              key={item.id}
-              onClick={() => setCurrentPage(item.id)}
-              className={`flex flex-col items-center justify-center py-2 px-3 w-full gap-1 transition-all duration-200 ${
-                isActive ? 'text-[#e8b84b] scale-105 font-medium' : 'text-white/50 hover:text-white/80'
-              }`}
-            >
-              <IconComponent className={`w-5 h-5 ${isActive ? 'stroke-[2.5px]' : 'stroke-[1.8px]'}`} />
-              <span className="text-[10px] tracking-tight">{item.label}</span>
-            </button>
-          )
-        })}
+      {/* Modern High-Vibrancy Bottom Navigation Bar */}
+      <nav className="fixed bottom-0 left-0 right-0 z-50 mx-auto max-w-md border-t border-[#cca464]/30 bg-[#1f1610] px-2 py-2 shadow-[0_-8px_24px_rgba(0,0,0,0.25)] rounded-t-2xl">
+        <div className="grid grid-cols-5 text-center">
+          {[
+            { id: 'home', label: 'Home', icon: '🏠' },
+            { id: 'clients', label: 'Clients', icon: '👥' },
+            { id: 'workers', label: 'Karigar', icon: '🧳' },
+            { id: 'ws', label: 'WS Shop', icon: '🏢' },
+            { id: 'aur', label: 'Aur...', icon: '✨' }
+          ].map((tab) => {
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => navigateTo(tab.id)}
+                className={`flex flex-col items-center justify-center py-1 transition-all duration-300 ${
+                  isActive ? 'scale-110 text-[#d4af37]' : 'text-gray-400 opacity-60'
+                }`}
+              >
+                <span className="text-xl mb-0.5">{tab.icon}</span>
+                <span className={`text-[11px] font-black tracking-wide ${isActive ? 'text-[#ffdb70]' : 'text-gray-400'}`}>
+                  {tab.label}
+                </span>
+                {isActive && <div className="mt-0.5 h-1 w-4 rounded-full bg-[#ffdb70]" />}
+              </button>
+            );
+          })}
+        </div>
       </nav>
-
     </div>
-  )
+  );
 }

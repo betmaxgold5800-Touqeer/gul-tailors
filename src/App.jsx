@@ -8,7 +8,7 @@ import MoreSection from './views/MoreSection';
 export default function App() {
   const [activeTab, setActiveTab] = useState('home');
 
-  // CENTRALIZED SHOP IDENTITY - Update here if needed
+  // CENTRALIZED SHOP IDENTITY
   const shopInfo = {
     name: 'GUL TAILORS',
     owner: 'Waseem Gul Baghoor',
@@ -16,13 +16,19 @@ export default function App() {
     address: 'Main Bazar Adhi Kot, Syed Market, Almaroof Tailors Wali Market, Left side last shop'
   };
 
-  // Master Data Matrices
+  // Upgraded Data Schema Matrix for Clients (Aligned with Clients.jsx v3.0)
   const [clients, setClients] = useState([
     { 
       id: 1, 
       name: 'Asif Ali', 
       phone: '923001234567', 
-      udhaar: 4500, 
+      totalSuits: 1,
+      isUrgent: false,
+      silayi: 800,       // Added aligned billing schemas
+      pKarhayi: 0,
+      gKarhayi: 0,
+      received: 800,
+      udhaar: 0, 
       suitType: 'Shalwar Kameez', 
       deliveryDate: '2026-06-15',
       naap: { lambaai: '40', teera: '18', baazu: '23', ghera: '24', shalwar: '38', paincha: '8', asan: '15', galla: '16' }
@@ -52,7 +58,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-[#fdf6e9] pb-24 font-sans text-[#1a1a1a]">
-      {/* Updated Premium Header with Shop Identity */}
+      {/* Premium Header with Shop Identity */}
       <header className="sticky top-0 z-50 bg-[#1f1610] px-4 py-3 shadow-xl border-b border-[#cca464]/25">
         <div className="flex justify-between items-start">
           <div>

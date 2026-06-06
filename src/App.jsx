@@ -3,7 +3,8 @@ import { Home, Users, Briefcase, ShoppingBag, MoreHorizontal } from 'lucide-reac
 import Dashboard from './views/Dashboard'
 import Clients from './views/Clients'
 import Workers from './views/Workers'
-import Wholesalers from './views/Wholesalers' // Wholesalers View Import kiya
+import Wholesalers from './views/Wholesalers'
+import MoreOptions from './views/MoreOptions' // System Settings Import ki
 
 export default function App() {
   const [currentPage, setCurrentPage] = useState('dashboard')
@@ -26,9 +27,9 @@ export default function App() {
       case 'workers':
         return <Workers />
       case 'wholesalers':
-        return <Wholesalers /> // Dummy text hatakar real wholesalers segment active kar diya
+        return <Wholesalers />
       case 'more':
-        return <div className="p-4 text-center text-[#1a1006]">⋯ Aur Options (Final Settings Step)</div>
+        return <MoreOptions /> // Final utility matrix component link kar diya
       default:
         return <Dashboard />
     }

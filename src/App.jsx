@@ -1,11 +1,10 @@
 import React, { useState } from 'react'
 import { Home, Users, Briefcase, ShoppingBag, MoreHorizontal } from 'lucide-react'
+import Dashboard from './views/Dashboard' // Asli Dashboard View Import kiya
 
 export default function App() {
-  // Current screen track karne ke liye React State
   const [currentPage, setCurrentPage] = useState('dashboard')
 
-  // Navigation items configuration (Modern Lucide Icons ke sath)
   const navItems = [
     { id: 'dashboard', label: 'Home', icon: Home },
     { id: 'clients', label: 'Clients', icon: Users },
@@ -14,13 +13,13 @@ export default function App() {
     { id: 'more', label: 'Aur', icon: MoreHorizontal },
   ]
 
-  // Temporary Screen Renderers (Inhein hum baad mein alag files mein badlein gy)
+  // Centralized Page Switch Matrix Router
   const renderContent = () => {
     switch (currentPage) {
       case 'dashboard':
-        return <div className="p-4 text-center text-[#1a1006]">📊 Dashboard Screen (Jald aa rahi hai)</div>
+        return <Dashboard /> // Dummy text ki jagah asli Dashboard inject ho gaya
       case 'clients':
-        return <div className="p-4 text-center text-[#1a1006]">👔 Clients Screen (Jald aa rahi hai)</div>
+        return <div className="p-4 text-center text-[#1a1006]">👔 Clients Screen (Next Step)</div>
       case 'workers':
         return <div className="p-4 text-center text-[#1a1006]">👷 Workers Screen (Jald aa rahi hai)</div>
       case 'wholesalers':
@@ -28,7 +27,7 @@ export default function App() {
       case 'more':
         return <div className="p-4 text-center text-[#1a1006]">⋯ Aur Options (Jald aa rahe hain)</div>
       default:
-        return <div className="p-4 text-center text-[#1a1006]">🏠 Home</div>
+        return <Dashboard />
     }
   }
 
@@ -42,7 +41,7 @@ export default function App() {
         </h1>
       </header>
 
-      {/* Main Content Dynamic Area */}
+      {/* Main Content Area */}
       <main className="flex-1 max-w-md w-full mx-auto p-4 pb-24">
         {renderContent()}
       </main>

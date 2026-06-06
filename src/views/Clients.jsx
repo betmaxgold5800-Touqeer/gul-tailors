@@ -1,94 +1,306 @@
 import React, { useState } from 'react';
 
 export default function Clients({ data, setClients, onDelete }) {
+  // Modal controllers
   const [showAddModal, setShowAddModal] = useState(false);
-  const [formData, setFormData] = useState({ 
-    name: '', phone: '', suits: 1, isUrgent: false, 
-    silayi: 0, pKarhayi: 0, gKarhayi: 0 
+  const [showNaapModal, setShowNaapModal] = useState(false);
+  const [selectedClient, setSelectedClient] = useState(null);
+  
+  // Real-time Master Guide Status Bar state
+  const [activeGuideText, setActiveGuideText] = useState('💡 Kisi bhi field par tap karein tailoring instruction dekhne ke liye.');
+
+  // Flat & Control-Driven Form State
+  const [clientName, setClientName] = useState('');
+  const [clientPhone, setClientPhone] = useState('');
+  const [suitCount, setSuitCount] = useState(1);
+  const [isUrgent, setIsUrgent] = useState(false);
+  const [silayiPrice, setSilayiPrice] = useState('');
+  const [pKarhayiPrice, setPKarhayiPrice] = useState('');
+  const [gKarhayiPrice, setGKarhayiPrice] = useState('');
+  const [receivedAmount, setReceivedAmount] = useState('');
+
+  // Sizing Vault State Model
+  const [naapForm, setNaapForm] = useState({
+    lambaai: '', teera: '', baazu: '', ghera: '', 
+    shalwar: '', paincha: '', asan: '', galla: ''
   });
 
-  const handleAddNewClient = (e) => {
-    e.preventDefault();
-    
-    // Create the record
-    const newRecord = {
+  const guides = {
+    galla: "Galla: Inch-tape ko gardan ke gird ghumayen, do ungliyan andar rakhein.",
+    paincha: "Paincha: Shalwar ke nichlay hissay ki total chaorai (poncha).",
+    lambaai: "Lambaai: Kandhay ki top silai se le kar nechay daman tak.",
+    teera: "Teera: Aik kandhay ki haddi se dusray kandhay ki haddi tak.",
+    baazu: "Baazu: Kandhay ki jor se hatheli ke nichlay hissay tak.",
+    ghera: "Ghera: Kameez ke daman ki total chaorai.",
+    shalwar: "Shalwar: Jahan nemah/belt bandha jata hai wahan se ponchay tak.",
+    asan: "Asan: Shalwar ki guthni/crotch length ka standard naap."
+  };
+
+  // Real-time Math Ledger Calculations
+  const currentTotalBill = (Number(silayiPrice) + Number(pKarhayiPrice) + Number(gKarhayiPrice)) * suitCount;
+  const currentUdhaar = Math.max(0, currentTotalBill - Number(receivedAmount));
+
+  // Atomic Custom Save Handler (Bypasses traditional form crash)
+  const executeSaveClient = () => {
+    if (!clientName.trim() || !clientPhone.trim()) {
+      alert('⚠️ Error: Client Name aur Phone Number likhna lazmi hai!');
+      return;
+    }
+
+    const newClientRecord = {
       id: Date.now(),
-      name: formData.name,
-      phone: formData.phone,
-      totalSuits: parseInt(formData.suits) || 1,
-      isUrgent: formData.isUrgent,
-      udhaar: 0,
-      billing: { 
-        silayi: parseFloat(formData.silayi) || 0, 
-        pKarhayi: parseFloat(formData.pKarhayi) || 0, 
-        gKarhayi: parseFloat(formData.gKarhayi) || 0 
-      },
+      name: clientName.trim(),
+      phone: clientPhone.trim(),
+      totalSuits: Number(suitCount) || 1,
+      isUrgent: isUrgent,
+      silayi: Number(silayiPrice) || 0,
+      pKarhayi: Number(pKarhayiPrice) || 0,
+      gKarhayi: Number(gKarhayiPrice) || 0,
+      received: Number(receivedAmount) || 0,
+      udhaar: currentUdhaar,
       naap: { lambaai: '', teera: '', baazu: '', ghera: '', shalwar: '', paincha: '', asan: '', galla: '' }
     };
 
-    // Update parent state directly (This is the fix)
-    setClients((currentData) => [newRecord, ...currentData]);
-    
-    // Close and reset
-    setFormData({ name: '', phone: '', suits: 1, isUrgent: false, silayi: 0, pKarhayi: 0, gKarhayi: 0 });
+    // Direct Pure State Lifting Hook
+    setClients((prevClients) => [newClientRecord, ...prevClients]);
+
+    // Reset Form Fields Matrix
+    setClientName('');
+    setClientPhone('');
+    setSuitCount(1);
+    setIsUrgent(false);
+    setSilayiPrice('');
+    setPKarhayiPrice('');
+    setGKarhayiPrice('');
+    setReceivedAmount('');
     setShowAddModal(false);
   };
 
+  // WhatsApp Automated Invoice & Billing Engine
+  const dispatchWhatsAppInvoice = (client) => {
+    const calculatedTotal = (client.silayi + client.pKarhayi + client.gKarhayi) * client.totalSuits;
+    const cleanPhone = client.phone.replace(/\D/g, ''); // Removes any non-numeric characters
+    
+    const message = `Assalam-o-Alaikum *${client.name}* Bhai,\n\nGul Tailors ki taraf se aap ke order ka status ledger ready hai:\n\n` +
+      `📦 Total Suits: ${client.totalSuits}\n` +
+      `${client.isUrgent ? '🚨 Order Type: Urgent Delivery\n' : ''}` +
+      `💰 Total Bill: Rs. ${calculatedTotal}\n` +
+      `💵 Paid Cash: Rs. ${client.received}\n` +
+      `📉 Baqi Udhaar Balance: *Rs. ${client.udhaar}*\n\n` +
+      `*Gul Tailors Premium Vault • Adhi Kot*`;
+
+    window.open(`https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodeURIComponent(message)}`, '_blank');
+  };
+
+  const openNaapManager = (client) => {
+    setSelectedClient(client);
+    setNaapForm(client.naap || { lambaai: '', teera: '', baazu: '', ghera: '', shalwar: '', paincha: '', asan: '', galla: '' });
+    setActiveGuideText('💡 Kisi bhi field par tap karein tailoring instruction dekhne ke liye.');
+    setShowNaapModal(true);
+  };
+
+  const executeSaveNaap = () => {
+    setClients((prevClients) =>
+      prevClients.map((c) => (c.id === selectedClient.id ? { ...c, naap: naapForm } : c))
+    );
+    setShowNaapModal(false);
+  };
+
   return (
-    <div className="space-y-4">
-      {/* HEADER */}
-      <div className="flex items-center justify-between bg-white p-3 rounded-2xl shadow-sm border border-gray-100">
-        <h3 className="text-xs font-black text-[#8a6d3b] uppercase">👥 CLIENTS ENGINE</h3>
+    <div className="space-y-4 animate-fadeIn pb-12">
+      {/* Premium Top Controller */}
+      <div className="flex items-center justify-between bg-white p-4 rounded-3xl shadow-sm border border-gray-100">
+        <div>
+          <h3 className="text-xs font-black tracking-widest text-[#8a6d3b] uppercase">👥 CLIENTS ENGINE v3.0</h3>
+          <p className="text-[10px] font-bold text-gray-400">Active Records: {data.length}</p>
+        </div>
         <button 
-          onClick={() => setShowAddModal(true)}
-          className="bg-[#1f1610] text-[#cca464] font-black text-xs px-4 py-2 rounded-xl active:scale-95 transition-all"
+          onClick={() => setShowAddModal(true)} 
+          className="bg-[#1f1610] text-[#cca464] font-black text-xs px-5 py-2.5 rounded-xl active:scale-95 transition-all shadow-md"
         >
-          ➕ Add Client
+          ➕ Add Client Order
         </button>
       </div>
 
-      {/* MODAL */}
-      {showAddModal && (
-        <div className="fixed inset-0 z-[999] flex items-center justify-center bg-black/70 p-4">
-          <div className="w-full max-w-sm bg-[#fdf6e9] p-5 rounded-3xl shadow-2xl">
-            <h4 className="font-black text-gray-800 mb-4">ADD CLIENT & SUIT ORDER</h4>
-            
-            <form onSubmit={handleAddNewClient} className="space-y-3">
-              <input type="text" placeholder="Full Name" className="w-full p-2.5 rounded-xl border" required value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} />
-              <input type="tel" placeholder="WhatsApp Number" className="w-full p-2.5 rounded-xl border" required value={formData.phone} onChange={(e) => setFormData({...formData, phone: e.target.value})} />
-              
-              <div className="grid grid-cols-2 gap-2">
-                <input type="number" placeholder="Suits" className="p-2.5 rounded-xl border" value={formData.suits} onChange={(e) => setFormData({...formData, suits: e.target.value})} />
-                <div className="flex items-center gap-2 px-2">
-                  <input type="checkbox" className="w-5 h-5" checked={formData.isUrgent} onChange={(e) => setFormData({...formData, isUrgent: e.target.checked})} />
-                  <label className="font-bold text-xs">Urgent</label>
+      {/* Main Stream System Cards */}
+      <div className="space-y-3">
+        {data.map((client) => {
+          const clientTotalBill = (client.silayi + client.pKarhayi + client.gKarhayi) * client.totalSuits;
+          return (
+            <div key={client.id} className="bg-white rounded-3xl p-4 border border-gray-100 shadow-sm space-y-3 relative overflow-hidden">
+              {/* Card Status Header */}
+              <div className="flex justify-between items-start">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h4 className="font-black text-base text-gray-800 tracking-wide">{client.name}</h4>
+                    {client.isUrgent && (
+                      <span className="bg-rose-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded-md animate-pulse">URGENT</span>
+                    )}
+                  </div>
+                  <p className="text-xs text-gray-500 font-medium mt-0.5">📞 {client.phone}</p>
+                </div>
+                <div className="text-right">
+                  <span className={`text-[10px] font-black px-2.5 py-1 rounded-xl block ${client.udhaar > 0 ? 'bg-amber-50 text-amber-700 border border-amber-200' : 'bg-emerald-50 text-emerald-700 border border-emerald-100'}`}>
+                    {client.udhaar > 0 ? `Udhaar: Rs. ${client.udhaar}` : 'Clear ✅'}
+                  </span>
                 </div>
               </div>
 
-              <div className="bg-white p-3 rounded-xl border border-dashed border-gray-300 space-y-2">
-                <input type="number" placeholder="Silayi Price" className="w-full p-2 rounded-lg border" value={formData.silayi} onChange={(e) => setFormData({...formData, silayi: e.target.value})} />
-                <input type="number" placeholder="Paincha Karhayi" className="w-full p-2 rounded-lg border" value={formData.pKarhayi} onChange={(e) => setFormData({...formData, pKarhayi: e.target.value})} />
-                <input type="number" placeholder="Galla Karhayi" className="w-full p-2 rounded-lg border" value={formData.gKarhayi} onChange={(e) => setFormData({...formData, gKarhayi: e.target.value})} />
+              {/* Order Load Framework Metrics */}
+              <div className="grid grid-cols-3 gap-2 bg-gray-50 p-2.5 rounded-2xl border border-gray-100 text-center">
+                <div>
+                  <span className="text-[9px] font-black text-gray-400 block uppercase">Suits</span>
+                  <span className="text-xs font-black text-gray-700">{client.totalSuits} Qty</span>
+                </div>
+                <div>
+                  <span className="text-[9px] font-black text-gray-400 block uppercase">Total Bill</span>
+                  <span className="text-xs font-black text-gray-700">Rs. {clientTotalBill || 0}</span>
+                </div>
+                <div>
+                  <span className="text-[9px] font-black text-gray-400 block uppercase">Paid Cash</span>
+                  <span className="text-xs font-black text-emerald-600">Rs. {client.received || 0}</span>
+                </div>
               </div>
 
-              <div className="flex gap-2">
-                <button type="submit" className="flex-1 bg-[#1f1610] text-[#cca464] py-2.5 rounded-xl font-black">Save</button>
-                <button type="button" onClick={() => setShowAddModal(false)} className="px-5 py-2.5 bg-gray-200 rounded-xl font-black">Cancel</button>
+              {/* Actions Console Panel */}
+              <div className="flex items-center justify-between pt-2 border-t border-gray-100">
+                <button 
+                  onClick={() => openNaapManager(client)}
+                  className="bg-amber-500 hover:bg-amber-600 text-white font-black text-xs px-4 py-2 rounded-xl transition-all active:scale-95"
+                >
+                  📏 Size Vault
+                </button>
+
+                <div className="flex items-center gap-1.5">
+                  <button 
+                    onClick={() => dispatchWhatsAppInvoice(client)}
+                    className="bg-[#25D366] text-white flex items-center gap-1 text-xs font-black px-3 py-2 rounded-xl active:scale-95 transition-all shadow-xs"
+                  >
+                    <span>💬</span> WhatsApp
+                  </button>
+                  <button 
+                    onClick={() => onDelete(client.id)} 
+                    className="bg-rose-50 text-rose-600 hover:bg-rose-100 p-2 rounded-xl transition-colors"
+                  >
+                    🗑️
+                  </button>
+                </div>
               </div>
-            </form>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* PORTAL OVERLAY 1: THE REGISTRATION FLOW FORM */}
+      {showAddModal && (
+        <div className="fixed inset-0 z-[999] flex items-center justify-center bg-black/70 p-4 backdrop-blur-xs">
+          <div className="w-full max-w-sm rounded-3xl bg-[#fdf6e9] p-5 shadow-2xl border border-[#cca464]/30 space-y-4 max-h-[92vh] overflow-y-auto">
+            <h4 className="font-black text-gray-800 text-base border-b border-gray-200 pb-2">📋 CLIENT SUIT ORDER REGISTRY</h4>
+            
+            <div className="space-y-3">
+              {/* Identity Segment */}
+              <div>
+                <label className="text-[10px] font-black text-gray-500 uppercase block mb-1">Customer Full Name</label>
+                <input type="text" value={clientName} onChange={(e) => setClientName(e.target.value)} className="w-full p-2.5 rounded-xl border border-gray-200 bg-white font-bold text-sm" placeholder="e.g. Asif Ali" />
+              </div>
+              <div>
+                <label className="text-[10px] font-black text-gray-500 uppercase block mb-1">WhatsApp Mobile (923... Format)</label>
+                <input type="tel" value={clientPhone} onChange={(e) => setClientPhone(e.target.value)} className="w-full p-2.5 rounded-xl border border-gray-200 bg-white font-bold text-sm" placeholder="e.g. 923001234567" />
+              </div>
+
+              {/* Quantity Counter & Priority Framework */}
+              <div className="grid grid-cols-2 gap-2 pt-1">
+                <div>
+                  <label className="text-[10px] font-black text-gray-500 uppercase block mb-1">Total Suits</label>
+                  <div className="flex items-center bg-white rounded-xl border border-gray-200 overflow-hidden">
+                    <button type="button" onClick={() => setSuitCount(Math.max(1, suitCount - 1))} className="px-3 py-2 bg-gray-100 font-black text-gray-600 text-sm active:bg-gray-200">-</button>
+                    <span className="flex-1 text-center font-black text-sm text-gray-800">{suitCount}</span>
+                    <button type="button" onClick={() => setSuitCount(suitCount + 1)} className="px-3 py-2 bg-gray-100 font-black text-gray-600 text-sm active:bg-gray-200">+</button>
+                  </div>
+                </div>
+                <div className="flex flex-col justify-end pb-1">
+                  <label className="inline-flex items-center gap-2 cursor-pointer p-2 bg-white rounded-xl border border-gray-200 select-none">
+                    <input type="checkbox" checked={isUrgent} onChange={(e) => setIsUrgent(e.target.checked)} className="w-4 h-4 accent-rose-600 rounded" />
+                    <span className="text-xs font-black text-gray-700">Urgent Order</span>
+                  </label>
+                </div>
+              </div>
+
+              {/* Split Optional Ledger Section */}
+              <div className="bg-white p-3 rounded-2xl border border-dashed border-[#cca464]/40 bg-amber-50/20 space-y-2">
+                <p className="text-[10px] font-black text-[#8a6d3b] uppercase tracking-wider">🪡 Split Optional Billing Matrix</p>
+                <div className="grid grid-cols-3 gap-1.5">
+                  <input type="number" placeholder="Silayi" value={silayiPrice} onChange={(e) => setSilayiPrice(e.target.value)} className="w-full p-2 text-xs rounded-lg border bg-white font-bold text-center" />
+                  <input type="number" placeholder="Paincha K." value={pKarhayiPrice} onChange={(e) => setPKarhayiPrice(e.target.value)} className="w-full p-2 text-xs rounded-lg border bg-white font-bold text-center" />
+                  <input type="number" placeholder="Galla K." value={gKarhayiPrice} onChange={(e) => setGKarhayiPrice(e.target.value)} className="w-full p-2 text-xs rounded-lg border bg-white font-bold text-center" />
+                </div>
+                
+                {/* Real-time Math Feedback Feeder */}
+                <div className="pt-2 border-t border-gray-100 grid grid-cols-2 text-left gap-1 text-[11px] font-black text-gray-600">
+                  <div>Bill: <span className="text-gray-900">Rs. {currentTotalBill}</span></div>
+                  <div>Udhaar: <span className={currentUdhaar > 0 ? "text-amber-600" : "text-emerald-600"}>Rs. {currentUdhaar}</span></div>
+                </div>
+
+                <input type="number" placeholder="Received Paid Amount (Rs.)" value={receivedAmount} onChange={(e) => setReceivedAmount(e.target.value)} className="w-full p-2.5 text-sm rounded-xl border bg-white font-black text-emerald-700 placeholder-emerald-400" />
+              </div>
+
+              {/* Save Framework Matrix Trigger */}
+              <div className="flex gap-2 pt-2">
+                <button type="button" onClick={executeSaveClient} className="flex-1 bg-emerald-600 active:bg-emerald-700 text-white font-black py-2.5 rounded-xl text-sm shadow-md transition-colors">
+                  Save Registry
+                </button>
+                <button type="button" onClick={() => setShowAddModal(false)} className="bg-gray-200 text-gray-700 font-black px-4 py-2.5 rounded-xl text-sm active:bg-gray-300">
+                  Cancel
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}
-      
-      {/* LIST (Make sure to map 'data' correctly here) */}
-      <div className="space-y-3">
-        {data.map((client) => (
-          <div key={client.id} className="bg-white p-4 rounded-2xl shadow-sm border">
-            <h4 className="font-black text-gray-800">{client.name}</h4>
-            <p className="text-[10px] font-bold text-gray-400 uppercase">{client.phone}</p>
+
+      {/* PORTAL OVERLAY 2: SPECIFICATIONS VAULT WITH INLINE STATUS GUIDE */}
+      {showNaapModal && selectedClient && (
+        <div className="fixed inset-0 z-[999] flex items-center justify-center bg-black/70 p-4">
+          <div className="w-full max-w-sm rounded-3xl bg-white p-5 shadow-2xl border-t-8 border-amber-500 space-y-4 max-h-[90vh] overflow-y-auto">
+            <div>
+              <h4 className="font-black text-gray-800 text-base">📏 SIZE SPECIFICATIONS VAULT</h4>
+              <p className="text-xs font-bold text-amber-600">Client Profile: {selectedClient.name}</p>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-3 bg-gray-50 p-3 rounded-2xl border border-gray-100">
+              {Object.keys(naapForm).map((key) => (
+                <div key={key} className="focus-within:ring-2 focus-within:ring-amber-400 rounded-xl p-1 transition-all">
+                  <label className="text-[10px] font-black text-gray-400 capitalize block mb-0.5">{key}</label>
+                  <input 
+                    type="text" 
+                    value={naapForm[key]} 
+                    onFocus={() => setActiveGuideText(`💡 ${guides[key] || "Tape ko bilkul straight aur tight rakhein."}`)}
+                    onChange={(e) => setNaapForm({ ...naapForm, [key]: e.target.value })} 
+                    className="w-full p-2 rounded-xl border border-gray-200 bg-white text-center font-black text-sm text-gray-800 focus:outline-none"
+                    placeholder="--"
+                  />
+                </div>
+              ))}
+            </div>
+
+            {/* Permanent Contextual Live Master Guide Bar (Zero alerts) */}
+            <div className="bg-amber-50 rounded-xl p-3 border border-amber-100 min-h-[50px] flex items-center">
+              <p className="text-[11px] font-bold text-[#8a6d3b] leading-tight transition-all duration-200">
+                {activeGuideText}
+              </p>
+            </div>
+
+            <div className="flex gap-2">
+              <button type="button" onClick={executeSaveNaap} className="flex-1 bg-amber-500 text-white font-black py-2.5 rounded-xl text-sm shadow-md active:bg-amber-600 transition-colors">
+                Save Naap Spec
+              </button>
+              <button type="button" onClick={() => setShowNaapModal(false)} className="bg-gray-100 text-gray-700 font-black px-4 py-2.5 rounded-xl text-sm active:bg-gray-200">
+                Close
+              </button>
+            </div>
           </div>
-        ))}
-      </div>
+        </div>
+      )}
     </div>
   );
 }

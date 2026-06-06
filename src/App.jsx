@@ -8,7 +8,15 @@ import MoreSection from './views/MoreSection';
 export default function App() {
   const [activeTab, setActiveTab] = useState('home');
 
-  // Master Data Matrices with Naap Object
+  // CENTRALIZED SHOP IDENTITY - Update here if needed
+  const shopInfo = {
+    name: 'GUL TAILORS',
+    owner: 'Waseem Gul Baghoor',
+    phone: '03007614329',
+    address: 'Main Bazar Adhi Kot, Syed Market, Almaroof Tailors Wali Market, Left side last shop'
+  };
+
+  // Master Data Matrices
   const [clients, setClients] = useState([
     { 
       id: 1, 
@@ -17,29 +25,18 @@ export default function App() {
       udhaar: 4500, 
       suitType: 'Shalwar Kameez', 
       deliveryDate: '2026-06-15',
-      naap: { lambaai: '40', teera: '18', baazu: '23', ghera: '24', shalwar: '38', mora: '8.5', asan: '15' }
-    },
-    { 
-      id: 2, 
-      name: 'Kamran Khan', 
-      phone: '923219876543', 
-      udhaar: 0, 
-      suitType: 'Kurta Pajama', 
-      deliveryDate: '2026-06-12',
-      naap: { lambaai: '38', teera: '17.5', baazu: '22', ghera: '22', shalwar: '36', mora: '8', asan: '14' }
+      naap: { lambaai: '40', teera: '18', baazu: '23', ghera: '24', shalwar: '38', paincha: '8', asan: '15', galla: '16' }
     }
   ]);
 
   const [workers, setWorkers] = useState([
-    { id: 1, name: 'Zahid Karigar', phone: '923123456789', payable: 12000, specializedIn: 'Suit Stitching', activeSuits: 5 },
-    { id: 2, name: 'Sajid Master', phone: '923334445555', payable: 3500, specializedIn: 'Cutting', activeSuits: 2 }
+    { id: 1, name: 'Zahid Karigar', phone: '923123456789', payable: 12000, specializedIn: 'Suit Stitching', activeSuits: 5 }
   ]);
 
   const [wholesalers, setWholesalers] = useState([
     { id: 1, name: 'Faisalabad Cloth House', phone: '923007654321', balance: 25000, item: 'Latha & Wash n Wear' }
   ]);
 
-  // Global Engine Handlers
   const handleDelete = (type, id) => {
     if (window.confirm(`Kya aap is ${type} record ko permanently delete karna chahte hain?`)) {
       if (type === 'client') setClients(clients.filter(c => c.id !== id));
@@ -55,18 +52,20 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-[#fdf6e9] pb-24 font-sans text-[#1a1a1a]">
-      {/* Premium Header */}
-      <header className="sticky top-0 z-50 flex items-center justify-between bg-[#1f1610] px-4 py-4 shadow-xl border-b border-[#cca464]/25">
-        <div className="flex items-center gap-2">
-          <span className="text-2xl">✂️</span>
-          <h1 className="text-xl font-black tracking-wider text-[#cca464]">GUL TAILORS</h1>
-        </div>
-        <div className="rounded-full bg-[#cca464]/10 px-3 py-1 border border-[#cca464]/30">
-          <span className="text-xs font-bold text-[#cca464] tracking-widest uppercase">PRO SYSTEM</span>
+      {/* Updated Premium Header with Shop Identity */}
+      <header className="sticky top-0 z-50 bg-[#1f1610] px-4 py-3 shadow-xl border-b border-[#cca464]/25">
+        <div className="flex justify-between items-start">
+          <div>
+            <h1 className="text-xl font-black tracking-wider text-[#cca464]">{shopInfo.name}</h1>
+            <p className="text-[9px] font-bold text-[#cca464]/60 uppercase tracking-widest">{shopInfo.owner}</p>
+          </div>
+          <div className="text-right">
+            <p className="text-[10px] text-[#cca464] font-bold">{shopInfo.phone}</p>
+            <p className="text-[8px] text-[#cca464]/50 max-w-[120px] leading-tight mt-1">{shopInfo.address}</p>
+          </div>
         </div>
       </header>
 
-      {/* View Controller Portals */}
       <main className="mx-auto max-w-md px-4 pt-4">
         {activeTab === 'home' && (
           <Dashboard 
@@ -117,15 +116,14 @@ export default function App() {
               <button
                 key={tab.id}
                 onClick={() => navigateTo(tab.id)}
-                className={`flex flex-col items-center justify-center py-1 transition-all duration-200 ${
+                className={`flex flex-col items-center justify-center py-1 transition-all ${
                   isActive ? 'scale-110 text-[#d4af37]' : 'text-gray-400 opacity-60'
                 }`}
               >
-                <span className="text-xl mb-0.5">{tab.icon}</span>
-                <span className={`text-[11px] font-black tracking-wide ${isActive ? 'text-[#ffdb70]' : 'text-gray-400'}`}>
+                <span className="text-xl">{tab.icon}</span>
+                <span className={`text-[10px] font-black ${isActive ? 'text-[#ffdb70]' : 'text-gray-400'}`}>
                   {tab.label}
                 </span>
-                {isActive && <div className="mt-0.5 h-1 w-4 rounded-full bg-[#ffdb70]" />}
               </button>
             );
           })}

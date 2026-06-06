@@ -1,7 +1,8 @@
 import React, { useState } from 'react'
 import { Home, Users, Briefcase, ShoppingBag, MoreHorizontal } from 'lucide-react'
 import Dashboard from './views/Dashboard'
-import Clients from './views/Clients' // Naya Clients View Import kiya
+import Clients from './views/Clients'
+import Workers from './views/Workers' // Naya Workers View Import kiya
 
 export default function App() {
   const [currentPage, setCurrentPage] = useState('dashboard')
@@ -20,11 +21,11 @@ export default function App() {
       case 'dashboard':
         return <Dashboard />
       case 'clients':
-        return <Clients /> // Dummy text hatakar real component attach kar diya
+        return <Clients />
       case 'workers':
-        return <div className="p-4 text-center text-[#1a1006]">👷 Workers Screen (Next Step)</div>
+        return <Workers /> // Dummy text hatakar real component switch active kar diya
       case 'wholesalers':
-        return <div className="p-4 text-center text-[#1a1006]">🏪 Wholesalers Screen (Jald aa rahi hai)</div>
+        return <div className="p-4 text-center text-[#1a1006]">🏪 Wholesalers Screen (Next Step)</div>
       case 'more':
         return <div className="p-4 text-center text-[#1a1006]">⋯ Aur Options (Jald aa rahe hain)</div>
       default:

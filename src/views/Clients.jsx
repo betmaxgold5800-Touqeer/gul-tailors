@@ -5,6 +5,8 @@ export default function Clients({ data, setClients, onDelete }) {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showNaapModal, setShowNaapModal] = useState(false);
   const [selectedClient, setSelectedClient] = useState(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editingClientId, setEditingClientId] = useState(null);
   
   // Real-time Master Guide Status Bar state
   const [activeGuideText, setActiveGuideText] = useState('💡 Kisi bhi field par tap karein tailoring instruction dekhne ke liye.');
@@ -18,6 +20,8 @@ export default function Clients({ data, setClients, onDelete }) {
   const [pKarhayiPrice, setPKarhayiPrice] = useState('');
   const [gKarhayiPrice, setGKarhayiPrice] = useState('');
   const [receivedAmount, setReceivedAmount] = useState('');
+  const [deliveryDate, setDeliveryDate] = useState('');
+  const [orderStatus, setOrderStatus] = useState('Pending');
 
   // Sizing Vault State Model
   const [naapForm, setNaapForm] = useState({
@@ -38,33 +42,30 @@ export default function Clients({ data, setClients, onDelete }) {
 
   // Real-time Math Ledger Calculations
   const currentTotalBill = (Number(silayiPrice) + Number(pKarhayiPrice) + Number(gKarhayiPrice)) * suitCount;
-  const currentUdhaar = Math.max(0, currentTotalBill - Number(receivedAmount));
+  // If status is Delivered, udhaar auto shifts to 0
+  const currentUdhaar = orderStatus === 'Delivered' ? 0 : Math.max(0, currentTotalBill - Number(receivedAmount));
 
-  // Atomic Custom Save Handler (Bypasses traditional form crash)
-  const executeSaveClient = () => {
-    if (!clientName.trim() || !clientPhone.trim()) {
-      alert('⚠️ Error: Client Name aur Phone Number likhna lazmi hai!');
-      return;
-    }
+  // Open modal in edit mode
+  const openEditManager = (client) => {
+    setIsEditing(true);
+    setEditingClientId(client.id);
+    setClientName(client.name);
+    setClientPhone(client.phone);
+    setSuitCount(client.totalSuits);
+    setIsUrgent(client.isUrgent);
+    setSilayiPrice(client.silayi || '');
+    setPKarhayiPrice(client.pKarhayi || '');
+    setGKarhayiPrice(client.gKarhayi || '');
+    setReceivedAmount(client.received || '');
+    setDeliveryDate(client.deliveryDate || '');
+    setOrderStatus(client.status || 'Pending');
+    setShowAddModal(true);
+  };
 
-    const newClientRecord = {
-      id: Date.now(),
-      name: clientName.trim(),
-      phone: clientPhone.trim(),
-      totalSuits: Number(suitCount) || 1,
-      isUrgent: isUrgent,
-      silayi: Number(silayiPrice) || 0,
-      pKarhayi: Number(pKarhayiPrice) || 0,
-      gKarhayi: Number(gKarhayiPrice) || 0,
-      received: Number(receivedAmount) || 0,
-      udhaar: currentUdhaar,
-      naap: { lambaai: '', teera: '', baazu: '', ghera: '', shalwar: '', paincha: '', asan: '', galla: '' }
-    };
-
-    // Direct Pure State Lifting Hook
-    setClients((prevClients) => [newClientRecord, ...prevClients]);
-
-    // Reset Form Fields Matrix
+  // Open modal in add mode cleanly
+  const openAddManager = () => {
+    setIsEditing(false);
+    setEditingClientId(null);
     setClientName('');
     setClientPhone('');
     setSuitCount(1);
@@ -73,20 +74,77 @@ export default function Clients({ data, setClients, onDelete }) {
     setPKarhayiPrice('');
     setGKarhayiPrice('');
     setReceivedAmount('');
+    setDeliveryDate('');
+    setOrderStatus('Pending');
+    setShowAddModal(true);
+  };
+
+  // Atomic Custom Save / Update Handler
+  const executeSaveClient = () => {
+    if (!clientName.trim() || !clientPhone.trim()) {
+      alert('⚠️ Error: Client Name aur Phone Number likhna lazmi hai!');
+      return;
+    }
+
+    if (isEditing) {
+      setClients((prevClients) =>
+        prevClients.map((c) =>
+          c.id === editingClientId
+            ? {
+                ...c,
+                name: clientName.trim(),
+                phone: clientPhone.trim(),
+                totalSuits: Number(suitCount) || 1,
+                isUrgent: isUrgent,
+                silayi: Number(silayiPrice) || 0,
+                pKarhayi: Number(pKarhayiPrice) || 0,
+                gKarhayi: Number(gKarhayiPrice) || 0,
+                received: orderStatus === 'Delivered' ? (Number(silayiPrice) || 0) + (Number(pKarhayiPrice) || 0) + (Number(gKarhayiPrice) || 0) * (Number(suitCount) || 1) : Number(receivedAmount) || 0,
+                udhaar: currentUdhaar,
+                deliveryDate: deliveryDate,
+                status: orderStatus
+              }
+            : c
+        )
+      );
+    } else {
+      const today = new Date().toISOString().split('T')[0];
+      const newClientRecord = {
+        id: Date.now(),
+        name: clientName.trim(),
+        phone: clientPhone.trim(),
+        totalSuits: Number(suitCount) || 1,
+        isUrgent: isUrgent,
+        silayi: Number(silayiPrice) || 0,
+        pKarhayi: Number(pKarhayiPrice) || 0,
+        gKarhayi: Number(gKarhayiPrice) || 0,
+        received: orderStatus === 'Delivered' ? currentTotalBill : Number(receivedAmount) || 0,
+        udhaar: currentUdhaar,
+        orderDate: today,
+        deliveryDate: deliveryDate,
+        status: orderStatus,
+        naap: { lambaai: '', teera: '', baazu: '', ghera: '', shalwar: '', paincha: '', asan: '', galla: '' }
+      };
+      setClients((prevClients) => [newClientRecord, ...prevClients]);
+    }
+
     setShowAddModal(false);
   };
 
   // WhatsApp Automated Invoice & Billing Engine
   const dispatchWhatsAppInvoice = (client) => {
     const calculatedTotal = (client.silayi + client.pKarhayi + client.gKarhayi) * client.totalSuits;
-    const cleanPhone = client.phone.replace(/\D/g, ''); // Removes any non-numeric characters
+    const cleanPhone = client.phone.replace(/\D/g, '');
     
     const message = `Assalam-o-Alaikum *${client.name}* Bhai,\n\nGul Tailors ki taraf se aap ke order ka status ledger ready hai:\n\n` +
       `📦 Total Suits: ${client.totalSuits}\n` +
       `${client.isUrgent ? '🚨 Order Type: Urgent Delivery\n' : ''}` +
+      `📅 Order Date: ${client.orderDate || 'N/A'}\n` +
+      `📅 Delivery Date: ${client.deliveryDate || 'N/A'}\n` +
+      `⚡ Status: *${client.status || 'Pending'}*\n` +
       `💰 Total Bill: Rs. ${calculatedTotal}\n` +
-      `💵 Paid Cash: Rs. ${client.received}\n` +
-      `📉 Baqi Udhaar Balance: *Rs. ${client.udhaar}*\n\n` +
+      `💵 Paid Cash: Rs. ${client.status === 'Delivered' ? calculatedTotal : client.received}\n` +
+      `📉 Baqi Udhaar Balance: *Rs. ${client.status === 'Delivered' ? 0 : client.udhaar}*\n\n` +
       `*Gul Tailors Premium Vault • Adhi Kot*`;
 
     window.open(`https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodeURIComponent(message)}`, '_blank');
@@ -115,7 +173,7 @@ export default function Clients({ data, setClients, onDelete }) {
           <p className="text-[10px] font-bold text-gray-400">Active Records: {data.length}</p>
         </div>
         <button 
-          onClick={() => setShowAddModal(true)} 
+          onClick={openAddManager} 
           className="bg-[#1f1610] text-[#cca464] font-black text-xs px-5 py-2.5 rounded-xl active:scale-95 transition-all shadow-md"
         >
           ➕ Add Client Order
@@ -126,6 +184,8 @@ export default function Clients({ data, setClients, onDelete }) {
       <div className="space-y-3">
         {data.map((client) => {
           const clientTotalBill = (client.silayi + client.pKarhayi + client.gKarhayi) * client.totalSuits;
+          const displayUdhaar = client.status === 'Delivered' ? 0 : client.udhaar;
+          
           return (
             <div key={client.id} className="bg-white rounded-3xl p-4 border border-gray-100 shadow-sm space-y-3 relative overflow-hidden">
               {/* Card Status Header */}
@@ -136,12 +196,16 @@ export default function Clients({ data, setClients, onDelete }) {
                     {client.isUrgent && (
                       <span className="bg-rose-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded-md animate-pulse">URGENT</span>
                     )}
+                    <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-md ${client.status === 'Delivered' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}`}>
+                      {client.status || 'Pending'}
+                    </span>
                   </div>
                   <p className="text-xs text-gray-500 font-medium mt-0.5">📞 {client.phone}</p>
+                  <p className="text-[10px] text-gray-400 font-bold mt-0.5">📅 Delivery: {client.deliveryDate || 'Not Set'}</p>
                 </div>
                 <div className="text-right">
-                  <span className={`text-[10px] font-black px-2.5 py-1 rounded-xl block ${client.udhaar > 0 ? 'bg-amber-50 text-amber-700 border border-amber-200' : 'bg-emerald-50 text-emerald-700 border border-emerald-100'}`}>
-                    {client.udhaar > 0 ? `Udhaar: Rs. ${client.udhaar}` : 'Clear ✅'}
+                  <span className={`text-[10px] font-black px-2.5 py-1 rounded-xl block ${displayUdhaar > 0 ? 'bg-amber-50 text-amber-700 border border-amber-200' : 'bg-emerald-50 text-emerald-700 border border-emerald-100'}`}>
+                    {displayUdhaar > 0 ? `Udhaar: Rs. ${displayUdhaar}` : 'Clear ✅'}
                   </span>
                 </div>
               </div>
@@ -158,18 +222,26 @@ export default function Clients({ data, setClients, onDelete }) {
                 </div>
                 <div>
                   <span className="text-[9px] font-black text-gray-400 block uppercase">Paid Cash</span>
-                  <span className="text-xs font-black text-emerald-600">Rs. {client.received || 0}</span>
+                  <span className="text-xs font-black text-emerald-600">Rs. {client.status === 'Delivered' ? clientTotalBill : (client.received || 0)}</span>
                 </div>
               </div>
 
               {/* Actions Console Panel */}
               <div className="flex items-center justify-between pt-2 border-t border-gray-100">
-                <button 
-                  onClick={() => openNaapManager(client)}
-                  className="bg-amber-500 hover:bg-amber-600 text-white font-black text-xs px-4 py-2 rounded-xl transition-all active:scale-95"
-                >
-                  📏 Size Vault
-                </button>
+                <div className="flex items-center gap-1.5">
+                  <button 
+                    onClick={() => openNaapManager(client)}
+                    className="bg-amber-500 hover:bg-amber-600 text-white font-black text-xs px-3.5 py-2 rounded-xl transition-all active:scale-95"
+                  >
+                    📏 Size Vault
+                  </button>
+                  <button 
+                    onClick={() => openEditManager(client)}
+                    className="bg-blue-50 text-blue-600 hover:bg-blue-100 font-black text-xs px-3 py-2 rounded-xl transition-colors active:scale-95"
+                  >
+                    📝 Edit Profile
+                  </button>
+                </div>
 
                 <div className="flex items-center gap-1.5">
                   <button 
@@ -191,11 +263,13 @@ export default function Clients({ data, setClients, onDelete }) {
         })}
       </div>
 
-      {/* PORTAL OVERLAY 1: THE REGISTRATION FLOW FORM */}
+      {/* PORTAL OVERLAY 1: THE REGISTRATION & EDITING FLOW FORM */}
       {showAddModal && (
         <div className="fixed inset-0 z-[999] flex items-center justify-center bg-black/70 p-4 backdrop-blur-xs">
           <div className="w-full max-w-sm rounded-3xl bg-[#fdf6e9] p-5 shadow-2xl border border-[#cca464]/30 space-y-4 max-h-[92vh] overflow-y-auto">
-            <h4 className="font-black text-gray-800 text-base border-b border-gray-200 pb-2">📋 CLIENT SUIT ORDER REGISTRY</h4>
+            <h4 className="font-black text-gray-800 text-base border-b border-gray-200 pb-2">
+              {isEditing ? '📝 EDIT CLIENT PROFILE ORDER' : '📋 CLIENT SUIT ORDER REGISTRY'}
+            </h4>
             
             <div className="space-y-3">
               {/* Identity Segment */}
@@ -206,6 +280,21 @@ export default function Clients({ data, setClients, onDelete }) {
               <div>
                 <label className="text-[10px] font-black text-gray-500 uppercase block mb-1">WhatsApp Mobile (923... Format)</label>
                 <input type="tel" value={clientPhone} onChange={(e) => setClientPhone(e.target.value)} className="w-full p-2.5 rounded-xl border border-gray-200 bg-white font-bold text-sm" placeholder="e.g. 923001234567" />
+              </div>
+
+              {/* Status and Custom Dates segment */}
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-[10px] font-black text-gray-500 uppercase block mb-1">Order Status</label>
+                  <select value={orderStatus} onChange={(e) => setOrderStatus(e.target.value)} className="w-full p-2.5 rounded-xl border border-gray-200 bg-white font-black text-xs text-gray-700">
+                    <option value="Pending">Pending</option>
+                    <option value="Delivered">Delivered</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="text-[10px] font-black text-gray-500 uppercase block mb-1">Delivery Date</label>
+                  <input type="date" value={deliveryDate} onChange={(e) => setDeliveryDate(e.target.value)} className="w-full p-2 rounded-xl border border-gray-200 bg-white font-bold text-xs text-center" />
+                </div>
               </div>
 
               {/* Quantity Counter & Priority Framework */}
@@ -241,13 +330,15 @@ export default function Clients({ data, setClients, onDelete }) {
                   <div>Udhaar: <span className={currentUdhaar > 0 ? "text-amber-600" : "text-emerald-600"}>Rs. {currentUdhaar}</span></div>
                 </div>
 
-                <input type="number" placeholder="Received Paid Amount (Rs.)" value={receivedAmount} onChange={(e) => setReceivedAmount(e.target.value)} className="w-full p-2.5 text-sm rounded-xl border bg-white font-black text-emerald-700 placeholder-emerald-400" />
+                {orderStatus !== 'Delivered' && (
+                  <input type="number" placeholder="Received Paid Amount (Rs.)" value={receivedAmount} onChange={(e) => setReceivedAmount(e.target.value)} className="w-full p-2.5 text-sm rounded-xl border bg-white font-black text-emerald-700 placeholder-emerald-400" />
+                )}
               </div>
 
               {/* Save Framework Matrix Trigger */}
               <div className="flex gap-2 pt-2">
                 <button type="button" onClick={executeSaveClient} className="flex-1 bg-emerald-600 active:bg-emerald-700 text-white font-black py-2.5 rounded-xl text-sm shadow-md transition-colors">
-                  Save Registry
+                  {isEditing ? 'Update Profile' : 'Save Registry'}
                 </button>
                 <button type="button" onClick={() => setShowAddModal(false)} className="bg-gray-200 text-gray-700 font-black px-4 py-2.5 rounded-xl text-sm active:bg-gray-300">
                   Cancel

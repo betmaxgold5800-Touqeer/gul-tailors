@@ -8,10 +8,26 @@ import MoreSection from './views/MoreSection';
 export default function App() {
   const [activeTab, setActiveTab] = useState('home');
 
-  // Industry standard mockup state data
+  // Master Data Matrices with Naap Object
   const [clients, setClients] = useState([
-    { id: 1, name: 'Asif Ali', phone: '923001234567', udhaar: 4500, suitType: 'Shalwar Kameez', deliveryDate: '2026-06-15' },
-    { id: 2, name: 'Kamran Khan', phone: '923219876543', udhaar: 0, suitType: 'Kurta Pajama', deliveryDate: '2026-06-12' }
+    { 
+      id: 1, 
+      name: 'Asif Ali', 
+      phone: '923001234567', 
+      udhaar: 4500, 
+      suitType: 'Shalwar Kameez', 
+      deliveryDate: '2026-06-15',
+      naap: { lambaai: '40', teera: '18', baazu: '23', ghera: '24', shalwar: '38', mora: '8.5', asan: '15' }
+    },
+    { 
+      id: 2, 
+      name: 'Kamran Khan', 
+      phone: '923219876543', 
+      udhaar: 0, 
+      suitType: 'Kurta Pajama', 
+      deliveryDate: '2026-06-12',
+      naap: { lambaai: '38', teera: '17.5', baazu: '22', ghera: '22', shalwar: '36', mora: '8', asan: '14' }
+    }
   ]);
 
   const [workers, setWorkers] = useState([
@@ -23,22 +39,13 @@ export default function App() {
     { id: 1, name: 'Faisalabad Cloth House', phone: '923007654321', balance: 25000, item: 'Latha & Wash n Wear' }
   ]);
 
-  // Global handlers for Edit and Delete
+  // Global Engine Handlers
   const handleDelete = (type, id) => {
-    if (window.confirm(`Kya aap is ${type} ko waqai delete karna chahte hain?`)) {
+    if (window.confirm(`Kya aap is ${type} record ko permanently delete karna chahte hain?`)) {
       if (type === 'client') setClients(clients.filter(c => c.id !== id));
       if (type === 'worker') setWorkers(workers.filter(w => w.id !== id));
       if (type === 'wholesaler') setWholesalers(wholesalers.filter(ws => ws.id !== id));
     }
-  };
-
-  const handleEdit = (type, item) => {
-    const newName = prompt(`Enter new name for ${item.name}:`, item.name);
-    if (!newName) return;
-    
-    if (type === 'client') setClients(clients.map(c => c.id === item.id ? { ...c, name: newName } : c));
-    if (type === 'worker') setWorkers(workers.map(w => w.id === item.id ? { ...w, name: newName } : w));
-    if (type === 'wholesaler') setWholesalers(wholesalers.map(ws => ws.id === item.id ? { ...ws, name: newName } : ws));
   };
 
   const navigateTo = (tabName) => {
@@ -59,7 +66,7 @@ export default function App() {
         </div>
       </header>
 
-      {/* Main Dynamic View Controller */}
+      {/* View Controller Portals */}
       <main className="mx-auto max-w-md px-4 pt-4">
         {activeTab === 'home' && (
           <Dashboard 
@@ -70,21 +77,33 @@ export default function App() {
           />
         )}
         {activeTab === 'clients' && (
-          <Clients data={clients} onEdit={(c) => handleEdit('client', c)} onDelete={(id) => handleDelete('client', id)} />
+          <Clients 
+            data={clients} 
+            setClients={setClients}
+            onDelete={(id) => handleDelete('client', id)} 
+          />
         )}
         {activeTab === 'workers' && (
-          <Workers data={workers} onEdit={(w) => handleEdit('worker', w)} onDelete={(id) => handleDelete('worker', id)} />
+          <Workers 
+            data={workers} 
+            setWorkers={setWorkers}
+            onDelete={(id) => handleDelete('worker', id)} 
+          />
         )}
         {activeTab === 'ws' && (
-          <Wholesalers data={wholesalers} onEdit={(ws) => handleEdit('wholesaler', ws)} onDelete={(id) => handleDelete('wholesaler', id)} />
+          <Wholesalers 
+            data={wholesalers} 
+            setWholesalers={setWholesalers}
+            onDelete={(id) => handleDelete('wholesaler', id)} 
+          />
         )}
         {activeTab === 'aur' && (
           <MoreSection navigateTo={navigateTo} />
         )}
       </main>
 
-      {/* Bottom Nav Bar */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50 mx-auto max-w-md border-t border-[#cca464]/30 bg-[#1f1610] px-2 py-2 shadow-xl rounded-t-2xl">
+      {/* Navigation Layer */}
+      <nav className="fixed bottom-0 left-0 right-0 z-50 mx-auto max-w-md border-t border-[#cca464]/30 bg-[#1f1610] px-2 py-2 shadow-2xl rounded-t-2xl">
         <div className="grid grid-cols-5 text-center">
           {[
             { id: 'home', label: 'Home', icon: '🏠' },

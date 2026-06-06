@@ -40,10 +40,17 @@ export default function Clients({ data, setClients, onDelete }) {
     asan: "Asan: Shalwar ki guthni/crotch length ka standard naap."
   };
 
-  // Real-time Math Ledger Calculations
-  const currentTotalBill = (Number(silayiPrice) + Number(pKarhayiPrice) + Number(gKarhayiPrice)) * suitCount;
-  // If status is Delivered, udhaar auto shifts to 0
-  const currentUdhaar = orderStatus === 'Delivered' ? 0 : Math.max(0, currentTotalBill - Number(receivedAmount));
+  // Real-time Math Ledger Calculations (Strict Ground Reality: Udhaar depends ONLY on Cash Paid)
+  const currentTotalBill = ((Number(silayiPrice) || 0) + (Number(pKarhayiPrice) || 0) + (Number(gKarhayiPrice) || 0)) * (Number(suitCount) || 1);
+  const currentUdhaar = Math.max(0, currentTotalBill - Number(receivedAmount || 0));
+
+  // Inline Status Changer Switch (Direct State Lifter without opening Modal)
+  const toggleStatusDirectly = (clientId, currentStatus) => {
+    const nextStatus = currentStatus === 'Delivered' ? 'Pending' : 'Delivered';
+    setClients((prevClients) =>
+      prevClients.map((c) => (c.id === clientId ? { ...c, status: nextStatus } : c))
+    );
+  };
 
   // Open modal in edit mode
   const openEditManager = (client) => {
@@ -86,6 +93,10 @@ export default function Clients({ data, setClients, onDelete }) {
       return;
     }
 
+    const finalBill = currentTotalBill;
+    const finalReceived = Number(receivedAmount) || 0;
+    const finalUdhaar = Math.max(0, finalBill - finalReceived);
+
     if (isEditing) {
       setClients((prevClients) =>
         prevClients.map((c) =>
@@ -99,8 +110,8 @@ export default function Clients({ data, setClients, onDelete }) {
                 silayi: Number(silayiPrice) || 0,
                 pKarhayi: Number(pKarhayiPrice) || 0,
                 gKarhayi: Number(gKarhayiPrice) || 0,
-                received: orderStatus === 'Delivered' ? (Number(silayiPrice) || 0) + (Number(pKarhayiPrice) || 0) + (Number(gKarhayiPrice) || 0) * (Number(suitCount) || 1) : Number(receivedAmount) || 0,
-                udhaar: currentUdhaar,
+                received: finalReceived,
+                udhaar: finalUdhaar,
                 deliveryDate: deliveryDate,
                 status: orderStatus
               }
@@ -118,8 +129,8 @@ export default function Clients({ data, setClients, onDelete }) {
         silayi: Number(silayiPrice) || 0,
         pKarhayi: Number(pKarhayiPrice) || 0,
         gKarhayi: Number(gKarhayiPrice) || 0,
-        received: orderStatus === 'Delivered' ? currentTotalBill : Number(receivedAmount) || 0,
-        udhaar: currentUdhaar,
+        received: finalReceived,
+        udhaar: finalUdhaar,
         orderDate: today,
         deliveryDate: deliveryDate,
         status: orderStatus,
@@ -143,8 +154,8 @@ export default function Clients({ data, setClients, onDelete }) {
       `📅 Delivery Date: ${client.deliveryDate || 'N/A'}\n` +
       `⚡ Status: *${client.status || 'Pending'}*\n` +
       `💰 Total Bill: Rs. ${calculatedTotal}\n` +
-      `💵 Paid Cash: Rs. ${client.status === 'Delivered' ? calculatedTotal : client.received}\n` +
-      `📉 Baqi Udhaar Balance: *Rs. ${client.status === 'Delivered' ? 0 : client.udhaar}*\n\n` +
+      `💵 Paid Cash: Rs. ${client.received}\n` +
+      `📉 Baqi Udhaar Balance: *Rs. ${client.udhaar}*\n\n` +
       `*Gul Tailors Premium Vault • Adhi Kot*`;
 
     window.open(`https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodeURIComponent(message)}`, '_blank');
@@ -184,8 +195,9 @@ export default function Clients({ data, setClients, onDelete }) {
       <div className="space-y-3">
         {data.map((client) => {
           const clientTotalBill = (client.silayi + client.pKarhayi + client.gKarhayi) * client.totalSuits;
-          const displayUdhaar = client.status === 'Delivered' ? 0 : client.udhaar;
-          
+          const displayUdhaar = client.udhaar; // Pure Udhaar Tracking independent of status
+          const currentStatus = client.status || 'Pending';
+
           return (
             <div key={client.id} className="bg-white rounded-3xl p-4 border border-gray-100 shadow-sm space-y-3 relative overflow-hidden">
               {/* Card Status Header */}
@@ -196,15 +208,24 @@ export default function Clients({ data, setClients, onDelete }) {
                     {client.isUrgent && (
                       <span className="bg-rose-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded-md animate-pulse">URGENT</span>
                     )}
-                    <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-md ${client.status === 'Delivered' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}`}>
-                      {client.status || 'Pending'}
-                    </span>
                   </div>
                   <p className="text-xs text-gray-500 font-medium mt-0.5">📞 {client.phone}</p>
                   <p className="text-[10px] text-gray-400 font-bold mt-0.5">📅 Delivery: {client.deliveryDate || 'Not Set'}</p>
                 </div>
-                <div className="text-right">
-                  <span className={`text-[10px] font-black px-2.5 py-1 rounded-xl block ${displayUdhaar > 0 ? 'bg-amber-50 text-amber-700 border border-amber-200' : 'bg-emerald-50 text-emerald-700 border border-emerald-100'}`}>
+                
+                {/* INLINE STATUS BUTTON CONTROLLER (Directly on the main UI Card) */}
+                <div className="flex flex-col items-end gap-2">
+                  <button
+                    onClick={() => toggleStatusDirectly(client.id, currentStatus)}
+                    className={`text-[10px] font-black px-3 py-1.5 rounded-xl transition-all active:scale-95 border ${
+                      currentStatus === 'Delivered'
+                        ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                        : 'bg-amber-50 text-amber-700 border-amber-200'
+                    }`}
+                  >
+                    {currentStatus === 'Delivered' ? '📦 Delivered' : '⏳ Pending'}
+                  </button>
+                  <span className={`text-[10px] font-black px-2.5 py-1 rounded-xl block ${displayUdhaar > 0 ? 'bg-rose-50 text-rose-700 border border-rose-200' : 'bg-emerald-50 text-emerald-700 border border-emerald-100'}`}>
                     {displayUdhaar > 0 ? `Udhaar: Rs. ${displayUdhaar}` : 'Clear ✅'}
                   </span>
                 </div>
@@ -222,7 +243,7 @@ export default function Clients({ data, setClients, onDelete }) {
                 </div>
                 <div>
                   <span className="text-[9px] font-black text-gray-400 block uppercase">Paid Cash</span>
-                  <span className="text-xs font-black text-emerald-600">Rs. {client.status === 'Delivered' ? clientTotalBill : (client.received || 0)}</span>
+                  <span className="text-xs font-black text-emerald-600">Rs. {client.received || 0}</span>
                 </div>
               </div>
 
@@ -327,12 +348,10 @@ export default function Clients({ data, setClients, onDelete }) {
                 {/* Real-time Math Feedback Feeder */}
                 <div className="pt-2 border-t border-gray-100 grid grid-cols-2 text-left gap-1 text-[11px] font-black text-gray-600">
                   <div>Bill: <span className="text-gray-900">Rs. {currentTotalBill}</span></div>
-                  <div>Udhaar: <span className={currentUdhaar > 0 ? "text-amber-600" : "text-emerald-600"}>Rs. {currentUdhaar}</span></div>
+                  <div>Udhaar: <span className={currentUdhaar > 0 ? "text-rose-600" : "text-emerald-600"}>Rs. {currentUdhaar}</span></div>
                 </div>
 
-                {orderStatus !== 'Delivered' && (
-                  <input type="number" placeholder="Received Paid Amount (Rs.)" value={receivedAmount} onChange={(e) => setReceivedAmount(e.target.value)} className="w-full p-2.5 text-sm rounded-xl border bg-white font-black text-emerald-700 placeholder-emerald-400" />
-                )}
+                <input type="number" placeholder="Received Paid Amount (Rs.)" value={receivedAmount} onChange={(e) => setReceivedAmount(e.target.value)} className="w-full p-2.5 text-sm rounded-xl border bg-white font-black text-emerald-700 placeholder-emerald-400" />
               </div>
 
               {/* Save Framework Matrix Trigger */}

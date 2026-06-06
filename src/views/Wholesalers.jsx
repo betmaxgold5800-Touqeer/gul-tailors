@@ -1,227 +1,211 @@
-import React, { useState } from 'react'
-import { UserPlus, ShoppingBag, Phone, DollarSign, ChevronDown, ChevronUp } from 'lucide-react'
-
-// Local storage key constants
-const WS_KEY = 'gt_wholesalers'
-const WS_TX_KEY = 'gt_ws_txns'
+import React, { useState, useEffect } from 'react'
+import { Plus, Store, CreditCard, CheckCircle, Trash2, History, AlertCircle } from 'lucide-react'
 
 export default function Wholesalers() {
-  // Initialization directly from LocalStorage
-  const [wholesalers, setWholesalers] = useState(() => {
-    const saved = localStorage.getItem(WS_KEY)
-    return saved ? JSON.parse(saved) : []
+  const [wholesalers, setWholesalers] = useState([])
+  const [txns, setTxns] = useState([])
+  const [showAddWS, setShowAddWS] = useState(false)
+  const [showAddTxn, setShowAddTxn] = useState(false)
+
+  // Form Initial State Matrices
+  const [wsName, setWsName] = useState('')
+  const [txnData, setTxnData] = useState({
+    wsId: '', amount: '', type: 'Due', note: ''
   })
 
-  const [wsTxns, setWsTxns] = useState(() => {
-    const saved = localStorage.getItem(WS_TX_KEY)
-    return saved ? JSON.parse(saved) : []
-  })
+  useEffect(() => {
+    const savedWS = localStorage.getItem('gt_wholesalers')
+    const savedTxns = localStorage.getItem('gt_ws_txns')
+    if (savedWS) setWholesalers(JSON.parse(savedWS))
+    if (savedTxns) setTxns(JSON.parse(savedTxns))
+  }, [])
 
-  // UI Toggles & Form States
-  const [showAddForm, setShowAddForm] = useState(false)
-  const [expandedWs, setExpandedWs] = useState(null)
-  
-  const [newWs, setNewWs] = useState({ name: '', phone: '', shop: '' })
-  const [txAmount, setTxAmount] = useState('')
-  const [txType, setTxType] = useState('debit') // debit = Maal Khareeda (Baqi), credit = Payment Di (Jama)
-  const [txDesc, setTxDesc] = useState('')
-
-  // Sync to LocalStorage on state modifications
-  const saveWs = (data) => {
-    setWholesalers(data)
-    localStorage.setItem(WS_KEY, JSON.stringify(data))
-  }
-
-  const saveTxns = (data) => {
-    setWsTxns(data)
-    localStorage.setItem(WS_TX_KEY, JSON.stringify(data))
-  }
-
-  // 1. Wholesaler Registration
-  const handleAddWs = (e) => {
+  const handleAddWS = (e) => {
     e.preventDefault()
-    if (!newWs.name.trim()) return
+    if (!wsName) return
 
-    const wsObj = {
-      id: 'ws_' + Date.now(),
-      name: newWs.name,
-      phone: newWs.phone || 'N/A',
-      shop: newWs.shop || 'Bazaar'
-    }
-
-    saveWs([wsObj, ...wholesalers])
-    setShowAddForm(false)
-    setNewWs({ name: '', phone: '', shop: '' })
+    const newWS = [...wholesalers, { id: Date.now().toString(), name: wsName, khata: 0 }]
+    setWholesalers(newWS)
+    localStorage.setItem('gt_wholesalers', JSON.stringify(newWS))
+    setWsName('')
+    setShowAddWS(false)
   }
 
-  // 2. Transaction Logger
-  const handleAddTxn = (wsId) => {
-    if (!txAmount || Number(txAmount) <= 0) return
+  const handleAddTxn = (e) => {
+    e.preventDefault()
+    const { wsId, amount, type, note } = txnData
+    if (!wsId || !amount) return alert("Wholesaler aur Amount lazmi hain!")
 
-    const txnObj = {
-      id: 'wst_' + Date.now(),
-      wsid: wsId,
-      amount: Number(txAmount),
-      type: txType,
-      desc: txDesc || (txType === 'debit' ? 'Maal Khareeda' : 'Payment Ada Ki'),
-      date: new Date().toLocaleDateString('en-PK')
+    const amt = Number(amount)
+    const newTxn = {
+      ...txnData,
+      id: Date.now().toString(),
+      date: new Date().toISOString().split('T')[0],
+      amount: amt
     }
 
-    saveTxns([txnObj, ...wsTxns])
-    setTxAmount('')
-    setTxDesc('')
-  }
+    const updatedTxns = [newTxn, ...txns]
+    setTxns(updatedTxns)
+    localStorage.setItem('gt_ws_txns', JSON.stringify(updatedTxns))
 
-  // 3. Balance Calculator Matrix
-  const getWsBalance = (wsId) => {
-    return wsTxns
-      .filter(t => t.wsid === wsId)
-      .reduce((acc, t) => t.type === 'debit' ? acc - Number(t.amount) : acc + Number(t.amount), 0)
+    // Real-time calculation of Wholesaler balance matrix
+    const updatedWS = wholesalers.map(ws => {
+      if (ws.id === wsId) {
+        const currentKhata = Number(ws.khata || 0)
+        // Due means we bought material on credit (khata increases), Paid means we paid them (khata decreases)
+        return { 
+          ...ws, 
+          khata: type === 'Due' ? currentKhata + amt : Math.max(0, currentKhata - amt) 
+        }
+      }
+      return ws
+    })
+    setWholesalers(updatedWS)
+    localStorage.setItem('gt_wholesalers', JSON.stringify(updatedWS))
+
+    // Reset Form Matrix
+    setTxnData({ wsId: '', amount: '', type: 'Due', note: '' })
+    setShowAddTxn(false)
   }
 
   return (
-    <div className="space-y-4 animate-fadeIn">
+    <div className="space-y-5 animate-fadeIn">
       
-      {/* View Header */}
-      <div className="flex justify-between items-center">
-        <h2 className="text-lg font-serif font-bold text-[#1a1006]">Wholesalers Matrix</h2>
-        <button 
-          onClick={() => setShowAddForm(!showAddForm)}
-          className="bg-[#1a1006] text-[#e8b84b] text-xs px-3 py-2 rounded-xl border border-[#e2cfa0]/30 flex items-center gap-1 font-medium"
-        >
-          <UserPlus className="w-3.5 h-3.5" />
-          {showAddForm ? 'Band Karein' : 'Naya Merchant'}
-        </button>
+      {/* Top Bar Header Matrix */}
+      <div className="flex items-center justify-between border-b border-[#e2cfa0]/30 pb-2">
+        <h2 className="text-base font-serif font-bold text-[#1a1006] flex items-center gap-1.5">
+          🏢 Wholesalers & Dealers Ledger
+        </h2>
+        <div className="flex gap-1.5">
+          <button onClick={() => { setShowAddWS(!showAddWS); setShowAddTxn(false) }} className="bg-[#fffdf7] border border-[#e2cfa0] text-[#9a7c44] text-[10px] font-bold py-1.5 px-2.5 rounded-xl transition-all">
+            + Shop/Seth Add
+          </button>
+          <button onClick={() => { setShowAddTxn(!showAddTxn); setShowAddWS(false) }} className="bg-[#1a1006] text-[#e8b84b] text-[10px] font-bold py-1.5 px-2.5 rounded-xl border border-[#e2cfa0]/20 transition-all">
+            + Transaction
+          </button>
+        </div>
       </div>
 
-      {/* Add Wholesaler Form */}
-      {showAddForm && (
-        <form onSubmit={handleAddWs} className="bg-white border border-[#e2cfa0] rounded-xl p-4 space-y-3 shadow-inner">
-          <h3 className="text-xs font-bold text-[#9a7c44] uppercase tracking-wider border-b border-black/5 pb-1">Merchant Profile</h3>
-          <div className="grid grid-cols-3 gap-2">
-            <input 
-              type="text" placeholder="Seth / Name" required value={newWs.name}
-              onChange={e => setNewWs({...newWs, name: e.target.value})}
-              className="border border-black/10 rounded-lg p-2 text-xs bg-[#fffdf7] focus:outline-[#c9952a]"
-            />
-            <input 
-              type="tel" placeholder="Phone No" value={newWs.phone}
-              onChange={e => setNewWs({...newWs, phone: e.target.value})}
-              className="border border-black/10 rounded-lg p-2 text-xs bg-[#fffdf7] focus:outline-[#c9952a]"
-            />
-            <input 
-              type="text" placeholder="Shop/Market" value={newWs.shop}
-              onChange={e => setNewWs({...newWs, shop: e.target.value})}
-              className="border border-black/10 rounded-lg p-2 text-xs bg-[#fffdf7] focus:outline-[#c9952a]"
-            />
+      {/* 1. Add Merchant/Wholesaler Shop Form */}
+      {showAddWS && (
+        <form onSubmit={handleAddWS} className="bg-[#fffdf7] border border-[#e2cfa0] rounded-2xl p-4 shadow-sm space-y-3 animate-slideDown">
+          <h3 className="text-xs font-bold text-[#9a7c44] uppercase tracking-wider flex items-center gap-1"><Store className="w-3.5 h-3.5" /> Naye Wholesaler / Shop Ka Naam</h3>
+          <div className="flex gap-2">
+            <input type="text" value={wsName} onChange={(e) => setWsName(e.target.value)} placeholder="e.g. Faisalabad Cloth House" className="w-full bg-white border border-black/10 rounded-xl px-3 py-1.5 text-xs focus:outline-none focus:border-[#e8b84b]" required />
+            <button type="submit" className="bg-[#1a1006] text-[#e8b84b] text-xs font-bold px-4 rounded-xl shrink-0">Save</button>
           </div>
-          <button type="submit" className="w-full bg-[#c9952a] text-white text-xs font-bold py-2 rounded-lg shadow-md">
-            Save Merchant Account
+        </form>
+      )}
+
+      {/* 2. Add Balance Ledger Credit/Debit Form */}
+      {showAddTxn && (
+        <form onSubmit={handleAddTxn} className="bg-[#fffdf7] border border-[#e2cfa0] rounded-2xl p-4 shadow-sm space-y-4 animate-slideDown">
+          <h3 className="text-xs font-bold text-[#9a7c44] uppercase tracking-wider flex items-center gap-1"><CreditCard className="w-3.5 h-3.5" /> Khata / Payment Transaction Form</h3>
+          
+          <div className="grid grid-cols-2 gap-2.5">
+            <div className="col-span-2">
+              <label className="text-[10px] font-bold text-black/50 block mb-0.5">Wholesaler Select Chunien</label>
+              <select value={txnData.wsId} onChange={(e) => setTxnData({...txnData, wsId: e.target.value})} className="w-full bg-white border border-black/10 rounded-xl px-2.5 py-1.5 text-xs focus:outline-none" required>
+                <option value="">-- Wholesaler Market Selection --</option>
+                {wholesalers.map(ws => <option key={ws.id} value={ws.id}>{ws.name}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="text-[10px] font-bold text-black/50 block mb-0.5">Raqam (Amount)</label>
+              <input type="number" value={txnData.amount} onChange={(e) => setTxnData({...txnData, amount: e.target.value})} placeholder="e.g. 5000" className="w-full bg-white border border-black/10 rounded-xl px-2.5 py-1.5 text-xs focus:outline-none" required />
+            </div>
+            <div>
+              <label className="text-[10px] font-bold text-black/50 block mb-0.5">Transaction Type</label>
+              <select value={txnData.type} onChange={(e) => setTxnData({...txnData, type: e.target.value})} className="w-full bg-white border border-black/10 rounded-xl px-2.5 py-1.5 text-xs focus:outline-none">
+                <option value="Due">Kapra/Maal Liya (Dena Baqi)</option>
+                <option value="Paid">Raqam Di (Cash Paid)</option>
+              </select>
+            </div>
+            <div className="col-span-2">
+              <label className="text-[10px] font-bold text-black/50 block mb-0.5">Note Details (Bill Number / Quality)</label>
+              <input type="text" value={txnData.note} onChange={(e) => setTxnData({...txnData, note: e.target.value})} placeholder="e.g. Latha Fabric Bill #402" className="w-full bg-white border border-black/10 rounded-xl px-2.5 py-1.5 text-xs focus:outline-none" />
+            </div>
+          </div>
+
+          <button type="submit" className="w-full bg-[#1a1006] text-[#e8b84b] font-bold py-2 rounded-xl text-xs border border-[#e2cfa0]/20 shadow-md">
+            Save Ledger Transaction
           </button>
         </form>
       )}
 
-      {/* Wholesalers Rendering Loop */}
-      <div className="space-y-2">
+      {/* 3. Merchant Accounts Balance Directory Summary */}
+      <div className="bg-[#fffdf7] border border-[#e2cfa0]/60 rounded-2xl p-3.5 shadow-sm space-y-2">
+        <h3 className="text-[10px] font-bold text-[#9a7c44] uppercase tracking-widest border-b border-black/5 pb-1.5">
+          🏬 Outstanding Wholesaler Net Balances
+        </h3>
         {wholesalers.length === 0 ? (
-          <p className="text-center text-xs text-black/40 py-6">Koi Wholesale Merchant register nahi hai.</p>
+          <p className="text-[11px] text-black/40 text-center py-2">Koi dealers registered nahi hain.</p>
         ) : (
-          wholesalers.map((ws) => {
-            const balance = getWsBalance(ws.id)
-            const isExpanded = expandedWs === ws.id
-            const history = wsTxns.filter(t => t.wsid === ws.id)
-
-            return (
-              <div key={ws.id} className="bg-[#fffdf7] border border-black/5 rounded-xl shadow-sm overflow-hidden">
-                
-                {/* Header Selector */}
-                <div 
-                  onClick={() => setExpandedWs(isExpanded ? null : ws.id)}
-                  className="p-3 flex justify-between items-center cursor-pointer hover:bg-black/[0.01]"
-                >
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 bg-[#1a1006]/5 rounded-full flex items-center justify-center text-xs">
-                      <ShoppingBag className="w-4 h-4 text-[#9a7c44]" />
-                    </div>
-                    <div>
-                      <h4 className="text-xs font-bold text-[#1a1006]">{ws.name}</h4>
-                      <p className="text-[9px] text-black/40">
-                        Market: {ws.shop} | <span className="font-mono">{ws.phone}</span>
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <span className={`text-xs font-serif font-bold px-2 py-0.5 rounded ${
-                      balance < 0 ? 'bg-red-50 text-red-600' : balance > 0 ? 'bg-green-50 text-green-600' : 'bg-gray-100 text-gray-600'
-                    }`}>
-                      {balance === 0 ? 'Clear' : balance < 0 ? `Rs. ${Math.abs(balance)} (Hamein Dena Hai)` : `Rs. ${balance} (Advance Matrix)`}
-                    </span>
-                    {isExpanded ? <ChevronUp className="w-3.5 h-3.5 text-black/40" /> : <ChevronDown className="w-3.5 h-3.5 text-black/40" />}
-                  </div>
-                </div>
-
-                {/* Expanded Ledger Segment */}
-                {isExpanded && (
-                  <div className="border-t border-black/5 bg-white p-3 space-y-4 animate-slideDown">
-                    
-                    {/* Add Ledger Action Pad */}
-                    <div>
-                      <h5 className="text-[10px] font-bold text-[#9a7c44] uppercase tracking-wider flex items-center gap-1 mb-2">
-                        <DollarSign className="w-3 h-3" /> Ledger Entry Record Karein
-                      </h5>
-                      <div className="flex gap-1.5">
-                        <select 
-                          value={txType} onChange={e => setTxType(e.target.value)}
-                          className="border border-black/10 rounded-lg text-[11px] p-1.5 bg-[#fffdf7]"
-                        >
-                          <option value="debit">Maal Khareeda (-)</option>
-                          <option value="credit">Payment Di (+)</option>
-                        </select>
-                        <input 
-                          type="number" placeholder="Raqam" value={txAmount}
-                          onChange={e => setTxAmount(e.target.value)}
-                          className="border border-black/10 rounded-lg p-1.5 text-xs w-20 focus:outline-[#c9952a]"
-                        />
-                        <input 
-                          type="text" placeholder="Tafseel" value={txDesc}
-                          onChange={e => setTxDesc(e.target.value)}
-                          className="border border-black/10 rounded-lg p-1.5 text-xs flex-1 focus:outline-[#c9952a]"
-                        />
-                        <button 
-                          type="button" onClick={() => handleAddTxn(ws.id)}
-                          className="bg-[#1a1006] text-[#e8b84b] text-[11px] px-3 rounded-lg font-medium"
-                        >
-                          Save
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* History Log */}
-                    <div className="pt-2 border-t border-black/5">
-                      <h5 className="text-[10px] font-bold text-[#9a7c44] uppercase tracking-wider mb-1.5">Haliya Transactions Ledger</h5>
-                      <div className="max-h-24 overflow-y-auto space-y-1 text-[10px]">
-                        {history.length === 0 ? (
-                          <p className="text-black/30 italic text-center py-2">Koi transactions record nahi hain.</p>
-                        ) : (
-                          history.map((h) => (
-                            <div key={h.id} className="flex justify-between items-center bg-gray-50/60 p-1.5 rounded border border-black/[0.02]">
-                              <span className="text-black/50">{h.date}</span>
-                              <span className="font-medium text-black/70 flex-1 px-3 truncate">{h.desc}</span>
-                              <span className={h.type === 'credit' ? 'text-green-600 font-bold' : 'text-red-500 font-bold'}>
-                                {h.type === 'credit' ? '+' : '-'} Rs.{h.amount}
-                              </span>
-                            </div>
-                          ))
-                        )}
-                      </div>
-                    </div>
-
-                  </div>
-                )}
+          <div className="grid grid-cols-2 gap-2">
+            {wholesalers.map(ws => (
+              <div key={ws.id} className="bg-white border border-black/5 rounded-xl p-2.5 flex items-center justify-between shadow-inner">
+                <span className="text-xs font-bold text-slate-700 truncate mr-1">{ws.name}</span>
+                <span className={`text-xs font-mono font-black shrink-0 ${Number(ws.khata) > 0 ? 'text-amber-600' : 'text-emerald-600'}`}>
+                  Rs.{ws.khata || 0}
+                </span>
               </div>
-            )
-          })
+            ))}
+          </div>
         )}
+      </div>
+
+      {/* 4. Ledger Historic Matrix Grid Table */}
+      <div className="bg-white border border-black/5 rounded-2xl p-3.5 shadow-sm space-y-3">
+        <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1">
+          <History className="w-3.5 h-3.5 text-[#9a7c44]" /> Fabric / Purchase History Audit
+        </h3>
+
+        <div className="overflow-hidden rounded-xl border border-black/5">
+          <table className="w-full text-left border-collapse text-xs">
+            <thead>
+              <tr className="bg-[#1a1006] text-[#e8b84b] font-serif text-[10px] uppercase tracking-wider">
+                <th className="p-2.5 font-normal">Merchant/Tarikh</th>
+                <th className="p-2.5 font-normal">Remarks</th>
+                <th className="p-2.5 font-normal text-right">Amount</th>
+                <th className="p-2.5 font-normal text-center">Type</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-black/5">
+              {txns.length === 0 ? (
+                <tr>
+                  <td colSpan="4" className="p-4 text-center text-black/40 text-[11px]">Koi merchant transaction entry nahi mili.</td>
+                </tr>
+              ) : (
+                txns.map((t, idx) => {
+                  const wsObj = wholesalers.find(w => w.id === t.wsId)
+                  return (
+                    <tr key={t.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/60'}>
+                      <td className="p-2.5">
+                        <span className="font-bold text-slate-800 block">{wsObj ? wsObj.name : 'Unknown'}</span>
+                        <span className="text-[9px] text-black/30 font-mono">{t.date}</span>
+                      </td>
+                      <td className="p-2.5 text-slate-500 font-medium max-w-[100px] truncate">
+                        {t.note || '-'}
+                      </td>
+                      <td className="p-2.5 text-right font-mono font-bold text-slate-700">
+                        Rs.{t.amount}
+                      </td>
+                      <td className="p-2.5 text-center">
+                        <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-md border block w-max mx-auto ${
+                          t.type === 'Due' 
+                            ? 'bg-amber-50 text-amber-700 border-amber-100' 
+                            : 'bg-emerald-50 text-emerald-700 border-emerald-100'
+                        }`}>
+                          {t.type === 'Due' ? 'Maal Liya' : 'Cash Paid'}
+                        </span>
+                      </td>
+                    </tr>
+                  )
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
 
     </div>

@@ -1,202 +1,234 @@
-import React, { useState } from 'react'
-import { useApp } from '../context/AppContext'
-import { UserPlus, Briefcase, Phone, DollarSign, ChevronDown, ChevronUp, History } from 'lucide-react'
+import React, { useState, useEffect } from 'react'
+import { Plus, UserPlus, Calculator, CheckCircle, Trash2, ShieldAlert, History } from 'lucide-react'
 
 export default function Workers() {
-  const { workers, setWorkers, workerEntries, setWorkerEntries, getWorkerBalance } = useApp()
-
-  // Local Toggles & Form States
-  const [showAddForm, setShowAddForm] = useState(false)
-  const [expandedWorker, setExpandedWorker] = useState(null)
+  const [workers, setWorkers] = useState([])
+  const [entries, setEntries] = useState([])
+  const [showAddWorker, setShowAddWorker] = useState(false)
+  const [showAddEntry, setShowAddEntry] = useState(false)
   
-  // Naye Karigar ki state
-  const [newWorker, setNewWorker] = useState({ name: '', phone: '', rate: '' })
+  // Form States Matrix
+  const [workerName, setWorkerName] = useState('')
+  const [entryData, setEntryData] = useState({
+    workerId: '', suitQty: '', rate: '', status: 'Pending', note: ''
+  })
 
-  // Karigar Ledger ki entry state
-  const [entryAmount, setEntryAmount] = useState('')
-  const [entryType, setEntryType] = useState('credit') // credit = Kaam kiya (In), debit = Advance uthaya (Out)
-  const [entryDesc, setEntryDesc] = useState('')
+  useEffect(() => {
+    const savedWorkers = localStorage.getItem('gt_workers')
+    const savedEntries = localStorage.getItem('gt_wentries')
+    if (savedWorkers) setWorkers(JSON.parse(savedWorkers))
+    if (savedEntries) setEntries(JSON.parse(savedEntries))
+  }, [])
 
-  // 1. Worker Registration Handler
   const handleAddWorker = (e) => {
     e.preventDefault()
-    if (!newWorker.name.trim()) return
+    if (!workerName) return
 
-    const workerObj = {
-      id: 'w_' + Date.now(),
-      name: newWorker.name,
-      phone: newWorker.phone || 'N/A',
-      rate: Number(newWorker.rate) || 0
-    }
-
-    setWorkers([workerObj, ...workers])
-    setShowAddForm(false)
-    setNewWorker({ name: '', phone: '', rate: '' })
+    const newWorkers = [...workers, { id: Date.now().toString(), name: workerName, khata: 0 }]
+    setWorkers(newWorkers)
+    localStorage.setItem('gt_workers', JSON.stringify(newWorkers))
+    setWorkerName('')
+    setShowAddWorker(false)
   }
 
-  // 2. Worker Ledger Entry Handler
-  const handleAddWorkerEntry = (workerId) => {
-    if (!entryAmount || Number(entryAmount) <= 0) return
+  const handleAddEntry = (e) => {
+    e.preventDefault()
+    const { workerId, suitQty, rate, status } = entryData
+    if (!workerId || !suitQty || !rate) return alert("Saari fields lazmi hain!")
 
-    const entryObj = {
-      id: 'we_' + Date.now(),
-      wid: workerId,
-      amount: Number(entryAmount),
-      type: entryType,
-      desc: entryDesc || (entryType === 'credit' ? 'Suit Silaye Kaam' : 'Advance Payment'),
-      date: new Date().toLocaleDateString('en-PK')
+    const amt = Number(suitQty) * Number(rate)
+    const newEntry = {
+      ...entryData,
+      id: Date.now().toString(),
+      date: new Date().toISOString().split('T')[0],
+      amount: amt
     }
 
-    setWorkerEntries([entryObj, ...workerEntries])
-    setEntryAmount('')
-    setEntryDesc('')
+    const updatedEntries = [newEntry, ...entries]
+    setEntries(updatedEntries)
+    localStorage.setItem('gt_wentries', JSON.stringify(updatedEntries))
+
+    // Re-calculate individual artisan khata balance matrix
+    const updatedWorkers = workers.map(w => {
+      if (w.id === workerId) {
+        const currentKhata = Number(w.khata || 0)
+        return { ...w, khata: status === 'Pending' ? currentKhata + amt : currentKhata }
+      }
+      return w
+    })
+    setWorkers(updatedWorkers)
+    localStorage.setItem('gt_workers', JSON.stringify(updatedWorkers))
+
+    // Reset Form
+    setEntryData({ workerId: '', suitQty: '', rate: '', status: 'Pending', note: '' })
+    setShowAddEntry(false)
+  }
+
+  const handleUpdateStatus = (entryId) => {
+    const updatedEntries = entries.map(entry => {
+      if (entry.id === entryId && entry.status === 'Pending') {
+        // Deduct from worker khata when status changes to Paid
+        const updatedWorkers = workers.map(w => {
+          if (w.id === entry.workerId) {
+            return { ...w, khata: Math.max(0, Number(w.khata || 0) - entry.amount) }
+          }
+          return w
+        })
+        setWorkers(updatedWorkers)
+        localStorage.setItem('gt_workers', JSON.stringify(updatedWorkers))
+        return { ...entry, status: 'Paid' }
+      }
+      return entry
+    })
+    setEntries(updatedEntries)
+    localStorage.setItem('gt_wentries', JSON.stringify(updatedEntries))
   }
 
   return (
-    <div className="space-y-4 animate-fadeIn">
+    <div className="space-y-5 animate-fadeIn">
       
-      {/* Header Pad */}
-      <div className="flex justify-between items-center">
-        <h2 className="text-lg font-serif font-bold text-[#1a1006]">Karigar Grid</h2>
-        <button 
-          onClick={() => setShowAddForm(!showAddForm)}
-          className="bg-[#1a1006] text-[#e8b84b] text-xs px-3 py-2 rounded-xl border border-[#e2cfa0]/30 flex items-center gap-1 font-medium"
-        >
-          <UserPlus className="w-3.5 h-3.5" />
-          {showAddForm ? 'Band Karein' : 'Naya Karigar'}
-        </button>
+      {/* Header Pipeline Section */}
+      <div className="flex items-center justify-between border-b border-[#e2cfa0]/30 pb-2">
+        <h2 className="text-base font-serif font-bold text-[#1a1006] flex items-center gap-1.5">
+          🧵 Karigar Log & Wages
+        </h2>
+        <div className="flex gap-1.5">
+          <button onClick={() => { setShowAddWorker(!showAddWorker); setShowAddEntry(false) }} className="bg-[#fffdf7] border border-[#e2cfa0] text-[#9a7c44] text-[10px] font-bold py-1.5 px-2.5 rounded-xl transition-all">
+            + Karigar Add
+          </button>
+          <button onClick={() => { setShowAddEntry(!showAddEntry); setShowAddWorker(false) }} className="bg-[#1a1006] text-[#e8b84b] text-[10px] font-bold py-1.5 px-2.5 rounded-xl border border-[#e2cfa0]/20 transition-all">
+            + Kaam Entry
+          </button>
+        </div>
       </div>
 
-      {/* Add Worker Inline Form */}
-      {showAddForm && (
-        <form onSubmit={handleAddWorker} className="bg-white border border-[#e2cfa0] rounded-xl p-4 space-y-3 shadow-inner">
-          <h3 className="text-xs font-bold text-[#9a7c44] uppercase tracking-wider border-b border-black/5 pb-1">Karigar Profile</h3>
-          <div className="grid grid-cols-3 gap-2">
-            <input 
-              type="text" placeholder="Karigar Name" required value={newWorker.name}
-              onChange={e => setNewWorker({...newWorker, name: e.target.value})}
-              className="border border-black/10 rounded-lg p-2 text-xs bg-[#fffdf7] col-span-1 focus:outline-[#c9952a]"
-            />
-            <input 
-              type="tel" placeholder="Mobile No" value={newWorker.phone}
-              onChange={e => setNewWorker({...newWorker, phone: e.target.value})}
-              className="border border-black/10 rounded-lg p-2 text-xs bg-[#fffdf7] col-span-1 focus:outline-[#c9952a]"
-            />
-            <input 
-              type="number" placeholder="Stitch Rate" value={newWorker.rate}
-              onChange={e => setNewWorker({...newWorker, rate: e.target.value})}
-              className="border border-black/10 rounded-lg p-2 text-xs bg-[#fffdf7] col-span-1 focus:outline-[#c9952a]"
-            />
+      {/* 1. Add New Artisan Form */}
+      {showAddWorker && (
+        <form onSubmit={handleAddWorker} className="bg-[#fffdf7] border border-[#e2cfa0] rounded-2xl p-4 shadow-sm space-y-3 animate-slideDown">
+          <h3 className="text-xs font-bold text-[#9a7c44] uppercase tracking-wider flex items-center gap-1"><UserPlus className="w-3.5 h-3.5" /> Naye Karigar Ka Naam</h3>
+          <div className="flex gap-2">
+            <input type="text" value={workerName} onChange={(e) => setWorkerName(e.target.value)} placeholder="e.g. Aslam Darzi" className="w-full bg-white border border-black/10 rounded-xl px-3 py-1.5 text-xs focus:outline-none focus:border-[#e8b84b]" required />
+            <button type="submit" className="bg-[#1a1006] text-[#e8b84b] text-xs font-bold px-4 rounded-xl shrink-0">Save</button>
           </div>
-          <button type="submit" className="w-full bg-[#c9952a] text-white text-xs font-bold py-2 rounded-lg shadow-md">
-            Register Karigar
+        </form>
+      )}
+
+      {/* 2. Add Suit Work Entry Form */}
+      {showAddEntry && (
+        <form onSubmit={handleAddEntry} className="bg-[#fffdf7] border border-[#e2cfa0] rounded-2xl p-4 shadow-sm space-y-4 animate-slideDown">
+          <h3 className="text-xs font-bold text-[#9a7c44] uppercase tracking-wider flex items-center gap-1"><Calculator className="w-3.5 h-3.5" /> Silai / Kaam Ka Hisab Form</h3>
+          
+          <div className="grid grid-cols-2 gap-2.5">
+            <div className="col-span-2">
+              <label className="text-[10px] font-bold text-black/50 block mb-0.5">Karigar Select Karein</label>
+              <select value={entryData.workerId} onChange={(e) => setEntryData({...entryData, workerId: e.target.value})} className="w-full bg-white border border-black/10 rounded-xl px-2.5 py-1.5 text-xs focus:outline-none" required>
+                <option value="">-- Karigar Chunien --</option>
+                {workers.map(w => <option key={w.id} value={w.id}>{w.name}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="text-[10px] font-bold text-black/50 block mb-0.5">Suits Qty (Tadaad)</label>
+              <input type="number" value={entryData.suitQty} onChange={(e) => setEntryData({...entryData, suitQty: e.target.value})} placeholder="e.g. 5" className="w-full bg-white border border-black/10 rounded-xl px-2.5 py-1.5 text-xs focus:outline-none" required />
+            </div>
+            <div>
+              <label className="text-[10px] font-bold text-black/50 block mb-0.5">Per Suit Rate (Silai)</label>
+              <input type="number" value={entryData.rate} onChange={(e) => setEntryData({...entryData, rate: e.target.value})} placeholder="e.g. 400" className="w-full bg-white border border-black/10 rounded-xl px-2.5 py-1.5 text-xs focus:outline-none" required />
+            </div>
+            <div className="col-span-2">
+              <label className="text-[10px] font-bold text-black/50 block mb-0.5">Payment Status</label>
+              <select value={entryData.status} onChange={(e) => setEntryData({...entryData, status: e.target.value})} className="w-full bg-white border border-black/10 rounded-xl px-2.5 py-1.5 text-xs focus:outline-none">
+                <option value="Pending">Baqi/Udhaar (Add to Khata)</option>
+                <option value="Paid">Usi Waqt Cash De Diya</option>
+              </select>
+            </div>
+          </div>
+
+          <button type="submit" className="w-full bg-[#1a1006] text-[#e8b84b] font-bold py-2 rounded-xl text-xs border border-[#e2cfa0]/20 shadow-md">
+            Save Wage Entry
           </button>
         </form>
       )}
 
-      {/* Workers Stack List */}
-      <div className="space-y-2">
+      {/* 3. Artisan Balances Summary Cards */}
+      <div className="bg-[#fffdf7] border border-[#e2cfa0]/60 rounded-2xl p-3.5 shadow-sm space-y-2">
+        <h3 className="text-[10px] font-bold text-[#9a7c44] uppercase tracking-widest border-b border-black/5 pb-1.5">
+          👥 Current Karigar Khata Summary
+        </h3>
         {workers.length === 0 ? (
-          <p className="text-center text-xs text-black/40 py-6">Abhi koi Karigar register nahi hai.</p>
+          <p className="text-[11px] text-black/40 text-center py-2">Koi karigar registered nahi hai.</p>
         ) : (
-          workers.map((worker) => {
-            const balance = getWorkerBalance(worker.id)
-            const isExpanded = expandedWorker === worker.id
-            const history = workerEntries.filter(e => e.wid === worker.id)
-
-            return (
-              <div key={worker.id} className="bg-[#fffdf7] border border-black/5 rounded-xl shadow-sm overflow-hidden">
-                
-                {/* Accordion Trigger Header */}
-                <div 
-                  onClick={() => setExpandedWorker(isExpanded ? null : worker.id)}
-                  className="p-3 flex justify-between items-center cursor-pointer hover:bg-black/[0.01]"
-                >
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 bg-[#1a1006]/5 rounded-full flex items-center justify-center text-xs font-bold text-[#9a7c44]">
-                      {worker.name[0].toUpperCase()}
-                    </div>
-                    <div>
-                      <h4 className="text-xs font-bold text-[#1a1006]">{worker.name}</h4>
-                      <p className="text-[9px] text-black/40 flex items-center gap-1">
-                        <Phone className="w-2.5 h-2.5" /> {worker.phone} | Rate: Rs.{worker.rate}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <span className={`text-xs font-serif font-bold px-2 py-0.5 rounded ${
-                      balance > 0 ? 'bg-green-50 text-green-600' : balance < 0 ? 'bg-red-50 text-red-600' : 'bg-gray-100 text-gray-600'
-                    }`}>
-                      {balance === 0 ? 'Clear' : balance > 0 ? `Rs. ${balance} (Dena)` : `Rs. ${Math.abs(balance)} (Advance)`}
-                    </span>
-                    {isExpanded ? <ChevronUp className="w-3.5 h-3.5 text-black/40" /> : <ChevronDown className="w-3.5 h-3.5 text-black/40" />}
-                  </div>
-                </div>
-
-                {/* Expansion Panel Content */}
-                {isExpanded && (
-                  <div className="border-t border-black/5 bg-white p-3 space-y-4 animate-slideDown">
-                    
-                    {/* Add Ledger Work/Advance */}
-                    <div>
-                      <h5 className="text-[10px] font-bold text-[#9a7c44] uppercase tracking-wider flex items-center gap-1 mb-2">
-                        <DollarSign className="w-3 h-3" /> Ledger Entry Add Karein
-                      </h5>
-                      <div className="flex gap-1.5">
-                        <select 
-                          value={entryType} onChange={e => setEntryType(e.target.value)}
-                          className="border border-black/10 rounded-lg text-[11px] p-1.5 bg-[#fffdf7]"
-                        >
-                          <option value="credit">Kaam Kiya (+)</option>
-                          <option value="debit">Advance Dia (-)</option>
-                        </select>
-                        <input 
-                          type="number" placeholder="Raqam" value={entryAmount}
-                          onChange={e => setEntryAmount(e.target.value)}
-                          className="border border-black/10 rounded-lg p-1.5 text-xs w-20 focus:outline-[#c9952a]"
-                        />
-                        <input 
-                          type="text" placeholder="Tafseel" value={entryDesc}
-                          onChange={e => setEntryDesc(e.target.value)}
-                          className="border border-black/10 rounded-lg p-1.5 text-xs flex-1 focus:outline-[#c9952a]"
-                        />
-                        <button 
-                          type="button" onClick={() => handleAddWorkerEntry(worker.id)}
-                          className="bg-[#1a1006] text-[#e8b84b] text-[11px] px-3 rounded-lg font-medium"
-                        >
-                          Save
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Mini History Log */}
-                    <div className="pt-2 border-t border-black/5">
-                      <h5 className="text-[10px] font-bold text-[#9a7c44] uppercase tracking-wider flex items-center gap-1 mb-1.5">
-                        <History className="w-3 h-3" /> Haliya History Logs
-                      </h5>
-                      <div className="max-h-24 overflow-y-auto space-y-1 text-[10px]">
-                        {history.length === 0 ? (
-                          <p className="text-black/30 italic text-center py-2">Haliya koi transactions nahi hain.</p>
-                        ) : (
-                          history.slice(0, 5).map((h) => (
-                            <div key={h.id} className="flex justify-between items-center bg-gray-50/60 p-1.5 rounded border border-black/[0.02]">
-                              <span className="text-black/50">{h.date}</span>
-                              <span className="font-medium text-black/70 flex-1 px-3 truncate">{h.desc}</span>
-                              <span className={h.type === 'credit' ? 'text-green-600 font-bold' : 'text-red-500 font-bold'}>
-                                {h.type === 'credit' ? '+' : '-'} Rs.{h.amount}
-                              </span>
-                            </div>
-                          ))
-                        )}
-                      </div>
-                    </div>
-
-                  </div>
-                )}
+          <div className="grid grid-cols-2 gap-2">
+            {workers.map(w => (
+              <div key={w.id} className="bg-white border border-black/5 rounded-xl p-2.5 flex items-center justify-between shadow-inner">
+                <span className="text-xs font-bold text-slate-700 truncate mr-1">{w.name}</span>
+                <span className={`text-xs font-mono font-black shrink-0 ${Number(w.khata) > 0 ? 'text-rose-600' : 'text-emerald-600'}`}>
+                  Rs.{w.khata || 0}
+                </span>
               </div>
-            )
-          })
+            ))}
+          </div>
         )}
+      </div>
+
+      {/* 4. Recent Wage Ledger Entries Matrix */}
+      <div className="bg-white border border-black/5 rounded-2xl p-3.5 shadow-sm space-y-3">
+        <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1">
+          <History className="w-3.5 h-3.5 text-[#9a7c44]" /> Halia Silai Ledger History
+        </h3>
+
+        <div className="overflow-hidden rounded-xl border border-black/5">
+          <table className="w-full text-left border-collapse text-xs">
+            <thead>
+              <tr className="bg-[#1a1006] text-[#e8b84b] font-serif text-[10px] uppercase tracking-wider">
+                <th className="p-2.5 font-normal">Karigar/Tarikh</th>
+                <th className="p-2.5 font-normal text-center">Details</th>
+                <th className="p-2.5 font-normal text-right">Amount</th>
+                <th className="p-2.5 font-normal text-center">Status</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-black/5">
+              {entries.length === 0 ? (
+                <tr>
+                  <td colSpan="4" className="p-4 text-center text-black/40 text-[11px]">Koi ledger entry nahi mili.</td>
+                </tr>
+              ) : (
+                entries.map((entry, idx) => {
+                  const workerObj = workers.find(w => w.id === entry.workerId)
+                  return (
+                    <tr key={entry.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/60'}>
+                      <td className="p-2.5">
+                        <span className="font-bold text-slate-800 block">{workerObj ? workerObj.name : 'Unknown'}</span>
+                        <span className="text-[9px] text-black/30 font-mono">{entry.date}</span>
+                      </td>
+                      <td className="p-2.5 text-center text-slate-600 font-medium">
+                        {entry.suitQty} Suits <br />
+                        <span className="text-[9px] text-black/40 font-mono">@{entry.rate}</span>
+                      </td>
+                      <td className="p-2.5 text-right font-mono font-bold text-slate-700">
+                        Rs.{entry.amount}
+                      </td>
+                      <td className="p-2.5 text-center">
+                        {entry.status === 'Pending' ? (
+                          <button 
+                            type="button" 
+                            onClick={() => handleUpdateStatus(entry.id)}
+                            className="bg-amber-50 border border-amber-200 text-amber-700 text-[9px] font-bold px-1.5 py-0.5 rounded-md shadow-2xs block mx-auto animate-pulse"
+                          >
+                            Pay Due
+                          </button>
+                        ) : (
+                          <span className="bg-emerald-50 text-emerald-700 text-[9px] font-bold px-1.5 py-0.5 rounded-md border border-emerald-100 block w-max mx-auto">
+                            Clear
+                          </span>
+                        )}
+                      </td>
+                    </tr>
+                  )
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
 
     </div>

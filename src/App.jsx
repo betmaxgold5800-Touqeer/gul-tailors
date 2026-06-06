@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { Home, Users, Briefcase, ShoppingBag, MoreHorizontal } from 'lucide-react'
-import Dashboard from './views/Dashboard' // Asli Dashboard View Import kiya
+import Dashboard from './views/Dashboard'
+import Clients from './views/Clients' // Naya Clients View Import kiya
 
 export default function App() {
   const [currentPage, setCurrentPage] = useState('dashboard')
@@ -17,11 +18,11 @@ export default function App() {
   const renderContent = () => {
     switch (currentPage) {
       case 'dashboard':
-        return <Dashboard /> // Dummy text ki jagah asli Dashboard inject ho gaya
+        return <Dashboard />
       case 'clients':
-        return <div className="p-4 text-center text-[#1a1006]">👔 Clients Screen (Next Step)</div>
+        return <Clients /> // Dummy text hatakar real component attach kar diya
       case 'workers':
-        return <div className="p-4 text-center text-[#1a1006]">👷 Workers Screen (Jald aa rahi hai)</div>
+        return <div className="p-4 text-center text-[#1a1006]">👷 Workers Screen (Next Step)</div>
       case 'wholesalers':
         return <div className="p-4 text-center text-[#1a1006]">🏪 Wholesalers Screen (Jald aa rahi hai)</div>
       case 'more':

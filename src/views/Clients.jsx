@@ -8,6 +8,10 @@ export default function Clients({ data, setClients, onDelete }) {
   const [isEditing, setIsEditing] = useState(false);
   const [editingClientId, setEditingClientId] = useState(null);
   
+  // [NEW STATE] Search & Filter Controls Matrix
+  const [searchQuery, setSearchQuery] = useState('');
+  const [activeFilter, setActiveFilter] = useState('All'); // 'All', 'Urgent', 'Udhaar'
+
   // Real-time Master Guide Status Bar state
   const [activeGuideText, setActiveGuideText] = useState('💡 Kisi bhi field par tap karein tailoring instruction dekhne ke liye.');
 
@@ -39,6 +43,15 @@ export default function Clients({ data, setClients, onDelete }) {
     shalwar: "Shalwar: Jahan nemah/belt bandha jata hai wahan se ponchay tak.",
     asan: "Asan: Shalwar ki guthni/crotch length ka standard naap."
   };
+
+  // [NEW LOGIC] Real-time Metrics Calculations for the Top Strip
+  const metrics = data.reduce((acc, curr) => {
+    const totalBill = (curr.silayi + curr.pKarhayi + curr.gKarhayi) * curr.totalSuits;
+    acc.totalSuits += curr.totalSuits || 0;
+    if (curr.isUrgent) acc.urgentCount += 1;
+    acc.totalUdhaar += Math.max(0, totalBill - (curr.received || 0));
+    return acc;
+  }, { totalSuits: 0, urgentCount: 0, totalUdhaar: 0 });
 
   // Real-time Math Ledger Calculations (Strict Ground Reality: Udhaar depends ONLY on Cash Paid)
   const currentTotalBill = ((Number(silayiPrice) || 0) + (Number(pKarhayiPrice) || 0) + (Number(gKarhayiPrice) || 0)) * (Number(suitCount) || 1);
@@ -175,6 +188,20 @@ export default function Clients({ data, setClients, onDelete }) {
     setShowNaapModal(false);
   };
 
+  // [NEW FILTER LOGIC] Integrated Dynamic Filtration System
+  const filteredData = data.filter((client) => {
+    const matchesSearch = 
+      client.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+      client.phone.includes(searchQuery);
+
+    if (!matchesSearch) return false;
+
+    if (activeFilter === 'Urgent') return client.isUrgent;
+    if (activeFilter === 'Udhaar') return client.udhaar > 0;
+    
+    return true;
+  });
+
   return (
     <div className="space-y-4 animate-fadeIn pb-12">
       {/* Premium Top Controller */}
@@ -191,15 +218,87 @@ export default function Clients({ data, setClients, onDelete }) {
         </button>
       </div>
 
+      {/* UPDATE 1: 📊 Ledger Metrics Summary Strip (Top Bar) */}
+      <div className="grid grid-cols-3 gap-2 bg-gradient-to-r from-[#1f1610] to-[#2d221a] p-3 rounded-2xl text-center shadow-xs">
+        <div>
+          <span className="text-[9px] font-bold text-[#cca464]/80 block uppercase">Total Suits</span>
+          <span className="text-xs font-black text-white">{metrics.totalSuits} Qty</span>
+        </div>
+        <div>
+          <span className="text-[9px] font-bold text-rose-400 block uppercase">🚨 Urgent</span>
+          <span className="text-xs font-black text-white">{metrics.urgentCount} Orders</span>
+        </div>
+        <div>
+          <span className="text-[9px] font-bold text-emerald-400 block uppercase">Total Udhaar</span>
+          <span className="text-xs font-black text-white">Rs. {metrics.totalUdhaar}</span>
+        </div>
+      </div>
+
+      {/* UPDATE 2: 🔍 Dynamic Search Engine Row */}
+      <div className="relative">
+        <input 
+          type="text" 
+          placeholder="🔍 Client ka Naam ya Phone number se dhundein..." 
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="w-full p-3 pl-4 pr-10 rounded-2xl border border-gray-100 bg-white font-bold text-xs shadow-xs focus:outline-none focus:border-amber-400 transition-colors"
+        />
+        {searchQuery && (
+          <button 
+            onClick={() => setSearchQuery('')}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 font-bold text-xs"
+          >
+            ✕
+          </button>
+        )}
+      </div>
+
+      {/* UPDATE 3: 🎛️ Quick Filter Matrix (Pills Row) */}
+      <div className="flex gap-1.5 overflow-x-auto pb-1">
+        <button 
+          onClick={() => setActiveFilter('All')}
+          className={`text-[10px] font-black px-4 py-2 rounded-xl transition-all whitespace-nowrap active:scale-95 ${
+            activeFilter === 'All' ? 'bg-[#1f1610] text-[#cca464]' : 'bg-white text-gray-500 border border-gray-100'
+          }`}
+        >
+          📁 All Orders
+        </button>
+        <button 
+          onClick={() => setActiveFilter('Urgent')}
+          className={`text-[10px] font-black px-4 py-2 rounded-xl transition-all whitespace-nowrap active:scale-95 ${
+            activeFilter === 'Urgent' ? 'bg-rose-500 text-white shadow-xs' : 'bg-white text-gray-500 border border-gray-100'
+          }`}
+        >
+          🚨 Urgent Orders
+        </button>
+        <button 
+          onClick={() => setActiveFilter('Udhaar')}
+          className={`text-[10px] font-black px-4 py-2 rounded-xl transition-all whitespace-nowrap active:scale-95 ${
+            activeFilter === 'Udhaar' ? 'bg-amber-600 text-white shadow-xs' : 'bg-white text-gray-500 border border-gray-100'
+          }`}
+        >
+          📉 Baqi Udhaar
+        </button>
+      </div>
+
       {/* Main Stream System Cards */}
       <div className="space-y-3">
-        {data.map((client) => {
+        {filteredData.map((client) => {
           const clientTotalBill = (client.silayi + client.pKarhayi + client.gKarhayi) * client.totalSuits;
           const displayUdhaar = client.udhaar; // Pure Udhaar Tracking independent of status
           const currentStatus = client.status || 'Pending';
 
+          // UPDATE 4: ⚠️ Overdue & Pending Delivery Warning System Verification
+          const todayStr = "2026-06-07"; // Production Anchored Current System Time
+          const isOverdue = currentStatus === 'Pending' && client.deliveryDate && client.deliveryDate < todayStr;
+
           return (
-            <div key={client.id} className="bg-white rounded-3xl p-4 border border-gray-100 shadow-sm space-y-3 relative overflow-hidden">
+            <div 
+              key={client.id} 
+              className={`bg-white rounded-3xl p-4 border shadow-sm space-y-3 relative overflow-hidden transition-all duration-300 ${
+                isOverdue ? 'border-rose-500 ring-2 ring-rose-500/10 animate-[pulse_2s_infinite]' : 'border-gray-100'
+              }`}
+            >
               {/* Card Status Header */}
               <div className="flex justify-between items-start">
                 <div>
@@ -210,7 +309,9 @@ export default function Clients({ data, setClients, onDelete }) {
                     )}
                   </div>
                   <p className="text-xs text-gray-500 font-medium mt-0.5">📞 {client.phone}</p>
-                  <p className="text-[10px] text-gray-400 font-bold mt-0.5">📅 Delivery: {client.deliveryDate || 'Not Set'}</p>
+                  <p className={`text-[10px] font-bold mt-0.5 ${isOverdue ? 'text-rose-600 font-black' : 'text-gray-400'}`}>
+                    📅 Delivery: {client.deliveryDate || 'Not Set'} {isOverdue && '⚠️ OVERDUE'}
+                  </p>
                 </div>
                 
                 {/* INLINE STATUS BUTTON CONTROLLER (Directly on the main UI Card) */}
@@ -282,6 +383,12 @@ export default function Clients({ data, setClients, onDelete }) {
             </div>
           );
         })}
+
+        {filteredData.length === 0 && (
+          <div className="text-center py-8 bg-gray-50 rounded-3xl border border-dashed border-gray-200">
+            <p className="text-xs font-bold text-gray-400">Kuch nahi mila! Search query ya filter check karein.</p>
+          </div>
+        )}
       </div>
 
       {/* PORTAL OVERLAY 1: THE REGISTRATION & EDITING FLOW FORM */}

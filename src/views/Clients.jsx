@@ -8,9 +8,14 @@ export default function Clients({ data, setClients, onDelete }) {
   const [isEditing, setIsEditing] = useState(false);
   const [editingClientId, setEditingClientId] = useState(null);
   
-  // [NEW STATE] Search & Filter Controls Matrix
+  // [NEW MODAL CONTROLLER] Udhaar Recovery History Modal State
+  const [showRecoveryModal, setShowRecoveryModal] = useState(false);
+  const [recoveryAmount, setRecoveryAmount] = useState('');
+  const [recoveryDate, setRecoveryDate] = useState(new Date().toISOString().split('T')[0]);
+
+  // Search & Filter Controls Matrix
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeFilter, setActiveFilter] = useState('All'); // 'All', 'Urgent', 'Udhaar'
+  const [activeFilter, setActiveFilter] = useState('All'); 
 
   // Real-time Master Guide Status Bar state
   const [activeGuideText, setActiveGuideText] = useState('💡 Kisi bhi field par tap karein tailoring instruction dekhne ke liye.');
@@ -23,7 +28,6 @@ export default function Clients({ data, setClients, onDelete }) {
   const [silayiPrice, setSilayiPrice] = useState('');
   const [pKarhayiPrice, setPKarhayiPrice] = useState('');
   const [gKarhayiPrice, setGKarhayiPrice] = useState('');
-  const [receivedAmount, setReceivedAmount] = useState('');
   const [deliveryDate, setDeliveryDate] = useState('');
   const [orderStatus, setOrderStatus] = useState('Pending');
 
@@ -44,20 +48,28 @@ export default function Clients({ data, setClients, onDelete }) {
     asan: "Asan: Shalwar ki guthni/crotch length ka standard naap."
   };
 
-  // [NEW LOGIC] Real-time Metrics Calculations for the Top Strip
+  // Helper: Client ki total payments calculate karne ka reusable engine
+  const getClientTotalReceived = (client) => {
+    if (!client.payments || !Array.isArray(client.payments)) {
+      return Number(client.received) || 0; // Fallback for old records
+    }
+    return client.payments.reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
+  };
+
+  // Real-time Metrics Calculations for the Top Strip
   const metrics = data.reduce((acc, curr) => {
     const totalBill = (curr.silayi + curr.pKarhayi + curr.gKarhayi) * curr.totalSuits;
+    const totalReceived = getClientTotalReceived(curr);
     acc.totalSuits += curr.totalSuits || 0;
     if (curr.isUrgent) acc.urgentCount += 1;
-    acc.totalUdhaar += Math.max(0, totalBill - (curr.received || 0));
+    acc.totalUdhaar += Math.max(0, totalBill - totalReceived);
     return acc;
   }, { totalSuits: 0, urgentCount: 0, totalUdhaar: 0 });
 
-  // Real-time Math Ledger Calculations (Strict Ground Reality: Udhaar depends ONLY on Cash Paid)
+  // Real-time Math Ledger Calculations for Form UI
   const currentTotalBill = ((Number(silayiPrice) || 0) + (Number(pKarhayiPrice) || 0) + (Number(gKarhayiPrice) || 0)) * (Number(suitCount) || 1);
-  const currentUdhaar = Math.max(0, currentTotalBill - Number(receivedAmount || 0));
 
-  // Inline Status Changer Switch (Direct State Lifter without opening Modal)
+  // Inline Status Changer Switch
   const toggleStatusDirectly = (clientId, currentStatus) => {
     const nextStatus = currentStatus === 'Delivered' ? 'Pending' : 'Delivered';
     setClients((prevClients) =>
@@ -76,9 +88,10 @@ export default function Clients({ data, setClients, onDelete }) {
     setSilayiPrice(client.silayi || '');
     setPKarhayiPrice(client.pKarhayi || '');
     setGKarhayiPrice(client.gKarhayi || '');
-    setReceivedAmount(client.received || '');
     setDeliveryDate(client.deliveryDate || '');
     setOrderStatus(client.status || 'Pending');
+    // We will preserve payments array inside save execute logic
+    setSelectedClient(client); 
     setShowAddModal(true);
   };
 
@@ -93,9 +106,9 @@ export default function Clients({ data, setClients, onDelete }) {
     setSilayiPrice('');
     setPKarhayiPrice('');
     setGKarhayiPrice('');
-    setReceivedAmount('');
     setDeliveryDate('');
     setOrderStatus('Pending');
+    setSelectedClient(null);
     setShowAddModal(true);
   };
 
@@ -105,10 +118,6 @@ export default function Clients({ data, setClients, onDelete }) {
       alert('⚠️ Error: Client Name aur Phone Number likhna lazmi hai!');
       return;
     }
-
-    const finalBill = currentTotalBill;
-    const finalReceived = Number(receivedAmount) || 0;
-    const finalUdhaar = Math.max(0, finalBill - finalReceived);
 
     if (isEditing) {
       setClients((prevClients) =>
@@ -123,10 +132,10 @@ export default function Clients({ data, setClients, onDelete }) {
                 silayi: Number(silayiPrice) || 0,
                 pKarhayi: Number(pKarhayiPrice) || 0,
                 gKarhayi: Number(gKarhayiPrice) || 0,
-                received: finalReceived,
-                udhaar: finalUdhaar,
                 deliveryDate: deliveryDate,
-                status: orderStatus
+                status: orderStatus,
+                // Aggressive fallback protection for historic logs
+                payments: c.payments || [{ amount: Number(c.received) || 0, date: c.orderDate || 'N/A', note: 'Initial Deposit' }]
               }
             : c
         )
@@ -142,11 +151,10 @@ export default function Clients({ data, setClients, onDelete }) {
         silayi: Number(silayiPrice) || 0,
         pKarhayi: Number(pKarhayiPrice) || 0,
         gKarhayi: Number(gKarhayiPrice) || 0,
-        received: finalReceived,
-        udhaar: finalUdhaar,
         orderDate: today,
         deliveryDate: deliveryDate,
         status: orderStatus,
+        payments: [], // Fresh array ready for micro transactions
         naap: { lambaai: '', teera: '', baazu: '', ghera: '', shalwar: '', paincha: '', asan: '', galla: '' }
       };
       setClients((prevClients) => [newClientRecord, ...prevClients]);
@@ -155,9 +163,36 @@ export default function Clients({ data, setClients, onDelete }) {
     setShowAddModal(false);
   };
 
-  // WhatsApp Automated Invoice & Billing Engine
+  // [NEW METHOD] Inline Direct Ledger Installment Processor
+  const executeInjectRecoveryPayment = () => {
+    const amountToInsert = Number(recoveryAmount) || 0;
+    if (amountToInsert <= 0) {
+      alert('⚠️ Meharbani kar ke valid payment amount enter karein!');
+      return;
+    }
+
+    setClients((prevClients) =>
+      prevClients.map((c) => {
+        if (c.id === selectedClient.id) {
+          const currentLogs = c.payments && Array.isArray(c.payments) ? [...c.payments] : [{ amount: Number(c.received) || 0, date: c.orderDate || 'N/A', note: 'Initial Deposit' }];
+          return {
+            ...c,
+            payments: [...currentLogs, { amount: amountToInsert, date: recoveryDate, note: 'Udhaar Recovery Recovery' }]
+          };
+        }
+        return c;
+      })
+    );
+
+    setRecoveryAmount('');
+    setShowRecoveryModal(false);
+  };
+
+  // WhatsApp Automated Invoice Engine
   const dispatchWhatsAppInvoice = (client) => {
     const calculatedTotal = (client.silayi + client.pKarhayi + client.gKarhayi) * client.totalSuits;
+    const totalReceived = getClientTotalReceived(client);
+    const balanceUdhaar = Math.max(0, calculatedTotal - totalReceived);
     const cleanPhone = client.phone.replace(/\D/g, '');
     
     const message = `Assalam-o-Alaikum *${client.name}* Bhai,\n\nGul Tailors ki taraf se aap ke order ka status ledger ready hai:\n\n` +
@@ -167,8 +202,8 @@ export default function Clients({ data, setClients, onDelete }) {
       `📅 Delivery Date: ${client.deliveryDate || 'N/A'}\n` +
       `⚡ Status: *${client.status || 'Pending'}*\n` +
       `💰 Total Bill: Rs. ${calculatedTotal}\n` +
-      `💵 Paid Cash: Rs. ${client.received}\n` +
-      `📉 Baqi Udhaar Balance: *Rs. ${client.udhaar}*\n\n` +
+      `💵 Total Paid Till Now: Rs. ${totalReceived}\n` +
+      `📉 Baqi Udhaar Balance: *Rs. ${balanceUdhaar}*\n\n` +
       `*Gul Tailors Premium Vault • Adhi Kot*`;
 
     window.open(`https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodeURIComponent(message)}`, '_blank');
@@ -188,7 +223,15 @@ export default function Clients({ data, setClients, onDelete }) {
     setShowNaapModal(false);
   };
 
-  // [NEW FILTER LOGIC] Integrated Dynamic Filtration System
+  // Open Direct Udhaar Ledger Handler
+  const openUdhaarLedger = (client) => {
+    setSelectedClient(client);
+    setRecoveryAmount('');
+    setRecoveryDate(new Date().toISOString().split('T')[0]);
+    setShowRecoveryModal(true);
+  };
+
+  // Integrated Dynamic Filtration System
   const filteredData = data.filter((client) => {
     const matchesSearch = 
       client.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
@@ -196,8 +239,12 @@ export default function Clients({ data, setClients, onDelete }) {
 
     if (!matchesSearch) return false;
 
+    const totalBill = (client.silayi + client.pKarhayi + client.gKarhayi) * client.totalSuits;
+    const totalReceived = getClientTotalReceived(client);
+    const currentUdhaarCalculated = Math.max(0, totalBill - totalReceived);
+
     if (activeFilter === 'Urgent') return client.isUrgent;
-    if (activeFilter === 'Udhaar') return client.udhaar > 0;
+    if (activeFilter === 'Udhaar') return currentUdhaarCalculated > 0;
     
     return true;
   });
@@ -207,7 +254,7 @@ export default function Clients({ data, setClients, onDelete }) {
       {/* Premium Top Controller */}
       <div className="flex items-center justify-between bg-white p-4 rounded-3xl shadow-sm border border-gray-100">
         <div>
-          <h3 className="text-xs font-black tracking-widest text-[#8a6d3b] uppercase">👥 CLIENTS ENGINE v3.0</h3>
+          <h3 className="text-xs font-black tracking-widest text-[#8a6d3b] uppercase">👥 CLIENTS ENGINE v3.5</h3>
           <p className="text-[10px] font-bold text-gray-400">Active Records: {data.length}</p>
         </div>
         <button 
@@ -218,7 +265,7 @@ export default function Clients({ data, setClients, onDelete }) {
         </button>
       </div>
 
-      {/* UPDATE 1: 📊 Ledger Metrics Summary Strip (Top Bar) */}
+      {/* Ledger Metrics Summary Strip (Top Bar) */}
       <div className="grid grid-cols-3 gap-2 bg-gradient-to-r from-[#1f1610] to-[#2d221a] p-3 rounded-2xl text-center shadow-xs">
         <div>
           <span className="text-[9px] font-bold text-[#cca464]/80 block uppercase">Total Suits</span>
@@ -234,7 +281,7 @@ export default function Clients({ data, setClients, onDelete }) {
         </div>
       </div>
 
-      {/* UPDATE 2: 🔍 Dynamic Search Engine Row */}
+      {/* Dynamic Search Engine Row */}
       <div className="relative">
         <input 
           type="text" 
@@ -244,61 +291,32 @@ export default function Clients({ data, setClients, onDelete }) {
           className="w-full p-3 pl-4 pr-10 rounded-2xl border border-gray-100 bg-white font-bold text-xs shadow-xs focus:outline-none focus:border-amber-400 transition-colors"
         />
         {searchQuery && (
-          <button 
-            onClick={() => setSearchQuery('')}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 font-bold text-xs"
-          >
-            ✕
-          </button>
+          <button onClick={() => setSearchQuery('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 font-bold text-xs">✕</button>
         )}
       </div>
 
-      {/* UPDATE 3: 🎛️ Quick Filter Matrix (Pills Row) */}
+      {/* Quick Filter Matrix (Pills Row) */}
       <div className="flex gap-1.5 overflow-x-auto pb-1">
-        <button 
-          onClick={() => setActiveFilter('All')}
-          className={`text-[10px] font-black px-4 py-2 rounded-xl transition-all whitespace-nowrap active:scale-95 ${
-            activeFilter === 'All' ? 'bg-[#1f1610] text-[#cca464]' : 'bg-white text-gray-500 border border-gray-100'
-          }`}
-        >
-          📁 All Orders
-        </button>
-        <button 
-          onClick={() => setActiveFilter('Urgent')}
-          className={`text-[10px] font-black px-4 py-2 rounded-xl transition-all whitespace-nowrap active:scale-95 ${
-            activeFilter === 'Urgent' ? 'bg-rose-500 text-white shadow-xs' : 'bg-white text-gray-500 border border-gray-100'
-          }`}
-        >
-          🚨 Urgent Orders
-        </button>
-        <button 
-          onClick={() => setActiveFilter('Udhaar')}
-          className={`text-[10px] font-black px-4 py-2 rounded-xl transition-all whitespace-nowrap active:scale-95 ${
-            activeFilter === 'Udhaar' ? 'bg-amber-600 text-white shadow-xs' : 'bg-white text-gray-500 border border-gray-100'
-          }`}
-        >
-          📉 Baqi Udhaar
-        </button>
+        <button onClick={() => setActiveFilter('All')} className={`text-[10px] font-black px-4 py-2 rounded-xl transition-all whitespace-nowrap active:scale-95 ${activeFilter === 'All' ? 'bg-[#1f1610] text-[#cca464]' : 'bg-white text-gray-500 border border-gray-100'}`}>📁 All Orders</button>
+        <button onClick={() => setActiveFilter('Urgent')} className={`text-[10px] font-black px-4 py-2 rounded-xl transition-all whitespace-nowrap active:scale-95 ${activeFilter === 'Urgent' ? 'bg-rose-500 text-white shadow-xs' : 'bg-white text-gray-500 border border-gray-100'}`}>🚨 Urgent Orders</button>
+        <button onClick={() => setActiveFilter('Udhaar')} className={`text-[10px] font-black px-4 py-2 rounded-xl transition-all whitespace-nowrap active:scale-95 ${activeFilter === 'Udhaar' ? 'bg-amber-600 text-white shadow-xs' : 'bg-white text-gray-500 border border-gray-100'}`}>📉 Baqi Udhaar</button>
       </div>
 
       {/* Main Stream System Cards */}
       <div className="space-y-3">
         {filteredData.map((client) => {
           const clientTotalBill = (client.silayi + client.pKarhayi + client.gKarhayi) * client.totalSuits;
-          const displayUdhaar = client.udhaar; // Pure Udhaar Tracking independent of status
+          const totalReceivedPaid = getClientTotalReceived(client);
+          const displayUdhaar = Math.max(0, clientTotalBill - totalReceivedPaid);
           const currentStatus = client.status || 'Pending';
 
-          // UPDATE 4: ⚠️ Overdue & Pending Delivery Warning System Verification
-          const todayStr = "2026-06-07"; // Production Anchored Current System Time
+          // Overdue & Pending Delivery Warning System
+          const todayStr = "2026-06-08"; 
           const isOverdue = currentStatus === 'Pending' && client.deliveryDate && client.deliveryDate < todayStr;
 
           return (
-            <div 
-              key={client.id} 
-              className={`bg-white rounded-3xl p-4 border shadow-sm space-y-3 relative overflow-hidden transition-all duration-300 ${
-                isOverdue ? 'border-rose-500 ring-2 ring-rose-500/10 animate-[pulse_2s_infinite]' : 'border-gray-100'
-              }`}
-            >
+            <div key={client.id} className={`bg-white rounded-3xl p-4 border shadow-sm space-y-3 relative overflow-hidden transition-all duration-300 ${isOverdue ? 'border-rose-500 ring-2 ring-rose-500/10 animate-[pulse_2s_infinite]' : 'border-gray-100'}`}>
+              
               {/* Card Status Header */}
               <div className="flex justify-between items-start">
                 <div>
@@ -314,21 +332,26 @@ export default function Clients({ data, setClients, onDelete }) {
                   </p>
                 </div>
                 
-                {/* INLINE STATUS BUTTON CONTROLLER (Directly on the main UI Card) */}
+                {/* STATUS & CLICKABLE RECOVERY BADGE */}
                 <div className="flex flex-col items-end gap-2">
                   <button
                     onClick={() => toggleStatusDirectly(client.id, currentStatus)}
-                    className={`text-[10px] font-black px-3 py-1.5 rounded-xl transition-all active:scale-95 border ${
-                      currentStatus === 'Delivered'
-                        ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                        : 'bg-amber-50 text-amber-700 border-amber-200'
-                    }`}
+                    className={`text-[10px] font-black px-3 py-1.5 rounded-xl transition-all active:scale-95 border ${currentStatus === 'Delivered' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-amber-50 text-amber-700 border-amber-200'}`}
                   >
                     {currentStatus === 'Delivered' ? '📦 Delivered' : '⏳ Pending'}
                   </button>
-                  <span className={`text-[10px] font-black px-2.5 py-1 rounded-xl block ${displayUdhaar > 0 ? 'bg-rose-50 text-rose-700 border border-rose-200' : 'bg-emerald-50 text-emerald-700 border border-emerald-100'}`}>
-                    {displayUdhaar > 0 ? `Udhaar: Rs. ${displayUdhaar}` : 'Clear ✅'}
-                  </span>
+                  
+                  {/* [CLICKABLE RECOVERY MATRIX TRIGGER] */}
+                  <button
+                    onClick={() => openUdhaarLedger(client)}
+                    className={`text-[10px] font-black px-2.5 py-1 rounded-xl block border cursor-pointer select-none transition-all active:scale-95 hover:shadow-xs ${
+                      displayUdhaar > 0 
+                        ? 'bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-100/70' 
+                        : 'bg-emerald-50 text-emerald-700 border-emerald-100 hover:bg-emerald-100/70'
+                    }`}
+                  >
+                    {displayUdhaar > 0 ? `Udhaar: Rs. ${displayUdhaar} 💸` : 'Clear ✅'}
+                  </button>
                 </div>
               </div>
 
@@ -343,53 +366,103 @@ export default function Clients({ data, setClients, onDelete }) {
                   <span className="text-xs font-black text-gray-700">Rs. {clientTotalBill || 0}</span>
                 </div>
                 <div>
-                  <span className="text-[9px] font-black text-gray-400 block uppercase">Paid Cash</span>
-                  <span className="text-xs font-black text-emerald-600">Rs. {client.received || 0}</span>
+                  <span className="text-[9px] font-black text-gray-400 block uppercase">Total Paid</span>
+                  <span className="text-xs font-black text-emerald-600">Rs. {totalReceivedPaid}</span>
                 </div>
               </div>
 
               {/* Actions Console Panel */}
               <div className="flex items-center justify-between pt-2 border-t border-gray-100">
                 <div className="flex items-center gap-1.5">
-                  <button 
-                    onClick={() => openNaapManager(client)}
-                    className="bg-amber-500 hover:bg-amber-600 text-white font-black text-xs px-3.5 py-2 rounded-xl transition-all active:scale-95"
-                  >
-                    📏 Size Vault
-                  </button>
-                  <button 
-                    onClick={() => openEditManager(client)}
-                    className="bg-blue-50 text-blue-600 hover:bg-blue-100 font-black text-xs px-3 py-2 rounded-xl transition-colors active:scale-95"
-                  >
-                    📝 Edit Profile
-                  </button>
+                  <button onClick={() => openNaapManager(client)} className="bg-amber-500 hover:bg-amber-600 text-white font-black text-xs px-3.5 py-2 rounded-xl transition-all active:scale-95">📏 Size Vault</button>
+                  <button onClick={() => openEditManager(client)} className="bg-blue-50 text-blue-600 hover:bg-blue-100 font-black text-xs px-3 py-2 rounded-xl transition-colors active:scale-95">📝 Edit Profile</button>
                 </div>
 
                 <div className="flex items-center gap-1.5">
-                  <button 
-                    onClick={() => dispatchWhatsAppInvoice(client)}
-                    className="bg-[#25D366] text-white flex items-center gap-1 text-xs font-black px-3 py-2 rounded-xl active:scale-95 transition-all shadow-xs"
-                  >
-                    <span>💬</span> WhatsApp
-                  </button>
-                  <button 
-                    onClick={() => onDelete(client.id)} 
-                    className="bg-rose-50 text-rose-600 hover:bg-rose-100 p-2 rounded-xl transition-colors"
-                  >
-                    🗑️
-                  </button>
+                  <button onClick={() => dispatchWhatsAppInvoice(client)} className="bg-[#25D366] text-white flex items-center gap-1 text-xs font-black px-3 py-2 rounded-xl active:scale-95 transition-all shadow-xs"><span>💬</span> WhatsApp</button>
+                  <button onClick={() => onDelete(client.id)} className="bg-rose-50 text-rose-600 hover:bg-rose-100 p-2 rounded-xl transition-colors">🗑️</button>
                 </div>
               </div>
+
             </div>
           );
         })}
-
-        {filteredData.length === 0 && (
-          <div className="text-center py-8 bg-gray-50 rounded-3xl border border-dashed border-gray-200">
-            <p className="text-xs font-bold text-gray-400">Kuch nahi mila! Search query ya filter check karein.</p>
-          </div>
-        )}
       </div>
+
+      {/* [NEW PORTAL OVERLAY] 💸 UDHAAR INSTALLMENTS HISTORY & RECOVERY MODAL */}
+      {showRecoveryModal && selectedClient && (
+        <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/70 p-4 backdrop-blur-xs">
+          <div className="w-full max-w-sm rounded-3xl bg-white p-5 shadow-2xl border-t-8 border-rose-500 space-y-4 max-h-[88vh] overflow-y-auto">
+            <div>
+              <h4 className="font-black text-gray-800 text-base">💸 UDHAAR TRANSACTION LEDGER</h4>
+              <p className="text-xs font-bold text-gray-500">Customer: <span className="text-gray-900 font-black">{selectedClient.name}</span></p>
+            </div>
+
+            {/* Quick Metrics Inside Ledger */}
+            <div className="grid grid-cols-2 gap-2 bg-gray-50 p-2.5 rounded-xl border text-center text-xs font-black">
+              <div className="text-gray-700">Total Bill:<br/><span className="text-gray-900 text-sm">Rs. {(selectedClient.silayi + selectedClient.pKarhayi + selectedClient.gKarhayi) * selectedClient.totalSuits}</span></div>
+              <div className="text-rose-600">Baqi Udhaar:<br/><span className="text-rose-700 text-sm">Rs. {Math.max(0, ((selectedClient.silayi + selectedClient.pKarhayi + selectedClient.gKarhayi) * selectedClient.totalSuits) - getClientTotalReceived(selectedClient))}</span></div>
+            </div>
+
+            {/* Historic Timeline Tracker */}
+            <div className="space-y-2">
+              <label className="text-[10px] font-black text-gray-400 uppercase tracking-wider block">📊 Past Payments Audit Logs</label>
+              <div className="bg-gray-50/50 p-3 rounded-xl border border-dashed max-h-[140px] overflow-y-auto space-y-2">
+                {selectedClient.payments && selectedClient.payments.length > 0 ? (
+                  selectedClient.payments.map((log, index) => (
+                    <div key={index} className="flex justify-between items-center bg-white p-2 rounded-lg border text-[11px] shadow-2xs">
+                      <div>
+                        <span className="font-black text-emerald-600">Rs. {log.amount}</span>
+                        <span className="text-[9px] font-bold text-gray-400 ml-2">({log.note || 'Recovery'})</span>
+                      </div>
+                      <span className="font-bold text-gray-500">📅 {log.date}</span>
+                    </div>
+                  ))
+                ) : (
+                  // Historical backwards compatibility handler
+                  <div className="flex justify-between items-center bg-white p-2 rounded-lg border text-[11px]">
+                    <div>
+                      <span className="font-black text-emerald-600">Rs. {selectedClient.received || 0}</span>
+                      <span className="text-[9px] font-bold text-gray-400 ml-2">(Initial Registry)</span>
+                    </div>
+                    <span className="font-bold text-gray-500">📅 {selectedClient.orderDate || 'N/A'}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Micro Injection Entry Form */}
+            <div className="bg-amber-50/50 p-3 rounded-2xl border border-amber-100 space-y-2">
+              <p className="text-[10px] font-black text-amber-800 uppercase tracking-wider">➕ Record New Installment</p>
+              <div className="grid grid-cols-2 gap-2">
+                <input 
+                  type="number" 
+                  placeholder="Amount (Rs.)" 
+                  value={recoveryAmount}
+                  onChange={(e) => setRecoveryAmount(e.target.value)}
+                  className="p-2.5 text-xs font-black rounded-xl border bg-white text-emerald-700" 
+                />
+                <input 
+                  type="date" 
+                  value={recoveryDate}
+                  onChange={(e) => setRecoveryDate(e.target.value)}
+                  className="p-2.5 text-xs font-bold rounded-xl border bg-white text-center text-gray-700" 
+                />
+              </div>
+            </div>
+
+            {/* Trigger Controllers */}
+            <div className="flex gap-2 pt-1">
+              <button onClick={executeInjectRecoveryPayment} className="flex-1 bg-emerald-600 text-white font-black py-2.5 rounded-xl text-xs active:bg-emerald-700 transition-colors shadow-xs">
+                Save Installment
+              </button>
+              <button onClick={() => setShowRecoveryModal(false)} className="bg-gray-100 text-gray-600 font-black px-4 py-2.5 rounded-xl text-xs active:bg-gray-200">
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* PORTAL OVERLAY 1: THE REGISTRATION & EDITING FLOW FORM */}
       {showAddModal && (
@@ -455,10 +528,8 @@ export default function Clients({ data, setClients, onDelete }) {
                 {/* Real-time Math Feedback Feeder */}
                 <div className="pt-2 border-t border-gray-100 grid grid-cols-2 text-left gap-1 text-[11px] font-black text-gray-600">
                   <div>Bill: <span className="text-gray-900">Rs. {currentTotalBill}</span></div>
-                  <div>Udhaar: <span className={currentUdhaar > 0 ? "text-rose-600" : "text-emerald-600"}>Rs. {currentUdhaar}</span></div>
+                  <div>Udhaar: <span className={Math.max(0, currentTotalBill - (selectedClient ? getClientTotalReceived(selectedClient) : 0)) > 0 ? "text-rose-600" : "text-emerald-600"}>Rs. {Math.max(0, currentTotalBill - (selectedClient ? getClientTotalReceived(selectedClient) : 0))}</span></div>
                 </div>
-
-                <input type="number" placeholder="Received Paid Amount (Rs.)" value={receivedAmount} onChange={(e) => setReceivedAmount(e.target.value)} className="w-full p-2.5 text-sm rounded-xl border bg-white font-black text-emerald-700 placeholder-emerald-400" />
               </div>
 
               {/* Save Framework Matrix Trigger */}
@@ -500,20 +571,14 @@ export default function Clients({ data, setClients, onDelete }) {
               ))}
             </div>
 
-            {/* Permanent Contextual Live Master Guide Bar (Zero alerts) */}
+            {/* Permanent Contextual Live Master Guide Bar */}
             <div className="bg-amber-50 rounded-xl p-3 border border-amber-100 min-h-[50px] flex items-center">
-              <p className="text-[11px] font-bold text-[#8a6d3b] leading-tight transition-all duration-200">
-                {activeGuideText}
-              </p>
+              <p className="text-[11px] font-bold text-[#8a6d3b] leading-tight transition-all duration-200">{activeGuideText}</p>
             </div>
 
             <div className="flex gap-2">
-              <button type="button" onClick={executeSaveNaap} className="flex-1 bg-amber-500 text-white font-black py-2.5 rounded-xl text-sm shadow-md active:bg-amber-600 transition-colors">
-                Save Naap Spec
-              </button>
-              <button type="button" onClick={() => setShowNaapModal(false)} className="bg-gray-100 text-gray-700 font-black px-4 py-2.5 rounded-xl text-sm active:bg-gray-200">
-                Close
-              </button>
+              <button type="button" onClick={executeSaveNaap} className="flex-1 bg-amber-500 text-white font-black py-2.5 rounded-xl text-sm shadow-md active:bg-amber-600 transition-colors">Save Naap Spec</button>
+              <button type="button" onClick={() => setShowNaapModal(false)} className="bg-gray-100 text-gray-700 font-black px-4 py-2.5 rounded-xl text-sm active:bg-gray-200">Close</button>
             </div>
           </div>
         </div>

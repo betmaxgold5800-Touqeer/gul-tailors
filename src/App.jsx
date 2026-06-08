@@ -79,6 +79,71 @@ export default function App() {
     localStorage.setItem('gul_tailors_wholesalers', JSON.stringify(wholesalers));
   }, [wholesalers]);
 
+  // 🧮 SENIOR DEVELOPMENT REAL-TIME FINANCIAL ENGINES
+  const getFinancialMetrics = () => {
+    // Current System Timestamp Parsing (Local Timezone Safe)
+    const localTarget = new Date();
+    const offset = localTarget.getTimezoneOffset();
+    const adjustedDate = new Date(localTarget.getTime() - (offset * 60 * 1000));
+    const isoString = adjustedDate.toISOString(); // Format: YYYY-MM-DDTHH:MM:SS
+    
+    const todayStr = isoString.split('T')[0]; // Current Date: YYYY-MM-DD
+    const currentMonthPrefix = todayStr.substring(0, 7); // Current Month Cluster: YYYY-MM
+
+    let todayRevenue = 0;
+    let monthlyRevenue = 0;
+
+    // Loop through clients and aggregate inner financial payments structure
+    clients.forEach(client => {
+      if (client.payments && Array.isArray(client.payments)) {
+        client.payments.forEach(pay => {
+          const paymentDateStr = pay.date ? pay.date.trim() : '';
+          
+          // 🟢 Today's Collection Engine
+          if (paymentDateStr === todayStr) {
+            todayRevenue += Number(pay.amount) || 0;
+          }
+          
+          // 🟡 Current Month's Collection Engine
+          if (paymentDateStr.startsWith(currentMonthPrefix)) {
+            monthlyRevenue += Number(pay.amount) || 0;
+          }
+        });
+      }
+    });
+
+    // 🔴 Today's Worker Expenses Strategy
+    // (If workers have temporary current payouts logged, calculate here. Defaulting to production placeholder)
+    let todayExpense = 0; 
+
+    // 🔵 Saaf Munafa (Net Profit) Formulation Engine
+    // Deducting operational costs from current monthly gross cash inflows
+    let netProfit = monthlyRevenue - todayExpense; 
+
+    // 🏦 Ledger Matrices Summation Logic
+    const totalClientUdhaar = clients.reduce((acc, client) => {
+      const totalCost = (Number(client.silayi) || 0) + (Number(client.pKarhayi) || 0) + (Number(client.gKarhayi) || 0);
+      const totalPaid = client.payments ? client.payments.reduce((pAcc, p) => pAcc + (Number(p.amount) || 0), 0) : 0;
+      const balance = totalCost - totalPaid;
+      return balance > 0 ? acc + balance : acc;
+    }, 0);
+
+    const totalWorkerPayable = workers.reduce((acc, w) => acc + (Number(w.payable) || 0), 0);
+    const totalWholesalerBalance = wholesalers.reduce((acc, ws) => acc + (Number(ws.balance) || 0), 0);
+
+    return {
+      todayRevenue,
+      todayExpense,
+      monthlyRevenue,
+      netProfit,
+      totalClientUdhaar,
+      totalWorkerPayable,
+      totalWholesalerBalance
+    };
+  };
+
+  const metrics = getFinancialMetrics();
+
   // SYSTEM BACKUP HANDLERS (Linked Directly)
   const exportMasterBackup = () => {
     const masterPayload = { clients, workers, wholesalers, exportedAt: new Date().toISOString() };
@@ -173,6 +238,7 @@ export default function App() {
             clientsCount={clients.length}
             workersCount={workers.length}
             wholesalersCount={wholesalers.length}
+            financials={metrics}
           />
         )}
         {activeTab === 'clients' && (

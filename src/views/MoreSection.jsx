@@ -34,7 +34,9 @@ export default function MoreSection({ data = [], navigateTo }) {
 
   // 📊 LIVE REAL-TIME METRICS FOR "AUR..." TAB - 100% SECURED SYNCHRONIZATION
   const liveMetrics = data.reduce((acc, curr) => {
-    const currentStatus = curr.status || 'Pending';
+    // SENIOR REFINE: Clean status check mapping to ensure perfect alignment with Clients tab toggle
+    const rawStatus = curr.status || 'Pending';
+    const currentStatus = String(rawStatus).trim(); 
     const totalSuitsCount = Number(curr.totalSuits) || 0;
 
     if (currentStatus === 'Delivered') {

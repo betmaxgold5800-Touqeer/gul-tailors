@@ -1,4 +1,16 @@
 import React, { useState, useEffect } from 'react';
+import { 
+  Activity, 
+  Coins, 
+  Scissors, 
+  Receipt, 
+  User, 
+  Plus, 
+  Trash2, 
+  ChevronDown, 
+  Sliders, 
+  Info 
+} from 'lucide-react';
 
 export default function MoreSection({ data = [], navigateTo }) {
   // Master Accordion Panel State Control
@@ -34,7 +46,6 @@ export default function MoreSection({ data = [], navigateTo }) {
 
   // 📊 LIVE REAL-TIME METRICS FOR "AUR..." TAB - 100% SECURED SYNCHRONIZATION
   const liveMetrics = data.reduce((acc, curr) => {
-    // SENIOR REFINE: Clean status check mapping to ensure perfect alignment with Clients tab toggle
     const rawStatus = curr.status || 'Pending';
     const currentStatus = String(rawStatus).trim(); 
     const totalSuitsCount = Number(curr.totalSuits) || 0;
@@ -96,64 +107,70 @@ export default function MoreSection({ data = [], navigateTo }) {
 
   return (
     <div className="space-y-4 animate-fadeIn pb-12">
-      <h3 className="text-sm font-black tracking-widest text-[#8a6d3b] uppercase mb-1">
-        ✨ BUSINESS CONTROLS & METRICS
+      <h3 className="text-xs font-black tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-amber-200 uppercase mb-1 flex items-center gap-2">
+        <Sliders className="w-4 h-4 text-yellow-500" /> BUSINESS CONTROLS & METRICS
       </h3>
 
       {/* LIVE KPI STATS ROW */}
       <div className="grid grid-cols-3 gap-2">
-        <div className="bg-white p-3 rounded-xl border border-gray-100 text-center shadow-xs">
-          <span className="text-[10px] font-black text-gray-400 block uppercase">Suits Done</span>
-          <span className="text-lg font-black text-emerald-600">{liveMetrics.suitsDone}</span>
+        <div className="bg-slate-900/40 p-3 rounded-2xl border border-white/5 text-center shadow-md">
+          <span className="text-[9px] font-black text-slate-500 block uppercase tracking-wider">Suits Done</span>
+          <span className="text-lg font-black text-emerald-400 mt-0.5">{liveMetrics.suitsDone}</span>
         </div>
-        <div className="bg-white p-3 rounded-xl border border-gray-100 text-center shadow-xs">
-          <span className="text-[10px] font-black text-gray-400 block uppercase">Pending</span>
-          <span className="text-lg font-black text-amber-500">{liveMetrics.pendingSuits}</span>
+        <div className="bg-slate-900/40 p-3 rounded-2xl border border-white/5 text-center shadow-md">
+          <span className="text-[9px] font-black text-slate-500 block uppercase tracking-wider">Pending</span>
+          <span className="text-lg font-black text-amber-400 mt-0.5">{liveMetrics.pendingSuits}</span>
         </div>
-        <div className="bg-white p-3 rounded-xl border border-gray-100 text-center shadow-xs">
-          <span className="text-[10px] font-black text-gray-400 block uppercase">Urgent Orders</span>
-          <span className="text-lg font-black text-rose-600">{liveMetrics.urgentOrders}</span>
+        <div className="bg-slate-900/40 p-3 rounded-2xl border border-white/5 text-center shadow-md">
+          <span className="text-[9px] font-black text-slate-500 block uppercase tracking-wider">Urgent Alert</span>
+          <span className="text-lg font-black text-rose-500 mt-0.5">{liveMetrics.urgentOrders}</span>
         </div>
       </div>
 
       {statusMessage && (
-        <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 text-[11px] font-bold p-2.5 rounded-xl shadow-xs text-center">
+        <div className="bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[11px] font-black p-3 rounded-xl shadow-md text-center animate-fadeIn">
           {statusMessage}
         </div>
       )}
 
-      <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-md space-y-3">
+      <div className="bg-slate-900/20 rounded-3xl p-4 border border-white/5 shadow-xl space-y-3">
         
         {/* 1. STITCHING RATES CONTROLLER */}
         <div className="space-y-2">
           <button 
             onClick={() => togglePanel('RATES')} 
-            className={`w-full flex items-center justify-between p-3 rounded-xl border transition-all text-left ${activePanel === 'RATES' ? 'bg-amber-100/70 border-amber-300' : 'bg-amber-50 hover:bg-amber-100 border-amber-100'}`}
+            className={`w-full flex items-center justify-between p-3.5 rounded-2xl border transition-all text-left outline-none ${
+              activePanel === 'RATES' 
+                ? 'bg-amber-500/10 border-amber-500/40 shadow-[0_0_15px_rgba(245,158,11,0.05)]' 
+                : 'bg-slate-900/40 hover:bg-slate-900/60 border-white/5'
+            }`}
           >
             <div className="flex items-center gap-3">
-              <span className="text-xl">💰</span>
+              <div className="p-2 bg-amber-500/10 rounded-xl border border-amber-500/20">
+                <Coins className="w-4 h-4 text-amber-400" />
+              </div>
               <div>
-                <span className="text-sm font-black text-gray-800 block">Stitching Rate List</span>
-                <span className="text-xs text-gray-500 font-bold">Standard Setup Pricing • <span className="text-amber-800 font-black">Rs. {stitchingRate}</span></span>
+                <span className="text-xs font-black text-slate-200 block">Stitching Rate List</span>
+                <span className="text-[10px] text-slate-400 font-bold">Standard Setup Pricing • <span className="text-amber-400 font-black">Rs. {stitchingRate}</span></span>
               </div>
             </div>
-            <span className="text-gray-400">⚙️</span>
+            <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform duration-300 ${activePanel === 'RATES' ? 'rotate-180 text-amber-400' : ''}`} />
           </button>
 
           {activePanel === 'RATES' && (
-            <div className="bg-gray-50 p-3 rounded-xl border border-dashed space-y-2.5">
-              <div className="flex flex-col gap-1">
-                <label className="text-[10px] font-black text-gray-400 uppercase">Default Custom Suit Rate (Rs.)</label>
+            <div className="bg-slate-950/50 p-4 rounded-2xl border border-amber-500/20 space-y-3 animate-fadeIn">
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[9px] font-black text-slate-500 uppercase tracking-wider">Default Custom Suit Rate (Rs.)</label>
                 <div className="flex gap-2">
                   <input 
                     type="number" 
                     value={stitchingRate} 
                     onChange={(e) => setStitchingRate(Number(e.target.value) || 0)}
-                    className="flex-1 p-2 bg-white border border-gray-200 rounded-xl text-sm font-black text-amber-900 text-center focus:outline-none" 
+                    className="flex-1 p-2.5 bg-slate-900 border border-white/10 rounded-xl text-sm font-black text-amber-400 text-center focus:outline-none focus:border-amber-500/30" 
                   />
                   <button 
                     onClick={() => { togglePanel('RATES'); showToaster('💰 New standard stitching rate implemented!'); }}
-                    className="bg-[#8a6d3b] text-white text-xs font-black px-4 rounded-xl shadow-xs"
+                    className="bg-gradient-to-r from-amber-500 to-yellow-500 text-slate-950 text-xs font-black px-5 rounded-xl shadow-md active:scale-95 transition-all"
                   >
                     Lock Rate
                   </button>
@@ -167,21 +184,31 @@ export default function MoreSection({ data = [], navigateTo }) {
         <div className="space-y-2">
           <button 
             onClick={() => togglePanel('COMMISSIONS')} 
-            className={`w-full flex items-center justify-between p-3 rounded-xl border transition-all text-left ${activePanel === 'COMMISSIONS' ? 'bg-cyan-100/70 border-cyan-300' : 'bg-cyan-50 hover:bg-cyan-100 border-cyan-100'}`}
+            className={`w-full flex items-center justify-between p-3.5 rounded-2xl border transition-all text-left outline-none ${
+              activePanel === 'COMMISSIONS' 
+                ? 'bg-cyan-500/10 border-cyan-500/40 shadow-[0_0_15px_rgba(6,182,212,0.05)]' 
+                : 'bg-slate-900/40 hover:bg-slate-900/60 border-white/5'
+            }`}
           >
             <div className="flex items-center gap-3">
-              <span className="text-xl">🧵</span>
+              <div className="p-2 bg-cyan-500/10 rounded-xl border border-cyan-500/20">
+                <Scissors className="w-4 h-4 text-cyan-400" />
+              </div>
               <div>
-                <span className="text-sm font-black text-gray-800 block">Karigar Commissions</span>
-                <span className="text-xs text-gray-500">Manage rates per piece configurations</span>
+                <span className="text-xs font-black text-slate-200 block">Karigar Commissions</span>
+                <span className="text-[10px] text-slate-400 font-bold">Manage rates per piece configurations</span>
               </div>
             </div>
-            <span className="text-gray-400">⚙️</span>
+            <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform duration-300 ${activePanel === 'COMMISSIONS' ? 'rotate-180 text-cyan-400' : ''}`} />
           </button>
 
           {activePanel === 'COMMISSIONS' && (
-            <div className="bg-cyan-50/40 p-3 rounded-xl border border-cyan-100 text-[10px] text-cyan-800 font-bold leading-relaxed">
-              💡 <span className="font-black">Senior Developer Sync:</span> Har karigar ka piece rate directly unke individual profile matrix panel (`Workers.jsx`) ke andar se adjust aur compile hota hai.
+            <div className="bg-cyan-950/20 p-3.5 rounded-2xl border border-cyan-500/20 text-[10px] text-cyan-400 font-bold leading-relaxed flex gap-2 animate-fadeIn">
+              <Info className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5" />
+              <div>
+                <span className="font-black block text-slate-200 mb-0.5">Senior Developer Sync:</span> 
+                Har karigar ka piece rate directly unke individual profile matrix panel (<span className="text-cyan-300">Workers.jsx</span>) ke andar se adjust aur compile hota hai.
+              </div>
             </div>
           )}
         </div>
@@ -190,29 +217,35 @@ export default function MoreSection({ data = [], navigateTo }) {
         <div className="space-y-2">
           <button 
             onClick={() => togglePanel('EXPENSES')} 
-            className={`w-full flex items-center justify-between p-3 rounded-xl border transition-all text-left ${activePanel === 'EXPENSES' ? 'bg-purple-100/70 border-purple-300' : 'bg-purple-50 hover:bg-purple-100 border-purple-100'}`}
+            className={`w-full flex items-center justify-between p-3.5 rounded-2xl border transition-all text-left outline-none ${
+              activePanel === 'EXPENSES' 
+                ? 'bg-purple-500/10 border-purple-500/40 shadow-[0_0_15px_rgba(168,85,247,0.05)]' 
+                : 'bg-slate-900/40 hover:bg-slate-900/60 border-white/5'
+            }`}
           >
             <div className="flex items-center gap-3">
-              <span className="text-xl">📊</span>
+              <div className="p-2 bg-purple-500/10 rounded-xl border border-purple-500/20">
+                <Receipt className="w-4 h-4 text-purple-400" />
+              </div>
               <div>
-                <span className="text-sm font-black text-gray-800 block">Expense Registry</span>
-                <span className="text-xs text-gray-500">Thread, buttons, utility bills, cash registry</span>
+                <span className="text-xs font-black text-slate-200 block">Expense Registry</span>
+                <span className="text-[10px] text-slate-400 font-bold">Thread, buttons, utility bills, cash registry</span>
               </div>
             </div>
-            <span className="text-gray-400">➕</span>
+            <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform duration-300 ${activePanel === 'EXPENSES' ? 'rotate-180 text-purple-400' : ''}`} />
           </button>
 
           {activePanel === 'EXPENSES' && (
-            <div className="bg-gray-50 p-3.5 rounded-xl border space-y-3.5">
-              <form onSubmit={handleAddExpense} className="space-y-2.5">
+            <div className="bg-slate-950/50 p-4 rounded-2xl border border-purple-500/20 space-y-4 animate-fadeIn">
+              <form onSubmit={handleAddExpense} className="space-y-3">
                 <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <label className="text-[9px] font-black text-gray-400 uppercase block mb-0.5">Amount (Rs.)</label>
-                    <input type="number" placeholder="e.g. 500" value={expAmount} onChange={(e) => setExpAmount(e.target.value)} className="w-full p-2 text-xs font-black bg-white border rounded-lg focus:outline-none" required />
+                    <label className="text-[9px] font-black text-slate-500 uppercase block mb-1 tracking-wider">Amount (Rs.)</label>
+                    <input type="number" placeholder="e.g. 500" value={expAmount} onChange={(e) => setExpAmount(e.target.value)} className="w-full p-2.5 text-xs font-black bg-slate-900 text-slate-200 border border-white/10 rounded-xl focus:outline-none focus:border-purple-500/30 placeholder-slate-600" required />
                   </div>
                   <div>
-                    <label className="text-[9px] font-black text-gray-400 uppercase block mb-0.5">Category</label>
-                    <select value={expCategory} onChange={(e) => setExpCategory(e.target.value)} className="w-full p-2 text-xs font-black bg-white border rounded-lg focus:outline-none">
+                    <label className="text-[9px] font-black text-slate-500 uppercase block mb-1 tracking-wider">Category</label>
+                    <select value={expCategory} onChange={(e) => setExpCategory(e.target.value)} className="w-full p-2.5 text-xs font-black bg-slate-900 text-slate-300 border border-white/10 rounded-xl focus:outline-none focus:border-purple-500/30">
                       <option value="Raw Material">🧵 Raw Material</option>
                       <option value="Utilities">⚡ Utilities Bill</option>
                       <option value="Daily Tea">☕ Tea / Daily</option>
@@ -221,40 +254,42 @@ export default function MoreSection({ data = [], navigateTo }) {
                 </div>
                 <div className="grid grid-cols-3 gap-2">
                   <div className="col-span-2">
-                    <label className="text-[9px] font-black text-gray-400 uppercase block mb-0.5">Expense Details Note</label>
-                    <input type="text" placeholder="e.g. Bukram purchase, Nalkiyan" value={expNote} onChange={(e) => setExpNote(e.target.value)} className="w-full p-2 text-xs font-bold bg-white border rounded-lg focus:outline-none" />
+                    <label className="text-[9px] font-black text-slate-500 uppercase block mb-1 tracking-wider">Expense Details Note</label>
+                    <input type="text" placeholder="e.g. Bukram purchase, Nalkiyan" value={expNote} onChange={(e) => setExpNote(e.target.value)} className="w-full p-2.5 text-xs font-bold bg-slate-900 text-slate-200 border border-white/10 rounded-xl focus:outline-none focus:border-purple-500/30 placeholder-slate-600" />
                   </div>
                   <div>
-                    <label className="text-[9px] font-black text-gray-400 uppercase block mb-0.5">Date</label>
-                    <input type="date" value={expDate} onChange={(e) => setExpDate(e.target.value)} className="w-full p-1.5 text-xs font-bold bg-white border rounded-lg text-center focus:outline-none" />
+                    <label className="text-[9px] font-black text-slate-500 uppercase block mb-1 tracking-wider">Date</label>
+                    <input type="date" value={expDate} onChange={(e) => setExpDate(e.target.value)} className="w-full p-2 bg-slate-900 text-slate-300 border border-white/10 rounded-xl text-center text-xs font-bold focus:outline-none focus:border-purple-500/30" />
                   </div>
                 </div>
-                <button type="submit" className="w-full bg-[#8a6d3b] text-white font-black py-2 rounded-xl text-xs">
-                  Post Expense Entry
+                <button type="submit" className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-black py-2.5 rounded-xl text-xs shadow-md active:scale-95 transition-all flex items-center justify-center gap-1.5">
+                  <Plus className="w-4 h-4" /> Post Expense Entry
                 </button>
               </form>
 
-              <div className="space-y-1.5 border-t pt-2.5">
-                <span className="text-[9px] font-black text-gray-400 uppercase block">📋 Recent Expense History</span>
-                <div className="max-h-[130px] overflow-y-auto space-y-1 pr-1">
+              <div className="space-y-2 border-t border-white/5 pt-3">
+                <span className="text-[9px] font-black text-slate-500 uppercase tracking-wider block">📋 Recent Expense History</span>
+                <div className="max-h-[140px] overflow-y-auto space-y-1.5 pr-1 scrollbar-thin">
                   {expenses.length > 0 ? (
                     expenses.map((exp) => (
-                      <div key={exp.id} className="flex justify-between items-center bg-white p-2 rounded-lg border text-[10px]">
+                      <div key={exp.id} className="flex justify-between items-center bg-slate-900/50 p-2.5 rounded-xl border border-white/5 text-[10px] hover:border-white/10 transition-colors">
                         <div>
-                          <div className="flex items-center gap-1.5">
-                            <span className="font-black text-rose-600">Rs. {exp.amount}</span>
-                            <span className="bg-gray-100 text-gray-500 font-extrabold px-1 rounded text-[7px] uppercase">{exp.category}</span>
+                          <div className="flex items-center gap-2">
+                            <span className="font-black text-rose-400">Rs. {exp.amount}</span>
+                            <span className="bg-purple-500/10 text-purple-400 font-black px-1.5 py-0.5 rounded text-[7px] uppercase tracking-wider border border-purple-500/10">{exp.category}</span>
                           </div>
-                          <p className="text-[8px] text-gray-400 font-bold mt-0.5">{exp.note}</p>
+                          <p className="text-[9px] text-slate-400 font-bold mt-0.5">{exp.note}</p>
                         </div>
-                        <div className="flex items-center gap-1.5">
-                          <span className="text-[8px] text-gray-400 font-bold">{exp.date}</span>
-                          <button type="button" onClick={() => handleDeleteExpense(exp.id)} className="text-gray-300 hover:text-rose-600 font-bold">🗑️</button>
+                        <div className="flex items-center gap-2.5">
+                          <span className="text-[8px] text-slate-500 font-bold">{exp.date}</span>
+                          <button type="button" onClick={() => handleDeleteExpense(exp.id)} className="text-slate-500 hover:text-rose-400 transition-colors p-1">
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
                         </div>
                       </div>
                     ))
                   ) : (
-                    <p className="text-[9px] text-center text-gray-400 py-3 font-bold">Dukan ka koi expense note darj nahi hai.</p>
+                    <p className="text-[9px] text-center text-slate-500 py-4 font-bold">Dukan ka koi expense note darj nahi hai.</p>
                   )}
                 </div>
               </div>
@@ -266,33 +301,39 @@ export default function MoreSection({ data = [], navigateTo }) {
         <div className="space-y-2">
           <button 
             onClick={() => togglePanel('PROFILE')} 
-            className={`w-full flex items-center justify-between p-3 rounded-xl border transition-all text-left ${activePanel === 'PROFILE' ? 'bg-gray-100 border-gray-300' : 'bg-gray-50 hover:bg-gray-100 border-gray-200'}`}
+            className={`w-full flex items-center justify-between p-3.5 rounded-2xl border transition-all text-left outline-none ${
+              activePanel === 'PROFILE' 
+                ? 'bg-slate-800/50 border-white/20 shadow-md' 
+                : 'bg-slate-900/40 hover:bg-slate-900/60 border-white/5'
+            }`}
           >
             <div className="flex items-center gap-3">
-              <span className="text-xl">📍</span>
+              <div className="p-2 bg-slate-800 text-slate-400 rounded-xl border border-white/5">
+                <User className="w-4 h-4 text-slate-300" />
+              </div>
               <div>
-                <span className="text-sm font-black text-gray-800 block">Shop Profile</span>
-                <span className="text-xs text-gray-500 font-bold">{profileName} • {profilePhone} • Adhi Kot</span>
+                <span className="text-xs font-black text-slate-200 block">Shop Profile</span>
+                <span className="text-[10px] text-slate-400 font-bold">{profileName} • {profilePhone} • Adhi Kot</span>
               </div>
             </div>
-            <span className="text-gray-400">👤</span>
+            <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform duration-300 ${activePanel === 'PROFILE' ? 'rotate-180 text-white' : ''}`} />
           </button>
 
           {activePanel === 'PROFILE' && (
-            <form onSubmit={handleSaveProfile} className="bg-gray-50 p-3.5 rounded-xl border space-y-3">
+            <form onSubmit={handleSaveProfile} className="bg-slate-950/50 p-4 rounded-2xl border border-white/10 space-y-3.5 animate-fadeIn">
               <div>
-                <label className="text-[9px] font-black text-gray-400 uppercase block mb-0.5">Shop Header Title</label>
-                <input type="text" value={profileName} onChange={(e) => setProfileName(e.target.value)} className="w-full p-2 bg-white border rounded-lg text-xs font-bold focus:outline-none" required />
+                <label className="text-[9px] font-black text-slate-500 uppercase block mb-1 tracking-wider">Shop Header Title</label>
+                <input type="text" value={profileName} onChange={(e) => setProfileName(e.target.value)} className="w-full p-2.5 bg-slate-900 text-slate-200 border border-white/10 rounded-xl text-xs font-bold focus:outline-none focus:border-white/20" required />
               </div>
               <div>
-                <label className="text-[9px] font-black text-gray-400 uppercase block mb-0.5">WhatsApp Billing Contact</label>
-                <input type="text" value={profilePhone} onChange={(e) => setProfilePhone(e.target.value)} className="w-full p-2 bg-white border rounded-lg text-xs font-bold focus:outline-none" required />
+                <label className="text-[9px] font-black text-slate-500 uppercase block mb-1 tracking-wider">WhatsApp Billing Contact</label>
+                <input type="text" value={profilePhone} onChange={(e) => setProfilePhone(e.target.value)} className="w-full p-2.5 bg-slate-900 text-slate-200 border border-white/10 rounded-xl text-xs font-bold focus:outline-none focus:border-white/20" required />
               </div>
               <div>
-                <label className="text-[9px] font-black text-gray-400 uppercase block mb-0.5">Physical Address Directory</label>
-                <textarea rows="2" value={profileAddress} onChange={(e) => setProfileAddress(e.target.value)} className="w-full p-2 bg-white border rounded-lg text-xs font-bold focus:outline-none" required />
+                <label className="text-[9px] font-black text-slate-500 uppercase block mb-1 tracking-wider">Physical Address Directory</label>
+                <textarea rows="2" value={profileAddress} onChange={(e) => setProfileAddress(e.target.value)} className="w-full p-2.5 bg-slate-900 text-slate-200 border border-white/10 rounded-xl text-xs font-bold focus:outline-none focus:border-white/20 resize-none" required />
               </div>
-              <button type="submit" className="w-full bg-emerald-600 text-white font-black py-2 rounded-xl text-xs">
+              <button type="submit" className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-black py-2.5 rounded-xl text-xs shadow-md active:scale-95 transition-all">
                 Save Profile Configuration
               </button>
             </form>
@@ -302,8 +343,8 @@ export default function MoreSection({ data = [], navigateTo }) {
       </div>
 
       <div className="text-center py-2">
-        <span className="text-[10px] font-bold tracking-widest text-gray-400 uppercase">
-          Gul Tailors Engine v2.1.0 • Connected to Firebase
+        <span className="text-[9px] font-black tracking-widest text-slate-600 uppercase">
+          Gul Tailors Engine v2.1.0 • Connected to LocalStorage
         </span>
       </div>
     </div>

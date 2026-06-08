@@ -15,7 +15,8 @@ export default function Dashboard({
   clientsCount, 
   workersCount, 
   wholesalersCount, 
-  financials = {} 
+  financials = {},
+  proximityAlerts = [] // 🔥 Live Timeline Radar Alerts Prop Linked
 }) {
   
   // Safely fallback to 0 if the state metric is not computed yet
@@ -176,6 +177,59 @@ export default function Dashboard({
 
         </div>
       </div>
+
+      {/* 🚨 DYNAMIC TIMELINE RADAR: DELIVERY PROXIMITY ALERTS */}
+      {proximityAlerts.length > 0 && (
+        <div className="rounded-3xl border border-white/5 bg-slate-900/30 p-5 shadow-[inset_0_1px_1px_rgba(255,255,255,0.02)]">
+          <h3 className="text-[10px] font-black tracking-[0.2em] text-slate-400 uppercase mb-4 flex items-center gap-2 border-b border-white/5 pb-3">
+            <span className="animate-pulse relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-500"></span>
+            </span>
+            DELIVERY PROXIMITY TIMELINE ALERTS
+          </h3>
+          
+          <div className="space-y-2.5 max-h-[220px] overflow-y-auto pr-1 scrollbar-thin">
+            {proximityAlerts.map((order) => (
+              <div 
+                key={order.id} 
+                onClick={() => navigateTo('clients')}
+                className={`flex items-center justify-between p-3 rounded-2xl border transition-all cursor-pointer bg-slate-950/40 active:scale-98 ${
+                  order.zone === 'crisis' 
+                    ? 'border-rose-500/20 hover:border-rose-500/40 shadow-[0_0_15px_rgba(244,63,94,0.02)]' 
+                    : 'border-amber-500/20 hover:border-amber-500/40 shadow-[0_0_15px_rgba(245,158,11,0.02)]'
+                }`}
+              >
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-black text-slate-200">{order.name}</span>
+                    {order.isUrgent && (
+                      <span className="text-[7px] font-black tracking-widest bg-rose-500/10 border border-rose-500/30 text-rose-400 px-1.5 py-0.5 rounded-md uppercase animate-pulse">
+                        URGENT
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">
+                    {order.suitType} • <span className="text-slate-500">Target: {order.deliveryDate}</span>
+                  </p>
+                </div>
+                
+                <span className={`text-[9px] font-black px-2.5 py-1 rounded-xl uppercase tracking-wider border ${
+                  order.zone === 'crisis'
+                    ? 'bg-rose-500/10 text-rose-400 border-rose-500/20 shadow-[0_0_10px_rgba(244,63,94,0.05)]'
+                    : 'bg-amber-500/10 text-amber-400 border-amber-500/20 shadow-[0_0_10px_rgba(245,158,11,0.05)]'
+                }`}>
+                  {order.remainingDays <= 0 
+                    ? `Overdue (${Math.abs(order.remainingDays)} Days)` 
+                    : `${order.remainingDays} Days Left`
+                  }
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

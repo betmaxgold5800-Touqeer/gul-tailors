@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { 
-  Activity, 
   Coins, 
   Scissors, 
   Receipt, 
@@ -12,7 +11,13 @@ import {
   Info 
 } from 'lucide-react';
 
-export default function MoreSection({ data = [], navigateTo }) {
+export default function MoreSection({ 
+  data = [], 
+  navigateTo,
+  expenses = [],          // 🔥 Connected to global state
+  onAddExpense,           // 🔥 Trigger for parent submit
+  onDeleteExpense         // 🔥 Trigger for parent delete
+}) {
   // Master Accordion Panel State Control
   const [activePanel, setActivePanel] = useState(null); 
   const [statusMessage, setStatusMessage] = useState('');
@@ -22,10 +27,7 @@ export default function MoreSection({ data = [], navigateTo }) {
     return Number(localStorage.getItem('gt_stitching_rate')) || 1000;
   });
 
-  // 2️⃣ Expense Registry State Trackers
-  const [expenses, setExpenses] = useState(() => {
-    return JSON.parse(localStorage.getItem('gt_expenses') || '[]');
-  });
+  // 2️⃣ Expense Registry Input Form States
   const [expAmount, setExpAmount] = useState('');
   const [expCategory, setExpCategory] = useState('Raw Material'); 
   const [expNote, setExpNote] = useState('');
@@ -35,14 +37,6 @@ export default function MoreSection({ data = [], navigateTo }) {
   const [profileName, setProfileName] = useState(() => localStorage.getItem('gt_profile_name') || 'Waseem Gul Baghoor');
   const [profilePhone, setProfilePhone] = useState(() => localStorage.getItem('gt_profile_phone') || '03007614329');
   const [profileAddress, setProfileAddress] = useState(() => localStorage.getItem('gt_profile_address') || 'Main Bazar Adhi Kot, Syed Market');
-
-  useEffect(() => {
-    localStorage.setItem('gt_stitching_rate', stitchingRate.toString());
-  }, [stitchingRate]);
-
-  useEffect(() => {
-    localStorage.setItem('gt_expenses', JSON.stringify(expenses));
-  }, [expenses]);
 
   // 📊 LIVE REAL-TIME METRICS FOR "AUR..." TAB - 100% SECURED SYNCHRONIZATION
   const liveMetrics = data.reduce((acc, curr) => {
@@ -72,7 +66,7 @@ export default function MoreSection({ data = [], navigateTo }) {
     setActivePanel(activePanel === panelName ? null : panelName);
   };
 
-  const handleAddExpense = (e) => {
+  const handleExpenseSubmitLocal = (e) => {
     e.preventDefault();
     const amt = parseFloat(expAmount) || 0;
     if (amt <= 0) return alert('Valid expense amount darj karein!');
@@ -85,15 +79,13 @@ export default function MoreSection({ data = [], navigateTo }) {
       date: expDate
     };
 
-    setExpenses([newExpense, ...expenses]);
-    setExpAmount('');
-    setExpNote('');
-    showToaster('✅ Dukan ka kharcha kamyabi se ledger mein plus ho gaya!');
-  };
-
-  const handleDeleteExpense = (id) => {
-    setExpenses(expenses.filter(item => item.id !== id));
-    showToaster('🗑️ Expense entry log code removed.');
+    // 🔥 Push to global App.jsx state handler
+    if (onAddExpense) {
+      onAddExpense(newExpense);
+      setExpAmount('');
+      setExpNote('');
+      showToaster('✅ Dukan ka kharcha kamyabi se ledger mein plus ho gaya!');
+    }
   };
 
   const handleSaveProfile = (e) => {
@@ -237,7 +229,7 @@ export default function MoreSection({ data = [], navigateTo }) {
 
           {activePanel === 'EXPENSES' && (
             <div className="bg-slate-950/50 p-4 rounded-2xl border border-purple-500/20 space-y-4 animate-fadeIn">
-              <form onSubmit={handleAddExpense} className="space-y-3">
+              <form onSubmit={handleExpenseSubmitLocal} className="space-y-3">
                 <div className="grid grid-cols-2 gap-2">
                   <div>
                     <label className="text-[9px] font-black text-slate-500 uppercase block mb-1 tracking-wider">Amount (Rs.)</label>
@@ -270,7 +262,7 @@ export default function MoreSection({ data = [], navigateTo }) {
               <div className="space-y-2 border-t border-white/5 pt-3">
                 <span className="text-[9px] font-black text-slate-500 uppercase tracking-wider block">📋 Recent Expense History</span>
                 <div className="max-h-[140px] overflow-y-auto space-y-1.5 pr-1 scrollbar-thin">
-                  {expenses.length > 0 ? (
+                  {expenses && expenses.length > 0 ? (
                     expenses.map((exp) => (
                       <div key={exp.id} className="flex justify-between items-center bg-slate-900/50 p-2.5 rounded-xl border border-white/5 text-[10px] hover:border-white/10 transition-colors">
                         <div>
@@ -282,7 +274,7 @@ export default function MoreSection({ data = [], navigateTo }) {
                         </div>
                         <div className="flex items-center gap-2.5">
                           <span className="text-[8px] text-slate-500 font-bold">{exp.date}</span>
-                          <button type="button" onClick={() => handleDeleteExpense(exp.id)} className="text-slate-500 hover:text-rose-400 transition-colors p-1">
+                          <button type="button" onClick={() => onDeleteExpense && onDeleteExpense(exp.id)} className="text-slate-500 hover:text-rose-400 transition-colors p-1">
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
                         </div>

@@ -2,10 +2,10 @@ import React, { useState, useEffect } from 'react';
 
 export default function MoreSection({ data = [], navigateTo }) {
   // Master Accordion Panel State Control
-  const [activePanel, setActivePanel] = useState(null); // 'RATES' | 'COMMISSIONS' | 'EXPENSES' | 'PROFILE' | null
+  const [activePanel, setActivePanel] = useState(null); 
   const [statusMessage, setStatusMessage] = useState('');
 
-  // 1️⃣ Stitching Rate State Matrix (Default Auto Fix: Rs. 1000)
+  // 1️⃣ Stitching Rate State Matrix
   const [stitchingRate, setStitchingRate] = useState(() => {
     return Number(localStorage.getItem('gt_stitching_rate')) || 1000;
   });
@@ -15,7 +15,7 @@ export default function MoreSection({ data = [], navigateTo }) {
     return JSON.parse(localStorage.getItem('gt_expenses') || '[]');
   });
   const [expAmount, setExpAmount] = useState('');
-  const [expCategory, setExpCategory] = useState('Raw Material'); // Raw Material | Utilities | Daily Tea
+  const [expCategory, setExpCategory] = useState('Raw Material'); 
   const [expNote, setExpNote] = useState('');
   const [expDate, setExpDate] = useState(new Date().toISOString().split('T')[0]);
 
@@ -24,7 +24,6 @@ export default function MoreSection({ data = [], navigateTo }) {
   const [profilePhone, setProfilePhone] = useState(() => localStorage.getItem('gt_profile_phone') || '03007614329');
   const [profileAddress, setProfileAddress] = useState(() => localStorage.getItem('gt_profile_address') || 'Main Bazar Adhi Kot, Syed Market');
 
-  // Automatic Persistence Layers via Hooks
   useEffect(() => {
     localStorage.setItem('gt_stitching_rate', stitchingRate.toString());
   }, [stitchingRate]);
@@ -33,36 +32,33 @@ export default function MoreSection({ data = [], navigateTo }) {
     localStorage.setItem('gt_expenses', JSON.stringify(expenses));
   }, [expenses]);
 
-  // 📊 LIVE REAL-TIME METRICS COMPUTATION ENGINE (No more Dummy Data!)
+  // 📊 LIVE REAL-TIME METRICS FOR "AUR..." TAB - 100% SECURED SYNCHRONIZATION
   const liveMetrics = data.reduce((acc, curr) => {
     const currentStatus = curr.status || 'Pending';
     const totalSuitsCount = Number(curr.totalSuits) || 0;
 
     if (currentStatus === 'Delivered') {
       acc.suitsDone += totalSuitsCount;
-    } else {
+    } else if (currentStatus === 'Pending') {
       acc.pendingSuits += totalSuitsCount;
     }
 
-    if (curr.isUrgent && currentStatus !== 'Delivered') {
+    if (curr.isUrgent && currentStatus === 'Pending') {
       acc.urgentOrders += 1;
     }
 
     return acc;
   }, { suitsDone: 0, pendingSuits: 0, urgentOrders: 0 });
 
-  // Flash Status Message Handler
   const showToaster = (msg) => {
     setStatusMessage(msg);
     setTimeout(() => setStatusMessage(''), 3000);
   };
 
-  // Toggle Panel Layer
   const togglePanel = (panelName) => {
     setActivePanel(activePanel === panelName ? null : panelName);
   };
 
-  // Expense Data Persistence Poster
   const handleAddExpense = (e) => {
     e.preventDefault();
     const amt = parseFloat(expAmount) || 0;
@@ -82,13 +78,11 @@ export default function MoreSection({ data = [], navigateTo }) {
     showToaster('✅ Dukan ka kharcha kamyabi se ledger mein plus ho gaya!');
   };
 
-  // Delete Expense Log Row
   const handleDeleteExpense = (id) => {
     setExpenses(expenses.filter(item => item.id !== id));
     showToaster('🗑️ Expense entry log code removed.');
   };
 
-  // Shop Profile Data Sync Handler
   const handleSaveProfile = (e) => {
     e.preventDefault();
     localStorage.setItem('gt_profile_name', profileName.trim());
@@ -104,7 +98,7 @@ export default function MoreSection({ data = [], navigateTo }) {
         ✨ BUSINESS CONTROLS & METRICS
       </h3>
 
-      {/* 🚀 KPI STATS ANALYTICS ROW (NOW 100% LIVE FROM CLIENTS DATABASE) */}
+      {/* LIVE KPI STATS ROW */}
       <div className="grid grid-cols-3 gap-2">
         <div className="bg-white p-3 rounded-xl border border-gray-100 text-center shadow-xs">
           <span className="text-[10px] font-black text-gray-400 block uppercase">Suits Done</span>
@@ -120,21 +114,19 @@ export default function MoreSection({ data = [], navigateTo }) {
         </div>
       </div>
 
-      {/* Local Flash Toaster Notification Block */}
       {statusMessage && (
-        <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 text-[11px] font-bold p-2.5 rounded-xl shadow-xs text-center animate-slideDown">
+        <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 text-[11px] font-bold p-2.5 rounded-xl shadow-xs text-center">
           {statusMessage}
         </div>
       )}
 
-      {/* Active Senior Dev Functional Controls Container */}
       <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-md space-y-3">
         
-        {/* 1. STITCHING RATES CONTROLLER (Rs. 1000 Fixed with Manual Override) */}
+        {/* 1. STITCHING RATES CONTROLLER */}
         <div className="space-y-2">
           <button 
             onClick={() => togglePanel('RATES')} 
-            className={`w-full flex items-center justify-between p-3 rounded-xl border transition-all text-left ${activePanel === 'RATES' ? 'bg-amber-100/70 border-amber-300 shadow-xs' : 'bg-amber-50 hover:bg-amber-100 border-amber-100'}`}
+            className={`w-full flex items-center justify-between p-3 rounded-xl border transition-all text-left ${activePanel === 'RATES' ? 'bg-amber-100/70 border-amber-300' : 'bg-amber-50 hover:bg-amber-100 border-amber-100'}`}
           >
             <div className="flex items-center gap-3">
               <span className="text-xl">💰</span>
@@ -143,11 +135,11 @@ export default function MoreSection({ data = [], navigateTo }) {
                 <span className="text-xs text-gray-500 font-bold">Standard Setup Pricing • <span className="text-amber-800 font-black">Rs. {stitchingRate}</span></span>
               </div>
             </div>
-            <span className={`text-gray-400 transition-transform duration-200 ${activePanel === 'RATES' ? 'rotate-90' : ''}`}>⚙️</span>
+            <span className="text-gray-400">⚙️</span>
           </button>
 
           {activePanel === 'RATES' && (
-            <div className="bg-gray-50 p-3 rounded-xl border border-dashed space-y-2.5 animate-slideDown">
+            <div className="bg-gray-50 p-3 rounded-xl border border-dashed space-y-2.5">
               <div className="flex flex-col gap-1">
                 <label className="text-[10px] font-black text-gray-400 uppercase">Default Custom Suit Rate (Rs.)</label>
                 <div className="flex gap-2">
@@ -159,7 +151,7 @@ export default function MoreSection({ data = [], navigateTo }) {
                   />
                   <button 
                     onClick={() => { togglePanel('RATES'); showToaster('💰 New standard stitching rate implemented!'); }}
-                    className="bg-[#8a6d3b] text-white text-xs font-black px-4 rounded-xl active:scale-95 transition-transform shadow-xs"
+                    className="bg-[#8a6d3b] text-white text-xs font-black px-4 rounded-xl shadow-xs"
                   >
                     Lock Rate
                   </button>
@@ -173,7 +165,7 @@ export default function MoreSection({ data = [], navigateTo }) {
         <div className="space-y-2">
           <button 
             onClick={() => togglePanel('COMMISSIONS')} 
-            className={`w-full flex items-center justify-between p-3 rounded-xl border transition-all text-left ${activePanel === 'COMMISSIONS' ? 'bg-cyan-100/70 border-cyan-300 shadow-xs' : 'bg-cyan-50 hover:bg-cyan-100 border-cyan-100'}`}
+            className={`w-full flex items-center justify-between p-3 rounded-xl border transition-all text-left ${activePanel === 'COMMISSIONS' ? 'bg-cyan-100/70 border-cyan-300' : 'bg-cyan-50 hover:bg-cyan-100 border-cyan-100'}`}
           >
             <div className="flex items-center gap-3">
               <span className="text-xl">🧵</span>
@@ -186,17 +178,17 @@ export default function MoreSection({ data = [], navigateTo }) {
           </button>
 
           {activePanel === 'COMMISSIONS' && (
-            <div className="bg-cyan-50/40 p-3 rounded-xl border border-cyan-100 text-[10px] text-cyan-800 font-bold leading-relaxed animate-slideDown shadow-2xs">
+            <div className="bg-cyan-50/40 p-3 rounded-xl border border-cyan-100 text-[10px] text-cyan-800 font-bold leading-relaxed">
               💡 <span className="font-black">Senior Developer Sync:</span> Har karigar ka piece rate directly unke individual profile matrix panel (`Workers.jsx`) ke andar se adjust aur compile hota hai.
             </div>
           )}
         </div>
 
-        {/* 3. EXPENSE REGISTRY (LIVE DAILY LEDGER TRACKER) */}
+        {/* 3. EXPENSE REGISTRY */}
         <div className="space-y-2">
           <button 
             onClick={() => togglePanel('EXPENSES')} 
-            className={`w-full flex items-center justify-between p-3 rounded-xl border transition-all text-left ${activePanel === 'EXPENSES' ? 'bg-purple-100/70 border-purple-300 shadow-xs' : 'bg-purple-50 hover:bg-purple-100 border-purple-100'}`}
+            className={`w-full flex items-center justify-between p-3 rounded-xl border transition-all text-left ${activePanel === 'EXPENSES' ? 'bg-purple-100/70 border-purple-300' : 'bg-purple-50 hover:bg-purple-100 border-purple-100'}`}
           >
             <div className="flex items-center gap-3">
               <span className="text-xl">📊</span>
@@ -209,7 +201,7 @@ export default function MoreSection({ data = [], navigateTo }) {
           </button>
 
           {activePanel === 'EXPENSES' && (
-            <div className="bg-gray-50 p-3.5 rounded-xl border space-y-3.5 animate-slideDown">
+            <div className="bg-gray-50 p-3.5 rounded-xl border space-y-3.5">
               <form onSubmit={handleAddExpense} className="space-y-2.5">
                 <div className="grid grid-cols-2 gap-2">
                   <div>
@@ -235,28 +227,27 @@ export default function MoreSection({ data = [], navigateTo }) {
                     <input type="date" value={expDate} onChange={(e) => setExpDate(e.target.value)} className="w-full p-1.5 text-xs font-bold bg-white border rounded-lg text-center focus:outline-none" />
                   </div>
                 </div>
-                <button type="submit" className="w-full bg-[#8a6d3b] text-white font-black py-2 rounded-xl text-xs shadow-xs active:scale-98 transition-transform">
+                <button type="submit" className="w-full bg-[#8a6d3b] text-white font-black py-2 rounded-xl text-xs">
                   Post Expense Entry
                 </button>
               </form>
 
-              {/* Dynamic Scrolling Expense Statement Loop */}
               <div className="space-y-1.5 border-t pt-2.5">
-                <span className="text-[9px] font-black text-gray-400 uppercase block">📋 Recent Expense Statement History</span>
+                <span className="text-[9px] font-black text-gray-400 uppercase block">📋 Recent Expense History</span>
                 <div className="max-h-[130px] overflow-y-auto space-y-1 pr-1">
                   {expenses.length > 0 ? (
                     expenses.map((exp) => (
-                      <div key={exp.id} className="flex justify-between items-center bg-white p-2 rounded-lg border text-[10px] shadow-2xs">
+                      <div key={exp.id} className="flex justify-between items-center bg-white p-2 rounded-lg border text-[10px]">
                         <div>
                           <div className="flex items-center gap-1.5">
                             <span className="font-black text-rose-600">Rs. {exp.amount}</span>
-                            <span className="bg-gray-100 text-gray-500 font-extrabold px-1 rounded text-[7px] uppercase tracking-wider">{exp.category}</span>
+                            <span className="bg-gray-100 text-gray-500 font-extrabold px-1 rounded text-[7px] uppercase">{exp.category}</span>
                           </div>
                           <p className="text-[8px] text-gray-400 font-bold mt-0.5">{exp.note}</p>
                         </div>
                         <div className="flex items-center gap-1.5">
                           <span className="text-[8px] text-gray-400 font-bold">{exp.date}</span>
-                          <button type="button" onClick={() => handleDeleteExpense(exp.id)} className="text-gray-300 hover:text-rose-600 font-bold active:scale-90 transition-transform">🗑️</button>
+                          <button type="button" onClick={() => handleDeleteExpense(exp.id)} className="text-gray-300 hover:text-rose-600 font-bold">🗑️</button>
                         </div>
                       </div>
                     ))
@@ -273,7 +264,7 @@ export default function MoreSection({ data = [], navigateTo }) {
         <div className="space-y-2">
           <button 
             onClick={() => togglePanel('PROFILE')} 
-            className={`w-full flex items-center justify-between p-3 rounded-xl border transition-all text-left ${activePanel === 'PROFILE' ? 'bg-gray-100 border-gray-300 shadow-xs' : 'bg-gray-50 hover:bg-gray-100 border-gray-200'}`}
+            className={`w-full flex items-center justify-between p-3 rounded-xl border transition-all text-left ${activePanel === 'PROFILE' ? 'bg-gray-100 border-gray-300' : 'bg-gray-50 hover:bg-gray-100 border-gray-200'}`}
           >
             <div className="flex items-center gap-3">
               <span className="text-xl">📍</span>
@@ -286,7 +277,7 @@ export default function MoreSection({ data = [], navigateTo }) {
           </button>
 
           {activePanel === 'PROFILE' && (
-            <form onSubmit={handleSaveProfile} className="bg-gray-50 p-3.5 rounded-xl border space-y-3 animate-slideDown">
+            <form onSubmit={handleSaveProfile} className="bg-gray-50 p-3.5 rounded-xl border space-y-3">
               <div>
                 <label className="text-[9px] font-black text-gray-400 uppercase block mb-0.5">Shop Header Title</label>
                 <input type="text" value={profileName} onChange={(e) => setProfileName(e.target.value)} className="w-full p-2 bg-white border rounded-lg text-xs font-bold focus:outline-none" required />
@@ -299,7 +290,7 @@ export default function MoreSection({ data = [], navigateTo }) {
                 <label className="text-[9px] font-black text-gray-400 uppercase block mb-0.5">Physical Address Directory</label>
                 <textarea rows="2" value={profileAddress} onChange={(e) => setProfileAddress(e.target.value)} className="w-full p-2 bg-white border rounded-lg text-xs font-bold focus:outline-none" required />
               </div>
-              <button type="submit" className="w-full bg-emerald-600 text-white font-black py-2 rounded-xl text-xs shadow-xs">
+              <button type="submit" className="w-full bg-emerald-600 text-white font-black py-2 rounded-xl text-xs">
                 Save Profile Configuration
               </button>
             </form>
@@ -308,7 +299,6 @@ export default function MoreSection({ data = [], navigateTo }) {
 
       </div>
 
-      {/* Footer Branding Matrix Block */}
       <div className="text-center py-2">
         <span className="text-[10px] font-bold tracking-widest text-gray-400 uppercase">
           Gul Tailors Engine v2.1.0 • Connected to Firebase

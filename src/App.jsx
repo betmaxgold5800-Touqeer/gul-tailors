@@ -16,7 +16,7 @@ export default function App() {
     address: 'Main Bazar Adhi Kot, Syed Market, Almaroof Tailors Wali Market'
   };
 
-  // 🛡️ CENTRAL STATE HOOKS (Safely Intact)
+  // 🛡️ CENTRAL STATE HOOKS (Safely Intact & Synced)
   const [clients, setClients] = useState(() => {
     const savedClients = localStorage.getItem('gul_tailors_clients');
     if (!savedClients) {
@@ -67,6 +67,12 @@ export default function App() {
     ];
   });
 
+  // 📦 GLOBAL STATE FOR EXPENSES (Synchronized)
+  const [expenses, setExpenses] = useState(() => {
+    const savedExpenses = localStorage.getItem('gt_expenses');
+    return savedExpenses ? JSON.parse(savedExpenses) : [];
+  });
+
   useEffect(() => {
     localStorage.setItem('gul_tailors_clients', JSON.stringify(clients));
   }, [clients]);
@@ -78,6 +84,19 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem('gul_tailors_wholesalers', JSON.stringify(wholesalers));
   }, [wholesalers]);
+
+  useEffect(() => {
+    localStorage.setItem('gt_expenses', JSON.stringify(expenses));
+  }, [expenses]);
+
+  // EXPENSES ACTION HANDLERS
+  const handleAddExpense = (newExp) => {
+    setExpenses(prev => [newExp, ...prev]);
+  };
+
+  const handleDeleteExpense = (id) => {
+    setExpenses(prev => prev.filter(exp => exp.id !== id));
+  };
 
   // 🧮 SENIOR DEVELOPMENT REAL-TIME FINANCIAL ENGINES
   const getFinancialMetrics = () => {
@@ -106,9 +125,15 @@ export default function App() {
       }
     });
 
-    let todayExpense = 0; 
+    // 🔴 DYNAMIC DAILY EXPENSE CALCULATION
+    let todayExpense = expenses
+      .filter(exp => exp.date === todayStr)
+      .reduce((acc, exp) => acc + (Number(exp.amount) || 0), 0);
+
+    // 🔵 SAAF MUNAFA (Net Profit Calculation)
     let netProfit = monthlyRevenue - todayExpense; 
 
+    // 🏦 Ledger Matrices Summation Logic
     const totalClientUdhaar = clients.reduce((acc, client) => {
       const totalCost = (Number(client.silayi) || 0) + (Number(client.pKarhayi) || 0) + (Number(client.gKarhayi) || 0);
       const totalPaid = client.payments ? client.payments.reduce((pAcc, p) => pAcc + (Number(p.amount) || 0), 0) : 0;
@@ -130,7 +155,7 @@ export default function App() {
     };
   };
 
-  // 🚨 REAL-TIME DELIVERY TIMELINE RADAR (Senior Optimization)
+  // 🚨 REAL-TIME DELIVERY TIMELINE RADAR
   const getProximityAlerts = () => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -157,9 +182,9 @@ export default function App() {
   const metrics = getFinancialMetrics();
   const proximityAlerts = getProximityAlerts();
 
-  // SYSTEM BACKUP HANDLERS (Linked Directly)
+  // SYSTEM BACKUP HANDLERS (With Expenses Included)
   const exportMasterBackup = () => {
-    const masterPayload = { clients, workers, wholesalers, exportedAt: new Date().toISOString() };
+    const masterPayload = { clients, workers, wholesalers, expenses, exportedAt: new Date().toISOString() };
     const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(masterPayload));
     const downloadAnchor = document.createElement('a');
     downloadAnchor.setAttribute("href", dataStr);
@@ -182,6 +207,7 @@ export default function App() {
             setClients(importedData.clients);
             setWorkers(importedData.workers);
             setWholesalers(importedData.wholesalers);
+            if (importedData.expenses) setExpenses(importedData.expenses);
             alert("✅ Khushamdeed! Gul Tailors ka poora data kamyabi se restore ho gaya hai.");
           }
         } else {
@@ -250,7 +276,7 @@ export default function App() {
             workersCount={workers.length}
             wholesalersCount={wholesalers.length}
             financials={metrics}
-            proximityAlerts={proximityAlerts} // 🔥 Passed Live Timeline Radar Alerts
+            proximityAlerts={proximityAlerts}
           />
         )}
         {activeTab === 'clients' && (
@@ -280,6 +306,9 @@ export default function App() {
             navigateTo={navigateTo} 
             exportBackup={exportMasterBackup}
             importBackup={importMasterBackup}
+            expenses={expenses}                 // 🔥 Pass shared list
+            onAddExpense={handleAddExpense}       // 🔥 Pass submit trigger
+            onDeleteExpense={handleDeleteExpense} // 🔥 Pass delete trigger
           />
         )}
       </main>

@@ -130,27 +130,28 @@ export default function App() {
   };
 
   return (
-    // ✨ PREMIUM MODERN SYSTEM FRAME (No more dark-heavy feel)
-    <div className="min-h-screen bg-[#F8F9FA] pb-28 font-sans text-[#1A1A1A] antialiased">
+    // 🌌 MIDNIGHT NEON BASE
+    <div className="min-h-screen bg-[#020617] pb-28 font-sans text-slate-100 antialiased selection:bg-yellow-500/30">
       
-      {/* 🏛️ MODERN ELITE GLASS-MORPHIC HEADER BAR */}
-      <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-md px-5 py-3.5 border-b border-gray-100 shadow-sm">
+      {/* 🏛️ NEON GLOW HEADER */}
+      <header className="sticky top-0 z-50 bg-[#020617]/80 backdrop-blur-xl border-b border-white/10 px-5 py-4">
         <div className="flex justify-between items-center max-w-md mx-auto">
           <div>
-            <h1 className="text-xl font-black tracking-[0.18em] text-gray-900 leading-none">{shopInfo.name}</h1>
-            <p className="text-[10px] font-black text-[#b5924b] uppercase tracking-widest mt-1.5">{shopInfo.owner}</p>
+            <h1 className="text-xl font-black tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-yellow-600">
+              {shopInfo.name}
+            </h1>
+            <p className="text-[9px] text-slate-500 tracking-[0.2em] uppercase font-bold mt-1">{shopInfo.owner}</p>
           </div>
-          <div className="text-right flex flex-col items-end">
-            <span className="text-[11px] font-black text-gray-800 bg-gray-50 border border-gray-200/60 px-3 py-1 rounded-full shadow-inner">
+          <div className="text-right">
+            <span className="text-[10px] font-black text-yellow-500 bg-yellow-500/10 px-3 py-1 rounded-full border border-yellow-500/20 shadow-[0_0_10px_-2px_rgba(234,179,8,0.3)]">
               📞 {shopInfo.phone}
             </span>
-            <p className="text-[9px] text-gray-400 font-bold mt-1 tracking-tight max-w-[140px] truncate">{shopInfo.address}</p>
           </div>
         </div>
       </header>
 
       {/* Dynamic Main Workspace Wrapper */}
-      <main className="mx-auto max-w-md px-4 pt-5">
+      <main className="mx-auto max-w-md px-4 pt-6">
         {activeTab === 'home' && (
           <Dashboard 
             navigateTo={navigateTo} 
@@ -190,8 +191,8 @@ export default function App() {
         )}
       </main>
 
-      {/* 🧭 NAVIGATION CAPSULE (Floating Luxury Dock Architecture) */}
-      <nav className="fixed bottom-5 left-4 right-4 z-50 mx-auto max-w-md border border-gray-200/80 bg-white/95 backdrop-blur-lg px-2 py-2.5 shadow-xl rounded-2xl">
+      {/* 🧭 FLOATING NEON NAVIGATION DOCK */}
+      <nav className="fixed bottom-6 left-4 right-4 z-50 mx-auto max-w-md border border-white/10 bg-[#0f172a]/90 backdrop-blur-2xl px-2 py-3 shadow-[0_0_30px_-10px_rgba(234,179,8,0.2)] rounded-3xl">
         <div className="grid grid-cols-5 gap-1 text-center">
           {[
             { id: 'home', label: 'Home', icon: '🏠' },
@@ -205,14 +206,14 @@ export default function App() {
               <button
                 key={tab.id}
                 onClick={() => navigateTo(tab.id)}
-                className={`flex flex-col items-center justify-center py-2 px-1 rounded-xl transition-all duration-300 active:scale-95 ${
+                className={`flex flex-col items-center justify-center py-1.5 px-1 rounded-2xl transition-all duration-300 active:scale-90 ${
                   isActive 
-                    ? 'bg-[#b5924b]/10 text-[#b5924b] scale-105 font-bold shadow-sm' 
-                    : 'text-gray-400 hover:text-gray-600'
+                    ? 'bg-gradient-to-br from-yellow-500/20 to-transparent border border-yellow-500/30 text-yellow-500 shadow-[0_0_15px_-5px_rgba(234,179,8,0.4)]' 
+                    : 'text-slate-500 hover:text-slate-300'
                 }`}
               >
-                <span className="text-lg mb-0.5">{tab.icon}</span>
-                <span className={`text-[10px] tracking-wide font-bold ${isActive ? 'text-[#b5924b]' : 'text-gray-400'}`}>
+                <span className="text-xl mb-0.5">{tab.icon}</span>
+                <span className={`text-[9px] tracking-wide font-black ${isActive ? 'text-yellow-500' : 'text-slate-500'}`}>
                   {tab.label}
                 </span>
               </button>

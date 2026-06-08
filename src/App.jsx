@@ -12,11 +12,11 @@ export default function App() {
   const shopInfo = {
     name: 'GUL TAILORS',
     owner: 'Waseem Gul Baghoor',
-    phone: '03007614329',
-    address: 'Main Bazar Adhi Kot, Syed Market, Almaroof Tailors Wali Market, Left side last shop'
+    phone: '0300-7614329',
+    address: 'Main Bazar Adhi Kot, Syed Market, Almaroof Tailors Wali Market'
   };
 
-  // 🛡️ CENTRAL STATE HOOKS
+  // 🛡️ CENTRAL STATE HOOKS (Safely Intact)
   const [clients, setClients] = useState(() => {
     const savedClients = localStorage.getItem('gul_tailors_clients');
     if (!savedClients) {
@@ -79,7 +79,7 @@ export default function App() {
     localStorage.setItem('gul_tailors_wholesalers', JSON.stringify(wholesalers));
   }, [wholesalers]);
 
-  // SYSTEM BACKUP HANDLERS (Pass down to MoreSection)
+  // SYSTEM BACKUP HANDLERS (Linked Directly)
   const exportMasterBackup = () => {
     const masterPayload = { clients, workers, wholesalers, exportedAt: new Date().toISOString() };
     const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(masterPayload));
@@ -130,23 +130,27 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#fdf6e9] pb-24 font-sans text-[#1a1a1a]">
+    // ✨ PREMIUM MODERN SYSTEM FRAME (No more dark-heavy feel)
+    <div className="min-h-screen bg-[#F8F9FA] pb-28 font-sans text-[#1A1A1A] antialiased">
       
-      {/* 🔥 CLEAN PREMIUM HEADER: Cleaned up and perfectly aligned */}
-      <header className="sticky top-0 z-50 bg-[#1f1610] px-4 py-3 shadow-xl border-b border-[#cca464]/25">
-        <div className="flex justify-between items-center">
+      {/* 🏛️ MODERN ELITE GLASS-MORPHIC HEADER BAR */}
+      <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-md px-5 py-3.5 border-b border-gray-100 shadow-sm">
+        <div className="flex justify-between items-center max-w-md mx-auto">
           <div>
-            <h1 className="text-xl font-black tracking-wider text-[#cca464]">{shopInfo.name}</h1>
-            <p className="text-[9px] font-bold text-[#cca464]/60 uppercase tracking-widest">{shopInfo.owner}</p>
+            <h1 className="text-xl font-black tracking-[0.18em] text-gray-900 leading-none">{shopInfo.name}</h1>
+            <p className="text-[10px] font-black text-[#b5924b] uppercase tracking-widest mt-1.5">{shopInfo.owner}</p>
           </div>
-          <div className="text-right">
-            <p className="text-[10px] text-[#cca464] font-bold">{shopInfo.phone}</p>
-            <p className="text-[8px] text-[#cca464]/50 max-w-[150px] leading-tight mt-0.5">{shopInfo.address}</p>
+          <div className="text-right flex flex-col items-end">
+            <span className="text-[11px] font-black text-gray-800 bg-gray-50 border border-gray-200/60 px-3 py-1 rounded-full shadow-inner">
+              📞 {shopInfo.phone}
+            </span>
+            <p className="text-[9px] text-gray-400 font-bold mt-1 tracking-tight max-w-[140px] truncate">{shopInfo.address}</p>
           </div>
         </div>
       </header>
 
-      <main className="mx-auto max-w-md px-4 pt-4">
+      {/* Dynamic Main Workspace Wrapper */}
+      <main className="mx-auto max-w-md px-4 pt-5">
         {activeTab === 'home' && (
           <Dashboard 
             navigateTo={navigateTo} 
@@ -177,7 +181,6 @@ export default function App() {
           />
         )}
         {activeTab === 'aur' && (
-          /* Passing handlers to MoreSection to render elegantly inside the system options panel */
           <MoreSection 
             data={clients} 
             navigateTo={navigateTo} 
@@ -187,9 +190,9 @@ export default function App() {
         )}
       </main>
 
-      {/* Navigation Layer */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50 mx-auto max-w-md border-t border-[#cca464]/30 bg-[#1f1610] px-2 py-2 shadow-2xl rounded-t-2xl">
-        <div className="grid grid-cols-5 text-center">
+      {/* 🧭 NAVIGATION CAPSULE (Floating Luxury Dock Architecture) */}
+      <nav className="fixed bottom-5 left-4 right-4 z-50 mx-auto max-w-md border border-gray-200/80 bg-white/95 backdrop-blur-lg px-2 py-2.5 shadow-xl rounded-2xl">
+        <div className="grid grid-cols-5 gap-1 text-center">
           {[
             { id: 'home', label: 'Home', icon: '🏠' },
             { id: 'clients', label: 'Clients', icon: '👥' },
@@ -202,12 +205,14 @@ export default function App() {
               <button
                 key={tab.id}
                 onClick={() => navigateTo(tab.id)}
-                className={`flex flex-col items-center justify-center py-1 transition-all ${
-                  isActive ? 'scale-110 text-[#d4af37]' : 'text-gray-400 opacity-60'
+                className={`flex flex-col items-center justify-center py-2 px-1 rounded-xl transition-all duration-300 active:scale-95 ${
+                  isActive 
+                    ? 'bg-[#b5924b]/10 text-[#b5924b] scale-105 font-bold shadow-sm' 
+                    : 'text-gray-400 hover:text-gray-600'
                 }`}
               >
-                <span className="text-xl">{tab.icon}</span>
-                <span className={`text-[10px] font-black ${isActive ? 'text-[#ffdb70]' : 'text-gray-400'}`}>
+                <span className="text-lg mb-0.5">{tab.icon}</span>
+                <span className={`text-[10px] tracking-wide font-bold ${isActive ? 'text-[#b5924b]' : 'text-gray-400'}`}>
                   {tab.label}
                 </span>
               </button>

@@ -68,14 +68,14 @@ export default function Workers({ data, setWorkers, onDelete }) {
     setShowLedgerModal(true);
   };
 
-  // Atomic Save / Update Handler
+  // Atomic Save / Update Handler - [FIXED BY SENIOR DEVELOPER]
   const handleSaveWorker = (e) => {
     e.preventDefault();
     if (!wName.trim() || !wPhone.trim()) return alert('⚠️ Error: Naam aur Phone number lazmi hai!');
 
     if (isEditing) {
-      setWorkers((prev) =>
-        prev.map((w) =>
+      setWorkers((prevWorkers) =>
+        prevWorkers.map((w) =>
           w.id === selectedWorker.id
             ? {
                 ...w,
@@ -97,7 +97,8 @@ export default function Workers({ data, setWorkers, onDelete }) {
         baseRate: Number(wBaseRate) || 0,
         transactions: [] // Empty ledger for fresh staff
       };
-      setWorkers([newWorker, ...prev]);
+      // Fixed: Target explicitly directed to 'data' matrix to eliminate runtime freeze
+      setWorkers([newWorker, ...data]);
     }
     setShowAddModal(false);
   };
@@ -120,8 +121,8 @@ export default function Workers({ data, setWorkers, onDelete }) {
       if (!computedNote) computedNote = "Hafta / Advance Cash Paid";
     }
 
-    setWorkers((prev) =>
-      prev.map((w) => {
+    setWorkers((prevWorkers) =>
+      prevWorkers.map((w) => {
         if (w.id === selectedWorker.id) {
           const currentTxs = w.transactions && Array.isArray(w.transactions) ? [...w.transactions] : [];
           return {

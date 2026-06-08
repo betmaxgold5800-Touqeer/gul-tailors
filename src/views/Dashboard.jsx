@@ -14,75 +14,119 @@ export default function Dashboard({ navigateTo, clientsCount, workersCount, whol
   return (
     <div className="space-y-6 animate-fadeIn pb-6">
       
-      {/* 👑 PREMIUM NEON HEADER BANNER */}
-      <div className="relative p-6 rounded-3xl bg-gradient-to-br from-yellow-900/20 via-[#020617] to-[#020617] border border-yellow-500/20 text-center overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(234,179,8,0.15),transparent)]" />
-        <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-yellow-500/10 border border-yellow-500/20">
-          <span className="text-2xl">✂️</span>
+      {/* 👑 PREMIUM NEON HERO DISPLAY BANNER */}
+      <div className="relative p-6 rounded-3xl bg-gradient-to-br from-slate-900 via-[#0b1329] to-[#020617] border border-white/5 text-center overflow-hidden shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(59,130,246,0.08),transparent)]" />
+        
+        {/* BIG HERO LOGO */}
+        <div className="mx-auto mb-3 flex h-20 w-20 items-center justify-center rounded-2xl bg-slate-950 border border-white/10 p-1 shadow-[0_0_25px_rgba(59,130,246,0.2)]">
+          <img 
+            src="/logo.png" 
+            alt="Gul Tailors Main Logo" 
+            className="h-full w-full object-cover scale-110 rounded-xl"
+          />
         </div>
-        <h2 className="text-xl font-black tracking-[0.2em] text-white">GUL TAILORS</h2>
-        <p className="text-[9px] font-black tracking-[0.2em] text-yellow-500 uppercase mt-1">DIGITAL VAULT & LEDGER</p>
+        <h2 className="text-xl font-black tracking-[0.25em] text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 via-amber-200 to-yellow-500">
+          GUL TAILORS
+        </h2>
+        <p className="text-[9px] font-black tracking-[0.2em] text-slate-400 uppercase mt-1 bg-white/5 inline-block px-3 py-0.5 rounded-full border border-white/10">
+          PREMIUM DIGITAL VAULT & LEDGER
+        </p>
       </div>
 
-      {/* 📊 NEON CLICKABLE METRICS */}
+      {/* 📊 NEON MATRIX GRID */}
       <div className="grid grid-cols-2 gap-4">
         
-        {/* Card: Aaj Aaya */}
+        {/* Card 1: Aaj Aaya */}
         <button 
           onClick={() => navigateTo('clients')}
-          className="p-4 rounded-3xl bg-slate-900/50 border border-emerald-500/20 hover:border-emerald-500/50 transition-all shadow-[0_0_15px_-5px_rgba(16,185,129,0.1)] active:scale-95"
+          className="group p-4 rounded-3xl bg-slate-900/40 border border-emerald-500/20 hover:border-emerald-500/50 transition-all duration-300 shadow-[0_0_15px_rgba(16,185,129,0.05)] active:scale-95 text-left"
         >
-          <div className="flex justify-between items-center mb-3">
-            <span className="text-[10px] font-black text-emerald-400">AAJ AAYA</span>
-            <ArrowUpRight className="w-4 h-4 text-emerald-400" />
+          <div className="flex w-full items-center justify-between">
+            <span className="text-[9px] font-black tracking-wider text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20">AAJ AAYA</span>
+            <ArrowUpRight className="w-4 h-4 text-emerald-400 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
           </div>
-          <p className="text-lg font-black text-white">Rs. 12,500</p>
-          <p className="text-[9px] text-slate-500 font-bold mt-1">Clients ({clientsCount})</p>
+          <div className="mt-4">
+            <span className="text-xl font-black tracking-tight text-white">Rs. 12,500</span>
+            <p className="text-[9px] text-slate-500 font-bold mt-1">Active Clients: ({clientsCount})</p>
+          </div>
         </button>
 
-        {/* Card: Aaj Kharcha */}
+        {/* Card 2: Aaj Kharcha */}
         <button 
           onClick={() => navigateTo('workers')}
-          className="p-4 rounded-3xl bg-slate-900/50 border border-rose-500/20 hover:border-rose-500/50 transition-all shadow-[0_0_15px_-5px_rgba(244,63,94,0.1)] active:scale-95"
+          className="group p-4 rounded-3xl bg-slate-900/40 border border-rose-500/20 hover:border-rose-500/50 transition-all duration-300 shadow-[0_0_15px_rgba(244,63,94,0.05)] active:scale-95 text-left"
         >
-          <div className="flex justify-between items-center mb-3">
-            <span className="text-[10px] font-black text-rose-400">AAJ KHARCHA</span>
-            <ArrowDownRight className="w-4 h-4 text-rose-400" />
+          <div className="flex w-full items-center justify-between">
+            <span className="text-[9px] font-black tracking-wider text-rose-400 bg-rose-500/10 px-2 py-0.5 rounded-md border border-rose-500/20">AAJ KHARCHA</span>
+            <ArrowDownRight className="w-4 h-4 text-rose-400 group-hover:translate-x-0.5 group-hover:translate-y-0.5 transition-transform" />
           </div>
-          <p className="text-lg font-black text-white">Rs. 3,200</p>
-          <p className="text-[9px] text-slate-500 font-bold mt-1">Workers ({workersCount})</p>
+          <div className="mt-4">
+            <span className="text-xl font-black tracking-tight text-white">Rs. 3,200</span>
+            <p className="text-[9px] text-slate-500 font-bold mt-1">Worker Payouts: ({workersCount})</p>
+          </div>
+        </button>
+
+        {/* Card 3: Mahana Aaya */}
+        <button 
+          onClick={() => navigateTo('clients')}
+          className="group p-4 rounded-3xl bg-slate-900/40 border border-amber-500/20 hover:border-amber-500/50 transition-all duration-300 shadow-[0_0_15px_rgba(245,158,11,0.05)] active:scale-95 text-left"
+        >
+          <div className="flex w-full items-center justify-between">
+            <span className="text-[9px] font-black tracking-wider text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-md border border-amber-500/20">MAHANA AAYA</span>
+            <Briefcase className="w-3.5 h-3.5 text-amber-400" />
+          </div>
+          <div className="mt-4">
+            <span className="text-xl font-black tracking-tight text-white">Rs. 185,000</span>
+            <p className="text-[9px] text-slate-500 font-bold mt-1">Is mahine ki kul aamdani</p>
+          </div>
+        </button>
+
+        {/* Card 4: Saaf Munafa */}
+        <button 
+          onClick={() => navigateTo('aur')}
+          className="group p-4 rounded-3xl bg-slate-900/40 border border-blue-500/20 hover:border-blue-500/50 transition-all duration-300 shadow-[0_0_15px_rgba(59,130,246,0.05)] active:scale-95 text-left"
+        >
+          <div className="flex w-full items-center justify-between">
+            <span className="text-[9px] font-black tracking-wider text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded-md border border-blue-500/20">SAAF MUNAFA</span>
+            <ShieldCheck className="w-3.5 h-3.5 text-blue-400" />
+          </div>
+          <div className="mt-4">
+            <span className="text-xl font-black tracking-tight text-white">Rs. 42,800</span>
+            <p className="text-[9px] text-slate-500 font-bold mt-1">View Analytics overview</p>
+          </div>
         </button>
       </div>
 
-      {/* 🏦 NEON LEDGER MATRICES */}
-      <div className="bg-slate-900/40 border border-white/5 p-5 rounded-3xl">
-        <h3 className="text-[10px] font-black tracking-[0.2em] text-slate-400 uppercase mb-4 flex items-center gap-2">
-          <Layers className="w-4 h-4 text-yellow-500" /> LEDGER BALANCE
+      {/* 🏦 NEON LEDGER BALANCE MATRICES */}
+      <div className="rounded-3xl border border-white/5 bg-slate-900/30 p-5 shadow-[inset_0_1px_1px_rgba(255,255,255,0.02)]">
+        <h3 className="text-[10px] font-black tracking-[0.2em] text-slate-400 uppercase mb-4 flex items-center gap-2 border-b border-white/5 pb-3">
+          <Layers className="w-4 h-4 text-yellow-500" /> LEDGER BALANCE MATRICES
         </h3>
         
-        <div className="space-y-3">
-          <div onClick={() => navigateTo('clients')} className="flex items-center justify-between p-3 rounded-2xl hover:bg-white/5 transition-all cursor-pointer">
-            <div className="flex items-center gap-3">
-              <Coins className="w-4 h-4 text-yellow-500" />
-              <span className="text-xs font-bold text-slate-300">Udhaar</span>
+        <div className="space-y-2">
+          <div onClick={() => navigateTo('clients')} className="flex items-center justify-between p-3 cursor-pointer hover:bg-white/5 rounded-2xl transition-all">
+            <div className="flex items-center gap-2.5">
+              <Coins className="w-4 h-4 text-amber-500" />
+              <span className="text-xs font-bold text-slate-300">Clients Se Lena Hai (Udhaar)</span>
             </div>
-            <span className="text-xs font-black text-yellow-400">Rs. 48,000</span>
+            <span className="text-xs font-black text-amber-400 bg-amber-500/10 px-2.5 py-1 rounded-xl border border-amber-500/20">Rs. 48,000</span>
           </div>
           
-          <div onClick={() => navigateTo('workers')} className="flex items-center justify-between p-3 rounded-2xl hover:bg-white/5 transition-all cursor-pointer">
-            <div className="flex items-center gap-3">
+          <div onClick={() => navigateTo('workers')} className="flex items-center justify-between p-3 cursor-pointer hover:bg-white/5 rounded-2xl transition-all">
+            <div className="flex items-center gap-2.5">
               <UserCheck className="w-4 h-4 text-rose-500" />
-              <span className="text-xs font-bold text-slate-300">Payable</span>
+              <span className="text-xs font-bold text-slate-300">Karigaron Ka Baqi (Payable)</span>
             </div>
-            <span className="text-xs font-black text-rose-400">Rs. 15,500</span>
+            <span className="text-xs font-black text-rose-400 bg-rose-500/10 px-2.5 py-1 rounded-xl border border-rose-500/20">Rs. 15,500</span>
           </div>
           
-          <div onClick={() => navigateTo('ws')} className="flex items-center justify-between p-3 rounded-2xl hover:bg-white/5 transition-all cursor-pointer">
-            <div className="flex items-center gap-3">
+          <div onClick={() => navigateTo('ws')} className="flex items-center justify-between p-3 cursor-pointer hover:bg-white/5 rounded-2xl transition-all">
+            <div className="flex items-center gap-2.5">
               <Store className="w-4 h-4 text-blue-500" />
-              <span className="text-xs font-bold text-slate-300">Wholesalers</span>
+              <span className="text-xs font-bold text-slate-300">Wholesalers Ka Dena Hai</span>
             </div>
-            <span className="text-xs font-black text-blue-400">Rs. 25,000</span>
+            <span className="text-xs font-black text-blue-400 bg-blue-500/10 px-2.5 py-1 rounded-xl border border-blue-500/20">Rs. 25,000</span>
           </div>
         </div>
       </div>

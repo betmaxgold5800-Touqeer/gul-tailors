@@ -8,7 +8,7 @@ export default function Clients({ data, setClients, onDelete }) {
   const [isEditing, setIsEditing] = useState(false);
   const [editingClientId, setEditingClientId] = useState(null);
   
-  // [NEW MODAL CONTROLLER] Udhaar Recovery History Modal State
+  // Udhaar Recovery History Modal State
   const [showRecoveryModal, setShowRecoveryModal] = useState(false);
   const [recoveryAmount, setRecoveryAmount] = useState('');
   const [recoveryDate, setRecoveryDate] = useState(new Date().toISOString().split('T')[0]);
@@ -48,28 +48,27 @@ export default function Clients({ data, setClients, onDelete }) {
     asan: "Asan: Shalwar ki guthni/crotch length ka standard naap."
   };
 
-  // Helper: Client ki total payments calculate karne ka reusable engine
   const getClientTotalReceived = (client) => {
     if (!client.payments || !Array.isArray(client.payments)) {
-      return Number(client.received) || 0; // Fallback for old records
+      return Number(client.received) || 0;
     }
     return client.payments.reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
   };
 
   // Real-time Metrics Calculations for the Top Strip
   const metrics = data.reduce((acc, curr) => {
-    const totalBill = (curr.silayi + curr.pKarhayi + curr.gKarhayi) * curr.totalSuits;
+    const totalBill = ((Number(curr.silayi) || 0) + (Number(curr.pKarhayi) || 0) + (Number(curr.gKarhayi) || 0)) * (Number(curr.totalSuits) || 1);
     const totalReceived = getClientTotalReceived(curr);
-    acc.totalSuits += curr.totalSuits || 0;
-    if (curr.isUrgent) acc.urgentCount += 1;
+    const currentStatus = curr.status || 'Pending';
+    
+    acc.totalSuits += Number(curr.totalSuits) || 0;
+    if (curr.isUrgent && currentStatus === 'Pending') acc.urgentCount += 1;
     acc.totalUdhaar += Math.max(0, totalBill - totalReceived);
     return acc;
   }, { totalSuits: 0, urgentCount: 0, totalUdhaar: 0 });
 
-  // Real-time Math Ledger Calculations for Form UI
   const currentTotalBill = ((Number(silayiPrice) || 0) + (Number(pKarhayiPrice) || 0) + (Number(gKarhayiPrice) || 0)) * (Number(suitCount) || 1);
 
-  // Inline Status Changer Switch
   const toggleStatusDirectly = (clientId, currentStatus) => {
     const nextStatus = currentStatus === 'Delivered' ? 'Pending' : 'Delivered';
     setClients((prevClients) =>
@@ -77,7 +76,6 @@ export default function Clients({ data, setClients, onDelete }) {
     );
   };
 
-  // Open modal in edit mode
   const openEditManager = (client) => {
     setIsEditing(true);
     setEditingClientId(client.id);
@@ -90,12 +88,10 @@ export default function Clients({ data, setClients, onDelete }) {
     setGKarhayiPrice(client.gKarhayi || '');
     setDeliveryDate(client.deliveryDate || '');
     setOrderStatus(client.status || 'Pending');
-    // We will preserve payments array inside save execute logic
     setSelectedClient(client); 
     setShowAddModal(true);
   };
 
-  // Open modal in add mode cleanly
   const openAddManager = () => {
     setIsEditing(false);
     setEditingClientId(null);
@@ -112,7 +108,6 @@ export default function Clients({ data, setClients, onDelete }) {
     setShowAddModal(true);
   };
 
-  // Atomic Custom Save / Update Handler
   const executeSaveClient = () => {
     if (!clientName.trim() || !clientPhone.trim()) {
       alert('⚠️ Error: Client Name aur Phone Number likhna lazmi hai!');
@@ -134,7 +129,6 @@ export default function Clients({ data, setClients, onDelete }) {
                 gKarhayi: Number(gKarhayiPrice) || 0,
                 deliveryDate: deliveryDate,
                 status: orderStatus,
-                // Aggressive fallback protection for historic logs
                 payments: c.payments || [{ amount: Number(c.received) || 0, date: c.orderDate || 'N/A', note: 'Initial Deposit' }]
               }
             : c
@@ -154,7 +148,7 @@ export default function Clients({ data, setClients, onDelete }) {
         orderDate: today,
         deliveryDate: deliveryDate,
         status: orderStatus,
-        payments: [], // Fresh array ready for micro transactions
+        payments: [], 
         naap: { lambaai: '', teera: '', baazu: '', ghera: '', shalwar: '', paincha: '', asan: '', galla: '' }
       };
       setClients((prevClients) => [newClientRecord, ...prevClients]);
@@ -163,7 +157,6 @@ export default function Clients({ data, setClients, onDelete }) {
     setShowAddModal(false);
   };
 
-  // [NEW METHOD] Inline Direct Ledger Installment Processor
   const executeInjectRecoveryPayment = () => {
     const amountToInsert = Number(recoveryAmount) || 0;
     if (amountToInsert <= 0) {
@@ -177,7 +170,7 @@ export default function Clients({ data, setClients, onDelete }) {
           const currentLogs = c.payments && Array.isArray(c.payments) ? [...c.payments] : [{ amount: Number(c.received) || 0, date: c.orderDate || 'N/A', note: 'Initial Deposit' }];
           return {
             ...c,
-            payments: [...currentLogs, { amount: amountToInsert, date: recoveryDate, note: 'Udhaar Recovery Recovery' }]
+            payments: [...currentLogs, { amount: amountToInsert, date: recoveryDate, note: 'Udhaar Recovery' }]
           };
         }
         return c;
@@ -188,9 +181,8 @@ export default function Clients({ data, setClients, onDelete }) {
     setShowRecoveryModal(false);
   };
 
-  // WhatsApp Automated Invoice Engine
   const dispatchWhatsAppInvoice = (client) => {
-    const calculatedTotal = (client.silayi + client.pKarhayi + client.gKarhayi) * client.totalSuits;
+    const calculatedTotal = ((Number(client.silayi) || 0) + (Number(client.pKarhayi) || 0) + (Number(client.gKarhayi) || 0)) * (Number(client.totalSuits) || 1);
     const totalReceived = getClientTotalReceived(client);
     const balanceUdhaar = Math.max(0, calculatedTotal - totalReceived);
     const cleanPhone = client.phone.replace(/\D/g, '');
@@ -223,7 +215,6 @@ export default function Clients({ data, setClients, onDelete }) {
     setShowNaapModal(false);
   };
 
-  // Open Direct Udhaar Ledger Handler
   const openUdhaarLedger = (client) => {
     setSelectedClient(client);
     setRecoveryAmount('');
@@ -231,7 +222,6 @@ export default function Clients({ data, setClients, onDelete }) {
     setShowRecoveryModal(true);
   };
 
-  // Integrated Dynamic Filtration System
   const filteredData = data.filter((client) => {
     const matchesSearch = 
       client.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
@@ -239,11 +229,11 @@ export default function Clients({ data, setClients, onDelete }) {
 
     if (!matchesSearch) return false;
 
-    const totalBill = (client.silayi + client.pKarhayi + client.gKarhayi) * client.totalSuits;
+    const totalBill = ((Number(client.silayi) || 0) + (Number(client.pKarhayi) || 0) + (Number(client.gKarhayi) || 0)) * (Number(client.totalSuits) || 1);
     const totalReceived = getClientTotalReceived(client);
     const currentUdhaarCalculated = Math.max(0, totalBill - totalReceived);
 
-    if (activeFilter === 'Urgent') return client.isUrgent;
+    if (activeFilter === 'Urgent') return client.isUrgent && (client.status || 'Pending') === 'Pending';
     if (activeFilter === 'Udhaar') return currentUdhaarCalculated > 0;
     
     return true;
@@ -251,7 +241,6 @@ export default function Clients({ data, setClients, onDelete }) {
 
   return (
     <div className="space-y-4 animate-fadeIn pb-12">
-      {/* Premium Top Controller */}
       <div className="flex items-center justify-between bg-white p-4 rounded-3xl shadow-sm border border-gray-100">
         <div>
           <h3 className="text-xs font-black tracking-widest text-[#8a6d3b] uppercase">👥 CLIENTS ENGINE v3.5</h3>
@@ -265,7 +254,6 @@ export default function Clients({ data, setClients, onDelete }) {
         </button>
       </div>
 
-      {/* Ledger Metrics Summary Strip (Top Bar) */}
       <div className="grid grid-cols-3 gap-2 bg-gradient-to-r from-[#1f1610] to-[#2d221a] p-3 rounded-2xl text-center shadow-xs">
         <div>
           <span className="text-[9px] font-bold text-[#cca464]/80 block uppercase">Total Suits</span>
@@ -281,7 +269,6 @@ export default function Clients({ data, setClients, onDelete }) {
         </div>
       </div>
 
-      {/* Dynamic Search Engine Row */}
       <div className="relative">
         <input 
           type="text" 
@@ -295,34 +282,30 @@ export default function Clients({ data, setClients, onDelete }) {
         )}
       </div>
 
-      {/* Quick Filter Matrix (Pills Row) */}
       <div className="flex gap-1.5 overflow-x-auto pb-1">
         <button onClick={() => setActiveFilter('All')} className={`text-[10px] font-black px-4 py-2 rounded-xl transition-all whitespace-nowrap active:scale-95 ${activeFilter === 'All' ? 'bg-[#1f1610] text-[#cca464]' : 'bg-white text-gray-500 border border-gray-100'}`}>📁 All Orders</button>
         <button onClick={() => setActiveFilter('Urgent')} className={`text-[10px] font-black px-4 py-2 rounded-xl transition-all whitespace-nowrap active:scale-95 ${activeFilter === 'Urgent' ? 'bg-rose-500 text-white shadow-xs' : 'bg-white text-gray-500 border border-gray-100'}`}>🚨 Urgent Orders</button>
         <button onClick={() => setActiveFilter('Udhaar')} className={`text-[10px] font-black px-4 py-2 rounded-xl transition-all whitespace-nowrap active:scale-95 ${activeFilter === 'Udhaar' ? 'bg-amber-600 text-white shadow-xs' : 'bg-white text-gray-500 border border-gray-100'}`}>📉 Baqi Udhaar</button>
       </div>
 
-      {/* Main Stream System Cards */}
       <div className="space-y-3">
         {filteredData.map((client) => {
-          const clientTotalBill = (client.silayi + client.pKarhayi + client.gKarhayi) * client.totalSuits;
+          const clientTotalBill = ((Number(client.silayi) || 0) + (Number(client.pKarhayi) || 0) + (Number(client.gKarhayi) || 0)) * (Number(client.totalSuits) || 1);
           const totalReceivedPaid = getClientTotalReceived(client);
           const displayUdhaar = Math.max(0, clientTotalBill - totalReceivedPaid);
           const currentStatus = client.status || 'Pending';
 
-          // Overdue & Pending Delivery Warning System
-          const todayStr = "2026-06-08"; 
+          const todayStr = new Date().toISOString().split('T')[0]; 
           const isOverdue = currentStatus === 'Pending' && client.deliveryDate && client.deliveryDate < todayStr;
 
           return (
-            <div key={client.id} className={`bg-white rounded-3xl p-4 border shadow-sm space-y-3 relative overflow-hidden transition-all duration-300 ${isOverdue ? 'border-rose-500 ring-2 ring-rose-500/10 animate-[pulse_2s_infinite]' : 'border-gray-100'}`}>
+            <div key={client.id} className={`bg-white rounded-3xl p-4 border shadow-sm space-y-3 relative overflow-hidden transition-all duration-300 ${isOverdue ? 'border-rose-500 ring-2 ring-rose-500/10' : 'border-gray-100'}`}>
               
-              {/* Card Status Header */}
               <div className="flex justify-between items-start">
                 <div>
                   <div className="flex items-center gap-2">
                     <h4 className="font-black text-base text-gray-800 tracking-wide">{client.name}</h4>
-                    {client.isUrgent && (
+                    {client.isUrgent && currentStatus === 'Pending' && (
                       <span className="bg-rose-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded-md animate-pulse">URGENT</span>
                     )}
                   </div>
@@ -332,7 +315,6 @@ export default function Clients({ data, setClients, onDelete }) {
                   </p>
                 </div>
                 
-                {/* STATUS & CLICKABLE RECOVERY BADGE */}
                 <div className="flex flex-col items-end gap-2">
                   <button
                     onClick={() => toggleStatusDirectly(client.id, currentStatus)}
@@ -341,10 +323,9 @@ export default function Clients({ data, setClients, onDelete }) {
                     {currentStatus === 'Delivered' ? '📦 Delivered' : '⏳ Pending'}
                   </button>
                   
-                  {/* [CLICKABLE RECOVERY MATRIX TRIGGER] */}
                   <button
                     onClick={() => openUdhaarLedger(client)}
-                    className={`text-[10px] font-black px-2.5 py-1 rounded-xl block border cursor-pointer select-none transition-all active:scale-95 hover:shadow-xs ${
+                    className={`text-[10px] font-black px-2.5 py-1 rounded-xl block border cursor-pointer select-none transition-all active:scale-95 ${
                       displayUdhaar > 0 
                         ? 'bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-100/70' 
                         : 'bg-emerald-50 text-emerald-700 border-emerald-100 hover:bg-emerald-100/70'
@@ -355,7 +336,6 @@ export default function Clients({ data, setClients, onDelete }) {
                 </div>
               </div>
 
-              {/* Order Load Framework Metrics */}
               <div className="grid grid-cols-3 gap-2 bg-gray-50 p-2.5 rounded-2xl border border-gray-100 text-center">
                 <div>
                   <span className="text-[9px] font-black text-gray-400 block uppercase">Suits</span>
@@ -371,7 +351,6 @@ export default function Clients({ data, setClients, onDelete }) {
                 </div>
               </div>
 
-              {/* Actions Console Panel */}
               <div className="flex items-center justify-between pt-2 border-t border-gray-100">
                 <div className="flex items-center gap-1.5">
                   <button onClick={() => openNaapManager(client)} className="bg-amber-500 hover:bg-amber-600 text-white font-black text-xs px-3.5 py-2 rounded-xl transition-all active:scale-95">📏 Size Vault</button>
@@ -389,7 +368,6 @@ export default function Clients({ data, setClients, onDelete }) {
         })}
       </div>
 
-      {/* [NEW PORTAL OVERLAY] 💸 UDHAAR INSTALLMENTS HISTORY & RECOVERY MODAL */}
       {showRecoveryModal && selectedClient && (
         <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/70 p-4 backdrop-blur-xs">
           <div className="w-full max-w-sm rounded-3xl bg-white p-5 shadow-2xl border-t-8 border-rose-500 space-y-4 max-h-[88vh] overflow-y-auto">
@@ -398,13 +376,11 @@ export default function Clients({ data, setClients, onDelete }) {
               <p className="text-xs font-bold text-gray-500">Customer: <span className="text-gray-900 font-black">{selectedClient.name}</span></p>
             </div>
 
-            {/* Quick Metrics Inside Ledger */}
             <div className="grid grid-cols-2 gap-2 bg-gray-50 p-2.5 rounded-xl border text-center text-xs font-black">
-              <div className="text-gray-700">Total Bill:<br/><span className="text-gray-900 text-sm">Rs. {(selectedClient.silayi + selectedClient.pKarhayi + selectedClient.gKarhayi) * selectedClient.totalSuits}</span></div>
-              <div className="text-rose-600">Baqi Udhaar:<br/><span className="text-rose-700 text-sm">Rs. {Math.max(0, ((selectedClient.silayi + selectedClient.pKarhayi + selectedClient.gKarhayi) * selectedClient.totalSuits) - getClientTotalReceived(selectedClient))}</span></div>
+              <div className="text-gray-700">Total Bill:<br/><span className="text-gray-900 text-sm">Rs. {((Number(selectedClient.silayi) || 0) + (Number(selectedClient.pKarhayi) || 0) + (Number(selectedClient.gKarhayi) || 0)) * (Number(selectedClient.totalSuits) || 1)}</span></div>
+              <div className="text-rose-600">Baqi Udhaar:<br/><span className="text-rose-700 text-sm">Rs. {Math.max(0, (((Number(selectedClient.silayi) || 0) + (Number(selectedClient.pKarhayi) || 0) + (Number(selectedClient.gKarhayi) || 0)) * (Number(selectedClient.totalSuits) || 1)) - getClientTotalReceived(selectedClient))}</span></div>
             </div>
 
-            {/* Historic Timeline Tracker */}
             <div className="space-y-2">
               <label className="text-[10px] font-black text-gray-400 uppercase tracking-wider block">📊 Past Payments Audit Logs</label>
               <div className="bg-gray-50/50 p-3 rounded-xl border border-dashed max-h-[140px] overflow-y-auto space-y-2">
@@ -419,7 +395,6 @@ export default function Clients({ data, setClients, onDelete }) {
                     </div>
                   ))
                 ) : (
-                  // Historical backwards compatibility handler
                   <div className="flex justify-between items-center bg-white p-2 rounded-lg border text-[11px]">
                     <div>
                       <span className="font-black text-emerald-600">Rs. {selectedClient.received || 0}</span>
@@ -431,7 +406,6 @@ export default function Clients({ data, setClients, onDelete }) {
               </div>
             </div>
 
-            {/* Micro Injection Entry Form */}
             <div className="bg-amber-50/50 p-3 rounded-2xl border border-amber-100 space-y-2">
               <p className="text-[10px] font-black text-amber-800 uppercase tracking-wider">➕ Record New Installment</p>
               <div className="grid grid-cols-2 gap-2">
@@ -451,12 +425,11 @@ export default function Clients({ data, setClients, onDelete }) {
               </div>
             </div>
 
-            {/* Trigger Controllers */}
             <div className="flex gap-2 pt-1">
-              <button onClick={executeInjectRecoveryPayment} className="flex-1 bg-emerald-600 text-white font-black py-2.5 rounded-xl text-xs active:bg-emerald-700 transition-colors shadow-xs">
+              <button onClick={executeInjectRecoveryPayment} className="flex-1 bg-emerald-600 text-white font-black py-2.5 rounded-xl text-xs shadow-xs">
                 Save Installment
               </button>
-              <button onClick={() => setShowRecoveryModal(false)} className="bg-gray-100 text-gray-600 font-black px-4 py-2.5 rounded-xl text-xs active:bg-gray-200">
+              <button onClick={() => setShowRecoveryModal(false)} className="bg-gray-100 text-gray-600 font-black px-4 py-2.5 rounded-xl text-xs">
                 Cancel
               </button>
             </div>
@@ -464,7 +437,6 @@ export default function Clients({ data, setClients, onDelete }) {
         </div>
       )}
 
-      {/* PORTAL OVERLAY 1: THE REGISTRATION & EDITING FLOW FORM */}
       {showAddModal && (
         <div className="fixed inset-0 z-[999] flex items-center justify-center bg-black/70 p-4 backdrop-blur-xs">
           <div className="w-full max-w-sm rounded-3xl bg-[#fdf6e9] p-5 shadow-2xl border border-[#cca464]/30 space-y-4 max-h-[92vh] overflow-y-auto">
@@ -473,7 +445,6 @@ export default function Clients({ data, setClients, onDelete }) {
             </h4>
             
             <div className="space-y-3">
-              {/* Identity Segment */}
               <div>
                 <label className="text-[10px] font-black text-gray-500 uppercase block mb-1">Customer Full Name</label>
                 <input type="text" value={clientName} onChange={(e) => setClientName(e.target.value)} className="w-full p-2.5 rounded-xl border border-gray-200 bg-white font-bold text-sm" placeholder="e.g. Asif Ali" />
@@ -483,7 +454,6 @@ export default function Clients({ data, setClients, onDelete }) {
                 <input type="tel" value={clientPhone} onChange={(e) => setClientPhone(e.target.value)} className="w-full p-2.5 rounded-xl border border-gray-200 bg-white font-bold text-sm" placeholder="e.g. 923001234567" />
               </div>
 
-              {/* Status and Custom Dates segment */}
               <div className="grid grid-cols-2 gap-2">
                 <div>
                   <label className="text-[10px] font-black text-gray-500 uppercase block mb-1">Order Status</label>
@@ -498,14 +468,13 @@ export default function Clients({ data, setClients, onDelete }) {
                 </div>
               </div>
 
-              {/* Quantity Counter & Priority Framework */}
               <div className="grid grid-cols-2 gap-2 pt-1">
                 <div>
                   <label className="text-[10px] font-black text-gray-500 uppercase block mb-1">Total Suits</label>
                   <div className="flex items-center bg-white rounded-xl border border-gray-200 overflow-hidden">
-                    <button type="button" onClick={() => setSuitCount(Math.max(1, suitCount - 1))} className="px-3 py-2 bg-gray-100 font-black text-gray-600 text-sm active:bg-gray-200">-</button>
+                    <button type="button" onClick={() => setSuitCount(Math.max(1, suitCount - 1))} className="px-3 py-2 bg-gray-100 font-black text-gray-600 text-sm">-</button>
                     <span className="flex-1 text-center font-black text-sm text-gray-800">{suitCount}</span>
-                    <button type="button" onClick={() => setSuitCount(suitCount + 1)} className="px-3 py-2 bg-gray-100 font-black text-gray-600 text-sm active:bg-gray-200">+</button>
+                    <button type="button" onClick={() => setSuitCount(suitCount + 1)} className="px-3 py-2 bg-gray-100 font-black text-gray-600 text-sm">+</button>
                   </div>
                 </div>
                 <div className="flex flex-col justify-end pb-1">
@@ -516,7 +485,6 @@ export default function Clients({ data, setClients, onDelete }) {
                 </div>
               </div>
 
-              {/* Split Optional Ledger Section */}
               <div className="bg-white p-3 rounded-2xl border border-dashed border-[#cca464]/40 bg-amber-50/20 space-y-2">
                 <p className="text-[10px] font-black text-[#8a6d3b] uppercase tracking-wider">🪡 Split Optional Billing Matrix</p>
                 <div className="grid grid-cols-3 gap-1.5">
@@ -525,19 +493,17 @@ export default function Clients({ data, setClients, onDelete }) {
                   <input type="number" placeholder="Galla K." value={gKarhayiPrice} onChange={(e) => setGKarhayiPrice(e.target.value)} className="w-full p-2 text-xs rounded-lg border bg-white font-bold text-center" />
                 </div>
                 
-                {/* Real-time Math Feedback Feeder */}
                 <div className="pt-2 border-t border-gray-100 grid grid-cols-2 text-left gap-1 text-[11px] font-black text-gray-600">
                   <div>Bill: <span className="text-gray-900">Rs. {currentTotalBill}</span></div>
                   <div>Udhaar: <span className={Math.max(0, currentTotalBill - (selectedClient ? getClientTotalReceived(selectedClient) : 0)) > 0 ? "text-rose-600" : "text-emerald-600"}>Rs. {Math.max(0, currentTotalBill - (selectedClient ? getClientTotalReceived(selectedClient) : 0))}</span></div>
                 </div>
               </div>
 
-              {/* Save Framework Matrix Trigger */}
               <div className="flex gap-2 pt-2">
-                <button type="button" onClick={executeSaveClient} className="flex-1 bg-emerald-600 active:bg-emerald-700 text-white font-black py-2.5 rounded-xl text-sm shadow-md transition-colors">
+                <button type="button" onClick={executeSaveClient} className="flex-1 bg-emerald-600 text-white font-black py-2.5 rounded-xl text-sm shadow-md">
                   {isEditing ? 'Update Profile' : 'Save Registry'}
                 </button>
-                <button type="button" onClick={() => setShowAddModal(false)} className="bg-gray-200 text-gray-700 font-black px-4 py-2.5 rounded-xl text-sm active:bg-gray-300">
+                <button type="button" onClick={() => setShowAddModal(false)} className="bg-gray-200 text-gray-700 font-black px-4 py-2.5 rounded-xl text-sm">
                   Cancel
                 </button>
               </div>
@@ -546,7 +512,6 @@ export default function Clients({ data, setClients, onDelete }) {
         </div>
       )}
 
-      {/* PORTAL OVERLAY 2: SPECIFICATIONS VAULT WITH INLINE STATUS GUIDE */}
       {showNaapModal && selectedClient && (
         <div className="fixed inset-0 z-[999] flex items-center justify-center bg-black/70 p-4">
           <div className="w-full max-w-sm rounded-3xl bg-white p-5 shadow-2xl border-t-8 border-amber-500 space-y-4 max-h-[90vh] overflow-y-auto">
@@ -571,14 +536,13 @@ export default function Clients({ data, setClients, onDelete }) {
               ))}
             </div>
 
-            {/* Permanent Contextual Live Master Guide Bar */}
             <div className="bg-amber-50 rounded-xl p-3 border border-amber-100 min-h-[50px] flex items-center">
-              <p className="text-[11px] font-bold text-[#8a6d3b] leading-tight transition-all duration-200">{activeGuideText}</p>
+              <p className="text-[11px] font-bold text-[#8a6d3b] leading-tight">{activeGuideText}</p>
             </div>
 
             <div className="flex gap-2">
-              <button type="button" onClick={executeSaveNaap} className="flex-1 bg-amber-500 text-white font-black py-2.5 rounded-xl text-sm shadow-md active:bg-amber-600 transition-colors">Save Naap Spec</button>
-              <button type="button" onClick={() => setShowNaapModal(false)} className="bg-gray-100 text-gray-700 font-black px-4 py-2.5 rounded-xl text-sm active:bg-gray-200">Close</button>
+              <button type="button" onClick={executeSaveNaap} className="flex-1 bg-amber-500 text-white font-black py-2.5 rounded-xl text-sm shadow-md">Save Naap Spec</button>
+              <button type="button" onClick={() => setShowNaapModal(false)} className="bg-gray-100 text-gray-700 font-black px-4 py-2.5 rounded-xl text-sm">Close</button>
             </div>
           </div>
         </div>

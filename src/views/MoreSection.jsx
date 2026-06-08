@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-export default function MoreSection({ navigateTo }) {
+export default function MoreSection({ data = [], navigateTo }) {
   // Master Accordion Panel State Control
   const [activePanel, setActivePanel] = useState(null); // 'RATES' | 'COMMISSIONS' | 'EXPENSES' | 'PROFILE' | null
   const [statusMessage, setStatusMessage] = useState('');
@@ -32,6 +32,24 @@ export default function MoreSection({ navigateTo }) {
   useEffect(() => {
     localStorage.setItem('gt_expenses', JSON.stringify(expenses));
   }, [expenses]);
+
+  // 📊 LIVE REAL-TIME METRICS COMPUTATION ENGINE (No more Dummy Data!)
+  const liveMetrics = data.reduce((acc, curr) => {
+    const currentStatus = curr.status || 'Pending';
+    const totalSuitsCount = Number(curr.totalSuits) || 0;
+
+    if (currentStatus === 'Delivered') {
+      acc.suitsDone += totalSuitsCount;
+    } else {
+      acc.pendingSuits += totalSuitsCount;
+    }
+
+    if (curr.isUrgent && currentStatus !== 'Delivered') {
+      acc.urgentOrders += 1;
+    }
+
+    return acc;
+  }, { suitsDone: 0, pendingSuits: 0, urgentOrders: 0 });
 
   // Flash Status Message Handler
   const showToaster = (msg) => {
@@ -86,19 +104,19 @@ export default function MoreSection({ navigateTo }) {
         ✨ BUSINESS CONTROLS & METRICS
       </h3>
 
-      {/* KPI Stats Analytics row [UNTOUCHED BASE ARCHITECTURE] */}
+      {/* 🚀 KPI STATS ANALYTICS ROW (NOW 100% LIVE FROM CLIENTS DATABASE) */}
       <div className="grid grid-cols-3 gap-2">
         <div className="bg-white p-3 rounded-xl border border-gray-100 text-center shadow-xs">
           <span className="text-[10px] font-black text-gray-400 block uppercase">Suits Done</span>
-          <span className="text-lg font-black text-emerald-600">142</span>
+          <span className="text-lg font-black text-emerald-600">{liveMetrics.suitsDone}</span>
         </div>
         <div className="bg-white p-3 rounded-xl border border-gray-100 text-center shadow-xs">
           <span className="text-[10px] font-black text-gray-400 block uppercase">Pending</span>
-          <span className="text-lg font-black text-amber-500">18</span>
+          <span className="text-lg font-black text-amber-500">{liveMetrics.pendingSuits}</span>
         </div>
         <div className="bg-white p-3 rounded-xl border border-gray-100 text-center shadow-xs">
           <span className="text-[10px] font-black text-gray-400 block uppercase">Urgent Orders</span>
-          <span className="text-lg font-black text-rose-600">4</span>
+          <span className="text-lg font-black text-rose-600">{liveMetrics.urgentOrders}</span>
         </div>
       </div>
 
@@ -112,7 +130,7 @@ export default function MoreSection({ navigateTo }) {
       {/* Active Senior Dev Functional Controls Container */}
       <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-md space-y-3">
         
-        {/* 1. STITCHING RATES CONTROLLER */}
+        {/* 1. STITCHING RATES CONTROLLER (Rs. 1000 Fixed with Manual Override) */}
         <div className="space-y-2">
           <button 
             onClick={() => togglePanel('RATES')} 
@@ -151,7 +169,7 @@ export default function MoreSection({ navigateTo }) {
           )}
         </div>
 
-        {/* 2. KARIGAR COMMISSIONS ACTION ROUTER */}
+        {/* 2. KARIGAR COMMISSIONS PANEL */}
         <div className="space-y-2">
           <button 
             onClick={() => togglePanel('COMMISSIONS')} 
@@ -174,7 +192,7 @@ export default function MoreSection({ navigateTo }) {
           )}
         </div>
 
-        {/* 3. EXPENSE REGISTRY (DUKAN KA EXPENSE LEDGER SYSTEM) */}
+        {/* 3. EXPENSE REGISTRY (LIVE DAILY LEDGER TRACKER) */}
         <div className="space-y-2">
           <button 
             onClick={() => togglePanel('EXPENSES')} 
@@ -192,7 +210,6 @@ export default function MoreSection({ navigateTo }) {
 
           {activePanel === 'EXPENSES' && (
             <div className="bg-gray-50 p-3.5 rounded-xl border space-y-3.5 animate-slideDown">
-              {/* Add Expense Horizontal Sub Form */}
               <form onSubmit={handleAddExpense} className="space-y-2.5">
                 <div className="grid grid-cols-2 gap-2">
                   <div>
@@ -252,7 +269,7 @@ export default function MoreSection({ navigateTo }) {
           )}
         </div>
 
-        {/* 4. SHOP PROFILE (NEW SHOP IDENTITY CONTROLLER) */}
+        {/* 4. SHOP PROFILE MODULE */}
         <div className="space-y-2">
           <button 
             onClick={() => togglePanel('PROFILE')} 
@@ -291,7 +308,7 @@ export default function MoreSection({ navigateTo }) {
 
       </div>
 
-      {/* Footer Branding Matrix Block [UNTOUCHED] */}
+      {/* Footer Branding Matrix Block */}
       <div className="text-center py-2">
         <span className="text-[10px] font-bold tracking-widest text-gray-400 uppercase">
           Gul Tailors Engine v2.1.0 • Connected to Firebase

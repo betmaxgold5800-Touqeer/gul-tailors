@@ -130,20 +130,35 @@ export default function App() {
   };
 
   return (
-    // 🌌 MIDNIGHT NEON BASE
-    <div className="min-h-screen bg-[#020617] pb-28 font-sans text-slate-100 antialiased selection:bg-yellow-500/30">
+    // 🌌 MIDNIGHT NEON DEEP BASE
+    <div className="min-h-screen bg-[#020617] pb-32 font-sans text-slate-100 antialiased selection:bg-yellow-500/30">
       
-      {/* 🏛️ NEON GLOW HEADER */}
-      <header className="sticky top-0 z-50 bg-[#020617]/80 backdrop-blur-xl border-b border-white/10 px-5 py-4">
+      {/* 🏛️ ULTRA-MODERN NEON GLOW HEADER BAR */}
+      <header className="sticky top-0 z-50 bg-[#020617]/85 backdrop-blur-xl px-5 py-3 border-b border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.5)]">
         <div className="flex justify-between items-center max-w-md mx-auto">
-          <div>
-            <h1 className="text-xl font-black tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-yellow-600">
-              {shopInfo.name}
-            </h1>
-            <p className="text-[9px] text-slate-500 tracking-[0.2em] uppercase font-bold mt-1">{shopInfo.owner}</p>
+          <div className="flex items-center gap-3">
+            {/* 🚀 REAL PREMIUM LOGO CONTAINER */}
+            <div className="h-12 w-12 rounded-xl bg-slate-950 border border-white/10 p-0.5 flex items-center justify-center shadow-[0_0_15px_rgba(59,130,246,0.3)] overflow-hidden">
+              <img 
+                src="/logo.png" 
+                alt="Gul Tailors Logo" 
+                className="h-full w-full object-cover scale-110"
+                onError={(e) => {
+                  e.target.style.display = 'none';
+                  e.target.nextSibling.style.display = 'block';
+                }}
+              />
+              <span className="text-xl hidden">✂️</span>
+            </div>
+            <div>
+              <h1 className="text-lg font-black tracking-[0.12em] text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 via-amber-200 to-yellow-500 leading-none">
+                {shopInfo.name}
+              </h1>
+              <p className="text-[9px] font-black text-slate-400 tracking-widest uppercase mt-1">{shopInfo.owner}</p>
+            </div>
           </div>
           <div className="text-right">
-            <span className="text-[10px] font-black text-yellow-500 bg-yellow-500/10 px-3 py-1 rounded-full border border-yellow-500/20 shadow-[0_0_10px_-2px_rgba(234,179,8,0.3)]">
+            <span className="text-[10px] font-black text-yellow-400 bg-yellow-500/10 border border-yellow-500/30 px-3 py-1 rounded-full shadow-[0_0_15px_rgba(234,179,8,0.2)]">
               📞 {shopInfo.phone}
             </span>
           </div>
@@ -192,7 +207,7 @@ export default function App() {
       </main>
 
       {/* 🧭 FLOATING NEON NAVIGATION DOCK */}
-      <nav className="fixed bottom-6 left-4 right-4 z-50 mx-auto max-w-md border border-white/10 bg-[#0f172a]/90 backdrop-blur-2xl px-2 py-3 shadow-[0_0_30px_-10px_rgba(234,179,8,0.2)] rounded-3xl">
+      <nav className="fixed bottom-6 left-4 right-4 z-50 mx-auto max-w-md border border-white/10 bg-[#0f172a]/90 backdrop-blur-2xl px-2 py-3 shadow-[0_0_30px_rgba(0,0,0,0.5)] rounded-3xl">
         <div className="grid grid-cols-5 gap-1 text-center">
           {[
             { id: 'home', label: 'Home', icon: '🏠' },
@@ -208,7 +223,7 @@ export default function App() {
                 onClick={() => navigateTo(tab.id)}
                 className={`flex flex-col items-center justify-center py-1.5 px-1 rounded-2xl transition-all duration-300 active:scale-90 ${
                   isActive 
-                    ? 'bg-gradient-to-br from-yellow-500/20 to-transparent border border-yellow-500/30 text-yellow-500 shadow-[0_0_15px_-5px_rgba(234,179,8,0.4)]' 
+                    ? 'bg-gradient-to-br from-yellow-500/20 to-transparent border border-yellow-500/30 text-yellow-500 shadow-[0_0_15px_rgba(234,179,8,0.3)]' 
                     : 'text-slate-500 hover:text-slate-300'
                 }`}
               >

@@ -205,7 +205,11 @@ export default function App() {
           />
         )}
         {activeTab === 'aur' && (
-          <MoreSection navigateTo={navigateTo} />
+          /* 🔥 FIXED: Now passing clients data into MoreSection for exact real-time live metrics sync */
+          <MoreSection 
+            data={clients} 
+            navigateTo={navigateTo} 
+          />
         )}
       </main>
 

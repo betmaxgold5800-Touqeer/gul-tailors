@@ -129,64 +129,79 @@ export default function Wholesalers({ data, setWholesalers, onDelete }) {
 
   return (
     <div className="space-y-4 animate-fadeIn pb-12">
-      {/* Wholesaler Head Matrix Strip */}
-      <div className="flex items-center justify-between bg-white p-4 rounded-3xl shadow-sm border border-gray-100">
+      
+      {/* WHOLESALER HEAD MATRIX STRIP */}
+      <div className="flex items-center justify-between bg-slate-900/40 p-4 rounded-3xl border border-white/5 shadow-lg backdrop-blur-xl">
         <div>
-          <h3 className="text-xs font-black tracking-widest text-[#8a6d3b] uppercase">🏢 WHOLESALERS VAULT</h3>
-          <p className="text-[10px] font-bold text-gray-400">Total Merchants: {data.length}</p>
+          <h3 className="text-xs font-black tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-amber-200 uppercase">🏢 WHOLESALERS VAULT</h3>
+          <p className="text-[10px] font-bold text-slate-500">Total System Merchants: {data.length}</p>
         </div>
-        <button onClick={openAddManager} className="bg-[#1f1610] text-[#cca464] font-black text-xs px-5 py-2.5 rounded-xl shadow-md active:scale-95 transition-all">
+        <button 
+          onClick={openAddManager} 
+          className="bg-gradient-to-r from-yellow-500 to-amber-500 hover:from-yellow-600 hover:to-amber-600 text-slate-950 font-black text-xs px-5 py-2.5 rounded-xl shadow-[0_0_15px_rgba(234,179,8,0.2)] active:scale-95 transition-all"
+        >
           ➕ Add Merchant
         </button>
       </div>
 
-      {/* Aggregate Financial Outstanding Widget */}
-      <div className="bg-gradient-to-r from-[#1f1610] to-[#2d221a] p-3 rounded-2xl text-center shadow-xs">
-        <span className="text-[10px] font-bold text-blue-400 block uppercase tracking-wider">Total Market Payable (Wholesale Udhaar)</span>
-        <span className="text-sm font-black text-white">Rs. {totalMarketPayable}</span>
+      {/* AGGREGATED FINANCIAL OUTSTANDING WIDGET */}
+      <div className="bg-slate-900/60 p-3.5 rounded-2xl text-center border border-white/5 shadow-inner">
+        <span className="text-[10px] font-black text-blue-400 block uppercase tracking-wider">Total Market Payable (Wholesale Udhaar)</span>
+        <span className="text-lg font-black text-slate-200 mt-0.5 block">Rs. {totalMarketPayable.toLocaleString('en-IN')}</span>
       </div>
 
-      {/* Wholesalers Interactive Cards Dynamic Render */}
+      {/* WHOLESALERS INTERACTIVE CARDS DYNAMIC RENDER */}
       <div className="space-y-3">
         {data.map((ws) => {
           const currentBalance = getMerchantBalance(ws);
           return (
-            <div key={ws.id} className="bg-white rounded-3xl p-4 border border-gray-100 shadow-sm flex flex-col gap-3 transition-all duration-300">
+            <div key={ws.id} className="bg-slate-900/30 rounded-3xl p-4 border border-white/5 shadow-xl flex flex-col gap-3 relative overflow-hidden transition-all duration-300">
               <div className="flex justify-between items-start">
                 <div>
-                  <h4 className="font-black text-base text-gray-800 tracking-wide">{ws.name}</h4>
-                  <p className="text-xs text-gray-500 font-medium mt-0.5">📦 Main Supply: <span className="font-bold text-gray-700">{ws.item}</span></p>
-                  <p className="text-[10px] text-gray-400 font-medium mt-0.5">📞 {ws.phone}</p>
+                  <h4 className="font-black text-base text-slate-200 tracking-wide">{ws.name}</h4>
+                  <p className="text-xs text-slate-400 font-medium mt-0.5">📦 Main Supply: <span className="font-black text-yellow-500">{ws.item}</span></p>
+                  <p className="text-[10px] text-slate-500 font-medium mt-1">📞 {ws.phone}</p>
                 </div>
                 
                 {/* Trigger Ledger Modal on Balance Badge Click */}
                 <button
                   onClick={() => openLedgerManager(ws)}
                   className={`text-[11px] font-black px-3 py-2 rounded-xl border text-right transition-all active:scale-95 cursor-pointer ${
-                    currentBalance > 0 ? 'bg-blue-50 text-blue-700 border-blue-100' : 'bg-emerald-50 text-emerald-700 border-emerald-100'
+                    currentBalance > 0 
+                      ? 'bg-blue-500/10 text-blue-400 border-blue-500/30 shadow-[0_0_10px_rgba(59,130,246,0.1)]' 
+                      : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30 shadow-[0_0_10px_rgba(16,185,129,0.1)]'
                   }`}
                 >
-                  <span className="block text-[7px] uppercase tracking-wider text-gray-400 font-bold">Total Dena Hai</span>
-                  Rs. {currentBalance} 💳
+                  <span className="block text-[8px] uppercase tracking-wider text-slate-500 font-bold mb-0.5">Total Dena Hai</span>
+                  Rs. {currentBalance.toLocaleString('en-IN')} 💳
                 </button>
               </div>
 
               {/* Action Buttons Matrix Console */}
-              <div className="flex items-center justify-between border-t border-gray-50 pt-2.5">
+              <div className="flex items-center justify-between border-t border-white/5 pt-2.5">
                 <div className="flex items-center gap-1.5">
-                  <button onClick={() => openLedgerManager(ws)} className="bg-[#1f1610] text-[#cca464] font-black text-xs px-3.5 py-2 rounded-xl active:scale-95 transition-all">
+                  <button 
+                    onClick={() => openLedgerManager(ws)} 
+                    className="bg-gradient-to-r from-slate-900 to-slate-950 text-slate-300 border border-white/10 hover:border-white/20 font-black text-xs px-3.5 py-2 rounded-xl active:scale-95 transition-all"
+                  >
                     ⚖️ Ledger Khata
                   </button>
-                  <button onClick={() => openEditManager(ws)} className="bg-gray-50 text-gray-600 font-black text-xs px-3 py-2 rounded-xl active:scale-95 transition-colors">
+                  <button 
+                    onClick={() => openEditManager(ws)} 
+                    className="bg-slate-800/40 text-slate-400 border border-white/5 hover:border-white/10 font-black text-xs px-3 py-2 rounded-xl active:scale-95 transition-colors"
+                  >
                     📝 Edit info
                   </button>
                 </div>
 
                 <div className="flex items-center gap-1.5">
-                  <button onClick={() => triggerWholesalerWhatsApp(ws)} className="bg-[#25D366] text-white text-xs font-black px-3 py-2 rounded-xl active:scale-95 transition-all">
+                  <button 
+                    onClick={() => triggerWholesalerWhatsApp(ws)} 
+                    className="bg-[#25D366]/10 text-[#25D366] border border-[#25D366]/30 font-black text-xs px-3 py-2 rounded-xl active:scale-95 transition-all hover:bg-[#25D366]/20"
+                  >
                     💬 WhatsApp
                   </button>
-                  <button onClick={() => onDelete(ws.id)} className="bg-rose-50 text-rose-600 p-2 rounded-xl transition-colors">🗑️</button>
+                  <button onClick={() => onDelete(ws.id)} className="bg-rose-500/10 text-rose-400 hover:bg-rose-500/20 border border-rose-500/20 p-2 rounded-xl transition-colors">🗑️</button>
                 </div>
               </div>
             </div>
@@ -196,61 +211,71 @@ export default function Wholesalers({ data, setWholesalers, onDelete }) {
 
       {/* ⚖️ [MODAL OVERLAY 1] WHOLESALE TRANSACTION ENGINE */}
       {showLedgerModal && selectedMerchant && (
-        <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/70 p-4 backdrop-blur-xs">
-          <div className="w-full max-w-sm rounded-3xl bg-white p-5 shadow-2xl border-t-8 border-[#1f1610] space-y-4 max-h-[88vh] overflow-y-auto">
+        <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/80 p-4 backdrop-blur-md animate-fadeIn">
+          <div className="w-full max-w-sm rounded-3xl bg-[#0f172a] border border-white/10 p-5 shadow-2xl border-t-8 border-yellow-500 space-y-4 max-h-[88vh] overflow-y-auto">
             <div>
-              <h4 className="font-black text-gray-800 text-base">⚖️ MERCHANT STATEMENT MANAGER</h4>
-              <p className="text-xs font-bold text-gray-500">Shop: <span className="text-gray-900 font-black">{selectedMerchant.name}</span></p>
+              <h4 className="font-black text-slate-200 text-base tracking-wide">⚖️ MERCHANT STATEMENT MANAGER</h4>
+              <p className="text-xs font-bold text-slate-400 mt-0.5">Shop: <span className="text-yellow-400 font-black">{selectedMerchant.name}</span></p>
             </div>
 
             {/* Micro Credit/Debit Navigator Tabs */}
-            <div className="grid grid-cols-2 gap-1 bg-gray-100 p-1 rounded-xl border">
-              <button onClick={() => setTxType('PURCHASE')} className={`text-xs font-black py-2 rounded-lg transition-all ${txType === 'PURCHASE' ? 'bg-[#1f1610] text-white shadow-xs' : 'text-gray-500'}`}>📦 New Stock / Udhaar (+)</button>
-              <button onClick={() => setTxType('PAYMENT')} className={`text-xs font-black py-2 rounded-lg transition-all ${txType === 'PAYMENT' ? 'bg-emerald-600 text-white shadow-xs' : 'text-gray-500'}`}>💵 Give Payment (-)</button>
+            <div className="grid grid-cols-2 gap-1 bg-slate-950/60 p-1 rounded-xl border border-white/5">
+              <button 
+                onClick={() => setTxType('PURCHASE')} 
+                className={`text-[10px] font-black py-2 rounded-lg transition-all ${txType === 'PURCHASE' ? 'bg-gradient-to-r from-yellow-500 to-amber-500 text-slate-950 shadow-sm' : 'text-slate-400'}`}
+              >
+                📦 New Stock / Udhaar (+)
+              </button>
+              <button 
+                onClick={() => setTxType('PAYMENT')} 
+                className={`text-[10px] font-black py-2 rounded-lg transition-all ${txType === 'PAYMENT' ? 'bg-emerald-600 text-white shadow-sm' : 'text-slate-400'}`}
+              >
+                💵 Give Payment (-)
+              </button>
             </div>
 
             {/* Input Dynamic Fields */}
             <div className="space-y-3">
               <div>
-                <label className="text-[9px] font-black text-gray-400 uppercase block mb-0.5">Amount (Rs.)</label>
-                <input type="number" placeholder="Enter Amount" value={txAmount} onChange={(e) => setTxAmount(e.target.value)} className="p-2.5 w-full text-xs font-black rounded-lg border bg-white focus:outline-none" />
+                <label className="text-[9px] font-black text-slate-400 uppercase block mb-0.5 tracking-wide">Amount (Rs.)</label>
+                <input type="number" placeholder="Enter Amount" value={txAmount} onChange={(e) => setTxAmount(e.target.value)} className="p-2.5 w-full text-xs font-black rounded-lg border border-white/10 bg-slate-900 text-slate-200 focus:outline-none focus:border-yellow-500/30" />
               </div>
               <div>
-                <label className="text-[9px] font-black text-gray-400 uppercase block mb-0.5">Description Note</label>
-                <input type="text" placeholder="e.g. 5 Thaan Cotton, Bill #405" value={txNote} onChange={(e) => setTxNote(e.target.value)} className="w-full p-2.5 text-xs font-bold bg-gray-50 border rounded-xl focus:outline-none" />
+                <label className="text-[9px] font-black text-slate-400 uppercase block mb-0.5 tracking-wide">Description Note</label>
+                <input type="text" placeholder="e.g. 5 Thaan Cotton, Bill #405" value={txNote} onChange={(e) => setTxNote(e.target.value)} className="w-full p-2.5 text-xs font-bold border border-white/10 bg-slate-900 text-slate-200 rounded-xl focus:outline-none" />
               </div>
               <div>
-                <label className="text-[9px] font-black text-gray-400 uppercase block mb-0.5">Transaction Date</label>
-                <input type="date" value={txDate} onChange={(e) => setTxDate(e.target.value)} className="w-full p-2 text-xs font-bold bg-gray-50 border rounded-xl text-center focus:outline-none" />
+                <label className="text-[9px] font-black text-slate-400 uppercase block mb-0.5 tracking-wide">Transaction Date</label>
+                <input type="date" value={txDate} onChange={(e) => setTxDate(e.target.value)} className="w-full p-2 text-xs font-bold border border-white/10 bg-slate-900 text-slate-300 rounded-xl text-center focus:outline-none" />
               </div>
             </div>
 
             {/* Ledger History Stream View */}
             <div className="space-y-1">
-              <label className="text-[9px] font-black text-gray-400 uppercase block">📋 Past Statement Timeline Logs</label>
-              <div className="bg-gray-50 p-2 rounded-xl border max-h-[120px] overflow-y-auto space-y-1.5">
+              <label className="text-[9px] font-black text-slate-400 uppercase block mb-1 tracking-wide">📋 Past Statement Timeline Logs</label>
+              <div className="bg-slate-950/30 p-2 rounded-xl border border-white/5 max-h-[120px] overflow-y-auto space-y-1.5 border-dashed">
                 {selectedMerchant.history && selectedMerchant.history.length > 0 ? (
                   selectedMerchant.history.map((log, index) => (
-                    <div key={index} className="flex justify-between items-center text-[10px] bg-white p-1.5 rounded-md border shadow-2xs">
+                    <div key={index} className="flex justify-between items-center text-[10px] bg-slate-900/60 p-1.5 rounded-md border border-white/5 shadow-sm">
                       <div>
-                        <span className={`font-black ${log.type === 'PURCHASE' ? 'text-blue-600' : 'text-emerald-600'}`}>
-                          {log.type === 'PURCHASE' ? '+' : '-'} Rs. {log.amount}
+                        <span className={`font-black ${log.type === 'PURCHASE' ? 'text-blue-400' : 'text-emerald-400'}`}>
+                          {log.type === 'PURCHASE' ? '+' : '-'} Rs. {log.amount.toLocaleString('en-IN')}
                         </span>
-                        <p className="text-[8px] text-gray-400 font-medium leading-tight">{log.note}</p>
+                        <p className="text-[8px] text-slate-500 font-medium mt-0.5 leading-tight">{log.note}</p>
                       </div>
-                      <span className="text-[9px] text-gray-400 font-bold">{log.date}</span>
+                      <span className="text-[9px] text-slate-400 font-bold">📅 {log.date}</span>
                     </div>
                   ))
                 ) : (
-                  <p className="text-[10px] text-center text-gray-400 py-2 font-medium">Koi transaction statement nahi hai.</p>
+                  <p className="text-[10px] text-center text-slate-500 py-2 font-medium">Koi transaction statement nahi hai.</p>
                 )}
               </div>
             </div>
 
             {/* Post Action Buttons */}
             <div className="flex gap-2 pt-1">
-              <button onClick={handlePostTransaction} className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-black py-2.5 rounded-xl text-xs transition-all shadow-xs">Post Ledger Log</button>
-              <button onClick={() => setShowLedgerModal(false)} className="bg-gray-100 text-gray-600 font-black px-4 py-2.5 rounded-xl text-xs">Cancel</button>
+              <button onClick={handlePostTransaction} className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-black py-2.5 rounded-xl text-xs transition-all shadow-md">Post Ledger Log</button>
+              <button onClick={() => setShowLedgerModal(false)} className="bg-slate-800 text-slate-300 hover:bg-slate-700 font-black px-4 py-2.5 rounded-xl text-xs border border-white/5">Cancel</button>
             </div>
           </div>
         </div>
@@ -258,37 +283,37 @@ export default function Wholesalers({ data, setWholesalers, onDelete }) {
 
       {/* 🏢 [MODAL OVERLAY 2] WHOLESALER MERCHANTS REGISTRATION FORM */}
       {showAddModal && (
-        <div className="fixed inset-0 z-[999] flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs">
-          <div className="w-full max-w-sm rounded-3xl bg-[#fdf6e9] p-5 shadow-2xl border border-[#cca464]/30 space-y-4">
-            <h4 className="font-black text-gray-800 text-sm uppercase border-b pb-2 tracking-wide">
+        <div className="fixed inset-0 z-[999] flex items-center justify-center bg-black/80 p-4 backdrop-blur-md animate-fadeIn">
+          <div className="w-full max-w-sm rounded-3xl bg-[#0f172a] border border-white/10 p-5 shadow-2xl space-y-4">
+            <h4 className="font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 via-amber-200 to-yellow-500 text-sm uppercase border-b border-white/5 pb-2 tracking-wide">
               {isEditing ? '📝 EDIT MERCHANT ARCHITECTURE' : '🏢 NEW WHOLESALER MERCHANT'}
             </h4>
             <form onSubmit={handleSaveWS} className="space-y-3.5">
               <div>
-                <label className="text-[10px] font-black text-gray-500 uppercase block mb-1">Merchant / Shop Name</label>
-                <input type="text" placeholder="e.g. Faisalabad Cloth House" value={wsName} onChange={(e) => setWsName(e.target.value)} className="w-full p-2.5 rounded-xl bg-white border border-gray-200 text-sm font-bold" required />
+                <label className="text-[10px] font-black text-slate-400 uppercase block mb-1 tracking-wider">Merchant / Shop Name</label>
+                <input type="text" placeholder="e.g. Faisalabad Cloth House" value={wsName} onChange={(e) => setWsName(e.target.value)} className="w-full p-2.5 rounded-xl border border-white/10 bg-slate-900 text-slate-200 font-bold text-sm focus:outline-none focus:border-yellow-500/40" required />
               </div>
               <div>
-                <label className="text-[10px] font-black text-gray-500 uppercase block mb-1">WhatsApp Number</label>
-                <input type="text" placeholder="e.g. 923007654321" value={wsPhone} onChange={(e) => setWsPhone(e.target.value)} className="w-full p-2.5 rounded-xl bg-white border border-gray-200 text-sm font-bold" required />
+                <label className="text-[10px] font-black text-slate-400 uppercase block mb-1 tracking-wider">WhatsApp Number</label>
+                <input type="text" placeholder="e.g. 923007654321" value={wsPhone} onChange={(e) => setWsPhone(e.target.value)} className="w-full p-2.5 rounded-xl border border-white/10 bg-slate-900 text-slate-200 font-bold text-sm focus:outline-none focus:border-yellow-500/40" required />
               </div>
               <div>
-                <label className="text-[10px] font-black text-gray-500 uppercase block mb-1">Items Supplied</label>
-                <input type="text" placeholder="e.g. Latha & Wash n Wear" value={wsItem} onChange={(e) => setWsItem(e.target.value)} className="w-full p-2.5 rounded-xl bg-white border border-gray-200 text-sm font-bold" />
+                <label className="text-[10px] font-black text-slate-400 uppercase block mb-1 tracking-wider">Items Supplied</label>
+                <input type="text" placeholder="e.g. Latha & Wash n Wear" value={wsItem} onChange={(e) => setWsItem(e.target.value)} className="w-full p-2.5 rounded-xl border border-white/10 bg-slate-900 text-slate-200 font-bold text-sm focus:outline-none focus:border-yellow-500/40" />
               </div>
               
               {!isEditing && (
                 <div>
-                  <label className="text-[10px] font-black text-gray-500 uppercase block mb-1">Opening Balance (Dena Hai)</label>
-                  <input type="number" placeholder="Opening Debt Balance" value={wsBalance} onChange={(e) => setWsBalance(e.target.value)} className="w-full p-2.5 rounded-xl bg-white border border-gray-200 text-sm font-bold text-blue-700" />
+                  <label className="text-[10px] font-black text-slate-400 uppercase block mb-1 tracking-wider">Opening Balance (Dena Hai)</label>
+                  <input type="number" placeholder="Opening Debt Balance" value={wsBalance} onChange={(e) => setWsBalance(e.target.value)} className="w-full p-2.5 rounded-xl border border-white/10 bg-slate-900 text-blue-400 font-bold text-sm focus:outline-none focus:border-blue-500/40" />
                 </div>
               )}
 
               <div className="flex gap-2 pt-2">
-                <button type="submit" className="flex-1 bg-emerald-600 active:bg-emerald-700 text-white font-black py-2.5 rounded-xl text-sm shadow-md">
+                <button type="submit" className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-black py-2.5 rounded-xl text-sm shadow-md transition-colors">
                   {isEditing ? 'Update Configuration' : 'Save Merchant Profile'}
                 </button>
-                <button type="button" onClick={() => setShowAddModal(false)} className="bg-gray-200 text-gray-700 font-black px-4 py-2.5 rounded-xl text-sm">Cancel</button>
+                <button type="button" onClick={() => setShowAddModal(false)} className="bg-slate-800 text-slate-300 hover:bg-slate-700 font-black px-4 py-2.5 rounded-xl text-sm border border-white/5">Cancel</button>
               </div>
             </form>
           </div>

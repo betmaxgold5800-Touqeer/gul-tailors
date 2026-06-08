@@ -69,6 +69,7 @@ export default function Clients({ data, setClients, onDelete }) {
 
   const currentTotalBill = ((Number(silayiPrice) || 0) + (Number(pKarhayiPrice) || 0) + (Number(gKarhayiPrice) || 0)) * (Number(suitCount) || 1);
 
+  // SENIOR REFINE: Direct Toggle with Guaranteed PascalCase Status
   const toggleStatusDirectly = (clientId, currentStatus) => {
     const nextStatus = currentStatus === 'Delivered' ? 'Pending' : 'Delivered';
     setClients((prevClients) =>

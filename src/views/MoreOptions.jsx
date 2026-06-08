@@ -1,146 +1,141 @@
-import React, { useState } from 'react'
-import { Download, Upload, Trash2, Database, ShieldAlert } from 'lucide-react'
+import React, { useState } from 'react';
+import { Download, Upload, Trash2, Database, ShieldAlert } from 'lucide-react';
 
-export default function MoreOptions() {
-  const [restoreText, setRestoreText] = useState('')
-  const [statusMessage, setStatusMessage] = useState({ text: '', type: '' })
+/* 🔥 ACCEPTING PROPS: App.jsx ke main engine aur states se connects ho gaya hai */
+export default function MoreOptions({ data, exportBackup, importBackup }) {
+  const [restoreText, setRestoreText] = useState('');
+  const [statusMessage, setStatusMessage] = useState({ text: '', type: '' });
 
-  // 1. Export Backup Matrix (Saare localStorages ko ek single pack mein badalna)
-  const handleExportBackup = () => {
-    try {
-      const backupData = {
-        gt_clients: JSON.parse(localStorage.getItem('gt_clients') || '[]'),
-        gt_ctxns: JSON.parse(localStorage.getItem('gt_ctxns') || '[]'),
-        gt_workers: JSON.parse(localStorage.getItem('gt_workers') || '[]'),
-        gt_wentries: JSON.parse(localStorage.getItem('gt_wentries') || '[]'),
-        gt_wholesalers: JSON.parse(localStorage.getItem('gt_wholesalers') || '[]'),
-        gt_ws_txns: JSON.parse(localStorage.getItem('gt_ws_txns') || '[]'),
-      }
+  // 1. Live Counters Metrics (Calculated dynamically from live active memory)
+  const totalSuits = data ? data.length : 0;
+  const pendingSuits = data ? data.filter(c => c.status === 'Pending').length : 0;
+  const urgentOrders = data ? data.filter(c => c.isUrgent && c.status === 'Pending').length : 0;
 
-      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupData, null, 2))
-      const downloadAnchor = document.createElement('a')
-      downloadAnchor.setAttribute("href", dataStr)
-      downloadAnchor.setAttribute("download", `gul_tailors_backup_${new Date().toISOString().split('T')[0]}.json`)
-      document.body.appendChild(downloadAnchor)
-      downloadAnchor.click()
-      downloadAnchor.remove()
-
-      setStatusMessage({ text: 'Backup file download ho chuki hai! Isay mehfooz jagah save kar lein.', type: 'success' })
-    } catch (err) {
-      setStatusMessage({ text: 'Backup export karne mein masla aaya.', type: 'error' })
-    }
-  }
-
-  // 2. Import / Restore Backup
-  const handleRestoreBackup = () => {
-    if (!restoreText.trim()) return
+  // 2. Text-Area Paste Restore Handler (Synchronized with App.jsx engine keys)
+  const handleTextRestore = () => {
+    if (!restoreText.trim()) return;
 
     try {
-      const parsed = JSON.parse(restoreText)
+      const parsed = JSON.parse(restoreText);
       
-      // Validation checkpoint ke file hamari hi hai ya nahi
-      if (!parsed.gt_clients && !parsed.gt_workers) {
-        setStatusMessage({ text: 'Galt backup format! Meharbani karke sahi JSON text paste karein.', type: 'error' })
-        return
+      // Strict Schema Check matching your v3.5 specifications
+      if (!parsed.clients && !parsed.workers && !parsed.wholesalers) {
+        setStatusMessage({ text: '❌ Galt backup format! Meharbani karke sahi JSON text paste karein.', type: 'error' });
+        return;
       }
 
-      // Keys mapping to LocalStorage
-      if (parsed.gt_clients) localStorage.setItem('gt_clients', JSON.stringify(parsed.gt_clients))
-      if (parsed.gt_ctxns) localStorage.setItem('gt_ctxns', JSON.stringify(parsed.gt_ctxns))
-      if (parsed.gt_workers) localStorage.setItem('gt_workers', JSON.stringify(parsed.gt_workers))
-      if (parsed.gt_wentries) localStorage.setItem('gt_wentries', JSON.stringify(parsed.gt_wentries))
-      if (parsed.gt_wholesalers) localStorage.setItem('gt_wholesalers', JSON.stringify(parsed.gt_wholesalers))
-      if (parsed.gt_ws_txns) localStorage.setItem('gt_ws_txns', JSON.stringify(parsed.gt_ws_txns))
+      // Inject directly into local storages to sync matching parent components
+      if (parsed.clients) localStorage.setItem('gul_tailors_clients', JSON.stringify(parsed.clients));
+      if (parsed.workers) localStorage.setItem('gul_tailors_workers', JSON.stringify(parsed.workers));
+      if (parsed.wholesalers) localStorage.setItem('gul_tailors_wholesalers', JSON.stringify(parsed.wholesalers));
 
-      setStatusMessage({ text: 'Data kamyabi se restore ho gaya hai! App reload karein.', type: 'success' })
-      setRestoreText('')
+      setStatusMessage({ text: '✅ Data text se kamyabi se restore ho gaya hai! System reload ho raha hai...', type: 'success' });
+      setRestoreText('');
+      
+      // Auto reload to re-hydrate memory instantly
+      setTimeout(() => window.location.reload(), 1500);
     } catch (err) {
-      setStatusMessage({ text: 'JSON text theek nahi hai. Paste kiye gaye data ko check karein.', type: 'error' })
+      setStatusMessage({ text: '❌ JSON text theek nahi hai. Paste kiye gaye data ko check karein.', type: 'error' });
     }
-  }
+  };
 
-  // 3. Danger Zone: System Reset
+  // 3. Danger Zone: Pure Database System Reset
   const handleWipeDatabase = () => {
-    if (window.confirm('Kya aap waqai poora data saaf karna chahte hain? Yeh action wapas nahi ho sakta!')) {
-      localStorage.clear()
-      setStatusMessage({ text: 'Saara data saaf ho chuka hai. Refresh karein.', type: 'error' })
-      setTimeout(() => window.location.reload(), 1500)
+    if (window.confirm('⚠️ WARNING: Kya aap waqai Gul Tailors ka poora data saaf karna chahte hain? Saare naap aur khate urr jayein ge!')) {
+      localStorage.removeItem('gul_tailors_clients');
+      localStorage.removeItem('gul_tailors_workers');
+      localStorage.removeItem('gul_tailors_wholesalers');
+      setStatusMessage({ text: '🚨 Saara data permanently saaf ho chuka hai. System Reset Successfully!', type: 'error' });
+      setTimeout(() => window.location.reload(), 1500);
     }
-  }
+  };
 
   return (
-    <div className="space-y-6 animate-fadeIn">
+    <div className="space-y-6 animate-fadeIn pb-12">
       
-      {/* Header Panel */}
-      <div>
-        <h2 className="text-lg font-serif font-bold text-[#1a1006]">System Settings</h2>
-        <p className="text-[11px] text-black/50">App maintenance aur data backups ki advance settings.</p>
+      {/* Dynamic Header Metrics Dashboard Panel */}
+      <div className="bg-[#1f1610] text-white p-4 rounded-2xl shadow-lg border border-[#cca464]/25">
+        <h2 className="text-sm font-black tracking-wider text-[#cca464] uppercase mb-3">✨ Quick Console Analytics</h2>
+        <div className="grid grid-cols-3 gap-2 text-center">
+          <div className="bg-white/5 p-2 rounded-xl border border-white/5">
+            <p className="text-[10px] text-gray-400 font-bold uppercase">Total Orders</p>
+            <p className="text-lg font-black text-[#cca464]">{totalSuits}</p>
+          </div>
+          <div className="bg-white/5 p-2 rounded-xl border border-white/5">
+            <p className="text-[10px] text-gray-400 font-bold uppercase">Active Pending</p>
+            <p className="text-lg font-black text-amber-400">{pendingSuits}</p>
+          </div>
+          <div className="bg-white/5 p-2 rounded-xl border border-white/5">
+            <p className="text-[10px] text-gray-400 font-bold uppercase">Urgent Alert</p>
+            <p className="text-lg font-black text-red-400">{urgentOrders}</p>
+          </div>
+        </div>
       </div>
 
       {/* Status Toaster Messages */}
       {statusMessage.text && (
-        <div className={`p-3 rounded-xl text-xs font-medium border ${
-          statusMessage.type === 'success' ? 'bg-green-50 border-green-200 text-green-700' : 'bg-red-50 border-red-200 text-red-700'
+        <div className={`p-3 rounded-xl text-xs font-bold border ${
+          statusMessage.type === 'success' ? 'bg-emerald-50 border-emerald-200 text-emerald-700' : 'bg-red-50 border-red-200 text-red-700'
         }`}>
           {statusMessage.text}
         </div>
       )}
 
       {/* Backup Export Section */}
-      <div className="bg-[#fffdf7] border border-[#e2cfa0]/60 rounded-xl p-4 shadow-sm space-y-3">
-        <h3 className="text-xs font-bold text-[#9a7c44] uppercase tracking-wider flex items-center gap-1.5">
-          <Database className="w-3.5 h-3.5" /> Data Backup (Download)
+      <div className="bg-[#fffdf7] border border-[#cca464]/30 rounded-2xl p-4 shadow-sm space-y-3">
+        <h3 className="text-xs font-black text-[#1f1610] uppercase tracking-wider flex items-center gap-1.5">
+          <Database className="w-4 h-4 text-[#cca464]" /> One-Click File Backup
         </h3>
-        <p className="text-[11px] text-black/60 leading-relaxed">
-          Apne clients ka naap, karigar ka khata aur saari transactions ki file mehfooz karne ke liye niche button par click karein.
+        <p className="text-[11px] text-black/60 leading-relaxed font-medium">
+          Apne clients ka naap, karigar ka khata aur saari transactions ki standalone secure encryped JSON file mobile storage me download karein.
         </p>
         <button 
-          onClick={handleExportBackup}
-          className="w-full bg-[#1a1006] text-[#e8b84b] text-xs font-semibold py-2.5 rounded-lg flex items-center justify-center gap-2 border border-white/10"
+          onClick={exportBackup}
+          className="w-full bg-[#1f1610] text-[#cca464] text-xs font-black py-3 rounded-xl flex items-center justify-center gap-2 border border-[#cca464]/25 hover:bg-[#2d2118] transition-all active:scale-95"
         >
-          <Download className="w-4 h-4" /> Download Full JSON Backup
+          <Download className="w-4 h-4" /> Download Master File Backup (.json)
         </button>
       </div>
 
       {/* Backup Restore Section */}
-      <div className="bg-[#fffdf7] border border-[#e2cfa0]/60 rounded-xl p-4 shadow-sm space-y-3">
-        <h3 className="text-xs font-bold text-[#9a7c44] uppercase tracking-wider flex items-center gap-1.5">
-          <Upload className="w-3.5 h-3.5" /> Data Restore (Upload)
+      <div className="bg-[#fffdf7] border border-[#cca464]/30 rounded-2xl p-4 shadow-sm space-y-3">
+        <h3 className="text-xs font-black text-[#1f1610] uppercase tracking-wider flex items-center gap-1.5">
+          <Upload className="w-4 h-4 text-[#cca464]" /> Direct Text Restore
         </h3>
-        <p className="text-[11px] text-black/60">
-          Apni pehle se download ki hui backup file ka text nichay diye gaye box mein paste karke data wapas laayein.
+        <p className="text-[11px] text-black/60 font-medium">
+          Agar aapke paas backup file ka text copy hua pada hai, to use nichay diye gaye text box me paste karke matrix restore kar sakte hain.
         </p>
         <textarea 
           rows="3" 
-          placeholder='{"gt_clients": [...] ...}'
+          placeholder='{"clients": [...] , "workers": [...] }'
           value={restoreText}
           onChange={(e) => setRestoreText(e.target.value)}
-          className="w-full border border-black/10 rounded-lg p-2 text-[11px] bg-white font-mono focus:outline-[#c9952a]"
+          className="w-full border border-[#cca464]/30 rounded-xl p-3 text-[11px] bg-white font-mono focus:outline-[#cca464]"
         />
         <button 
-          onClick={handleRestoreBackup}
-          className="w-full bg-[#c9952a] text-white text-xs font-bold py-2.5 rounded-lg"
+          onClick={handleTextRestore}
+          className="w-full bg-[#cca464] text-[#1f1610] text-xs font-black py-3 rounded-xl hover:bg-[#bfa15c] transition-all active:scale-95"
         >
-          Restore State Matrix
+          Inject Paste Data Matrix
         </button>
       </div>
 
       {/* Danger Reset Zone */}
-      <div className="bg-red-50/40 border border-red-200 rounded-xl p-4 space-y-2">
-        <h3 className="text-xs font-bold text-red-700 uppercase tracking-wider flex items-center gap-1.5">
-          <ShieldAlert className="w-3.5 h-3.5" /> Danger Zone
+      <div className="bg-red-50/60 border border-red-200 rounded-2xl p-4 space-y-3">
+        <h3 className="text-xs font-black text-red-700 uppercase tracking-wider flex items-center gap-1.5">
+          <ShieldAlert className="w-4 h-4" /> System Safety Danger Zone
         </h3>
-        <p className="text-[10px] text-red-600/80">
-          Yeh dabane se aap ke mobile se saare clients, naap, aur khate permanently delete ho jayein ge.
+        <p className="text-[11px] text-red-600/90 font-medium leading-relaxed">
+          Yeh dabane se aap ke local device storage se saare clients, naap, aur karigaro ka khata permanently clear ho jayein ge.
         </p>
         <button 
           onClick={handleWipeDatabase}
-          className="bg-red-600 text-white text-xs font-bold py-2 px-4 rounded-lg flex items-center gap-1.5 shadow-sm hover:bg-red-700 transition"
+          className="w-full bg-red-600 text-white text-xs font-black py-3 rounded-xl flex items-center justify-center gap-2 shadow-md hover:bg-red-700 transition active:scale-95"
         >
-          <Trash2 className="w-3.5 h-3.5" /> Reset Whole Application
+          <Trash2 className="w-4 h-4" /> Wipe & Reset Whole Database
         </button>
       </div>
 
     </div>
-  )
+  );
 }

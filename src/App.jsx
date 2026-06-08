@@ -81,30 +81,24 @@ export default function App() {
 
   // 🧮 SENIOR DEVELOPMENT REAL-TIME FINANCIAL ENGINES
   const getFinancialMetrics = () => {
-    // Current System Timestamp Parsing (Local Timezone Safe)
     const localTarget = new Date();
     const offset = localTarget.getTimezoneOffset();
     const adjustedDate = new Date(localTarget.getTime() - (offset * 60 * 1000));
-    const isoString = adjustedDate.toISOString(); // Format: YYYY-MM-DDTHH:MM:SS
+    const isoString = adjustedDate.toISOString(); 
     
-    const todayStr = isoString.split('T')[0]; // Current Date: YYYY-MM-DD
-    const currentMonthPrefix = todayStr.substring(0, 7); // Current Month Cluster: YYYY-MM
+    const todayStr = isoString.split('T')[0]; 
+    const currentMonthPrefix = todayStr.substring(0, 7); 
 
     let todayRevenue = 0;
     let monthlyRevenue = 0;
 
-    // Loop through clients and aggregate inner financial payments structure
     clients.forEach(client => {
       if (client.payments && Array.isArray(client.payments)) {
         client.payments.forEach(pay => {
           const paymentDateStr = pay.date ? pay.date.trim() : '';
-          
-          // 🟢 Today's Collection Engine
           if (paymentDateStr === todayStr) {
             todayRevenue += Number(pay.amount) || 0;
           }
-          
-          // 🟡 Current Month's Collection Engine
           if (paymentDateStr.startsWith(currentMonthPrefix)) {
             monthlyRevenue += Number(pay.amount) || 0;
           }
@@ -112,15 +106,9 @@ export default function App() {
       }
     });
 
-    // 🔴 Today's Worker Expenses Strategy
-    // (If workers have temporary current payouts logged, calculate here. Defaulting to production placeholder)
     let todayExpense = 0; 
-
-    // 🔵 Saaf Munafa (Net Profit) Formulation Engine
-    // Deducting operational costs from current monthly gross cash inflows
     let netProfit = monthlyRevenue - todayExpense; 
 
-    // 🏦 Ledger Matrices Summation Logic
     const totalClientUdhaar = clients.reduce((acc, client) => {
       const totalCost = (Number(client.silayi) || 0) + (Number(client.pKarhayi) || 0) + (Number(client.gKarhayi) || 0);
       const totalPaid = client.payments ? client.payments.reduce((pAcc, p) => pAcc + (Number(p.amount) || 0), 0) : 0;
@@ -142,7 +130,32 @@ export default function App() {
     };
   };
 
+  // 🚨 REAL-TIME DELIVERY TIMELINE RADAR (Senior Optimization)
+  const getProximityAlerts = () => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    return clients
+      .filter(client => client.status === 'Pending' && client.deliveryDate)
+      .map(client => {
+        const delivery = new Date(client.deliveryDate);
+        delivery.setHours(0, 0, 0, 0);
+        
+        const diffTime = delivery - today;
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        
+        let zone = 'safe';
+        if (diffDays <= 2) zone = 'crisis';
+        else if (diffDays <= 5) zone = 'warning';
+
+        return { ...client, remainingDays: diffDays, zone };
+      })
+      .filter(client => client.zone === 'crisis' || client.zone === 'warning')
+      .sort((a, b) => a.remainingDays - b.remainingDays);
+  };
+
   const metrics = getFinancialMetrics();
+  const proximityAlerts = getProximityAlerts();
 
   // SYSTEM BACKUP HANDLERS (Linked Directly)
   const exportMasterBackup = () => {
@@ -195,14 +208,12 @@ export default function App() {
   };
 
   return (
-    // 🌌 MIDNIGHT NEON DEEP BASE
     <div className="min-h-screen bg-[#020617] pb-32 font-sans text-slate-100 antialiased selection:bg-yellow-500/30">
       
       {/* 🏛️ ULTRA-MODERN NEON GLOW HEADER BAR */}
       <header className="sticky top-0 z-50 bg-[#020617]/85 backdrop-blur-xl px-5 py-3 border-b border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.5)]">
         <div className="flex justify-between items-center max-w-md mx-auto">
           <div className="flex items-center gap-3">
-            {/* 🚀 REAL PREMIUM LOGO CONTAINER */}
             <div className="h-12 w-12 rounded-xl bg-slate-950 border border-white/10 p-0.5 flex items-center justify-center shadow-[0_0_15px_rgba(59,130,246,0.3)] overflow-hidden">
               <img 
                 src="/logo.png" 
@@ -239,6 +250,7 @@ export default function App() {
             workersCount={workers.length}
             wholesalersCount={wholesalers.length}
             financials={metrics}
+            proximityAlerts={proximityAlerts} // 🔥 Passed Live Timeline Radar Alerts
           />
         )}
         {activeTab === 'clients' && (

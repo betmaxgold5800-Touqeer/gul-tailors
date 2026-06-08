@@ -10,7 +10,25 @@ import {
   Store 
 } from 'lucide-react';
 
-export default function Dashboard({ navigateTo, clientsCount, workersCount, wholesalersCount }) {
+export default function Dashboard({ 
+  navigateTo, 
+  clientsCount, 
+  workersCount, 
+  wholesalersCount, 
+  financials = {} 
+}) {
+  
+  // Safely fallback to 0 if the state metric is not computed yet
+  const {
+    todayRevenue = 0,
+    todayExpense = 0,
+    monthlyRevenue = 0,
+    netProfit = 0,
+    totalClientUdhaar = 0,
+    totalWorkerPayable = 0,
+    totalWholesalerBalance = 0
+  } = financials;
+
   return (
     <div className="space-y-6 animate-fadeIn pb-6">
       
@@ -34,7 +52,7 @@ export default function Dashboard({ navigateTo, clientsCount, workersCount, whol
         </p>
       </div>
 
-      {/* 📊 NEON MATRIX GRID */}
+      {/* 📊 NEON MATRIX GRID (REAL-TIME COMPUTED) */}
       <div className="grid grid-cols-2 gap-4">
         
         {/* Card 1: Aaj Aaya */}
@@ -47,7 +65,9 @@ export default function Dashboard({ navigateTo, clientsCount, workersCount, whol
             <ArrowUpRight className="w-4 h-4 text-emerald-400 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
           </div>
           <div className="mt-4">
-            <span className="text-xl font-black tracking-tight text-white">Rs. 12,500</span>
+            <span className="text-xl font-black tracking-tight text-white">
+              Rs. {todayRevenue.toLocaleString('en-IN')}
+            </span>
             <p className="text-[9px] text-slate-500 font-bold mt-1">Active Clients: ({clientsCount})</p>
           </div>
         </button>
@@ -62,7 +82,9 @@ export default function Dashboard({ navigateTo, clientsCount, workersCount, whol
             <ArrowDownRight className="w-4 h-4 text-rose-400 group-hover:translate-x-0.5 group-hover:translate-y-0.5 transition-transform" />
           </div>
           <div className="mt-4">
-            <span className="text-xl font-black tracking-tight text-white">Rs. 3,200</span>
+            <span className="text-xl font-black tracking-tight text-white">
+              Rs. {todayExpense.toLocaleString('en-IN')}
+            </span>
             <p className="text-[9px] text-slate-500 font-bold mt-1">Worker Payouts: ({workersCount})</p>
           </div>
         </button>
@@ -77,7 +99,9 @@ export default function Dashboard({ navigateTo, clientsCount, workersCount, whol
             <Briefcase className="w-3.5 h-3.5 text-amber-400" />
           </div>
           <div className="mt-4">
-            <span className="text-xl font-black tracking-tight text-white">Rs. 185,000</span>
+            <span className="text-xl font-black tracking-tight text-white">
+              Rs. {monthlyRevenue.toLocaleString('en-IN')}
+            </span>
             <p className="text-[9px] text-slate-500 font-bold mt-1">Is mahine ki kul aamdani</p>
           </div>
         </button>
@@ -92,13 +116,15 @@ export default function Dashboard({ navigateTo, clientsCount, workersCount, whol
             <ShieldCheck className="w-3.5 h-3.5 text-blue-400" />
           </div>
           <div className="mt-4">
-            <span className="text-xl font-black tracking-tight text-white">Rs. 42,800</span>
+            <span className="text-xl font-black tracking-tight text-white">
+              Rs. {netProfit.toLocaleString('en-IN')}
+            </span>
             <p className="text-[9px] text-slate-500 font-bold mt-1">View Analytics overview</p>
           </div>
         </button>
       </div>
 
-      {/* 🏦 NEON LEDGER BALANCE MATRICES */}
+      {/* 🏦 LIVE LEDGER BALANCE MATRICES */}
       <div className="rounded-3xl border border-white/5 bg-slate-900/30 p-5 shadow-[inset_0_1px_1px_rgba(255,255,255,0.02)]">
         <h3 className="text-[10px] font-black tracking-[0.2em] text-slate-400 uppercase mb-4 flex items-center gap-2 border-b border-white/5 pb-3">
           <Layers className="w-4 h-4 text-yellow-500" /> LEDGER BALANCE MATRICES
@@ -110,7 +136,9 @@ export default function Dashboard({ navigateTo, clientsCount, workersCount, whol
               <Coins className="w-4 h-4 text-amber-500" />
               <span className="text-xs font-bold text-slate-300">Clients Se Lena Hai (Udhaar)</span>
             </div>
-            <span className="text-xs font-black text-amber-400 bg-amber-500/10 px-2.5 py-1 rounded-xl border border-amber-500/20">Rs. 48,000</span>
+            <span className="text-xs font-black text-amber-400 bg-amber-500/10 px-2.5 py-1 rounded-xl border border-amber-500/20">
+              Rs. {totalClientUdhaar.toLocaleString('en-IN')}
+            </span>
           </div>
           
           <div onClick={() => navigateTo('workers')} className="flex items-center justify-between p-3 cursor-pointer hover:bg-white/5 rounded-2xl transition-all">
@@ -118,7 +146,9 @@ export default function Dashboard({ navigateTo, clientsCount, workersCount, whol
               <UserCheck className="w-4 h-4 text-rose-500" />
               <span className="text-xs font-bold text-slate-300">Karigaron Ka Baqi (Payable)</span>
             </div>
-            <span className="text-xs font-black text-rose-400 bg-rose-500/10 px-2.5 py-1 rounded-xl border border-rose-500/20">Rs. 15,500</span>
+            <span className="text-xs font-black text-rose-400 bg-rose-500/10 px-2.5 py-1 rounded-xl border border-rose-500/20">
+              Rs. {totalWorkerPayable.toLocaleString('en-IN')}
+            </span>
           </div>
           
           <div onClick={() => navigateTo('ws')} className="flex items-center justify-between p-3 cursor-pointer hover:bg-white/5 rounded-2xl transition-all">
@@ -126,7 +156,9 @@ export default function Dashboard({ navigateTo, clientsCount, workersCount, whol
               <Store className="w-4 h-4 text-blue-500" />
               <span className="text-xs font-bold text-slate-300">Wholesalers Ka Dena Hai</span>
             </div>
-            <span className="text-xs font-black text-blue-400 bg-blue-500/10 px-2.5 py-1 rounded-xl border border-blue-500/20">Rs. 25,000</span>
+            <span className="text-xs font-black text-blue-400 bg-blue-500/10 px-2.5 py-1 rounded-xl border border-blue-500/20">
+              Rs. {totalWholesalerBalance.toLocaleString('en-IN')}
+            </span>
           </div>
         </div>
       </div>

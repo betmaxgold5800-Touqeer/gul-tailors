@@ -16,12 +16,10 @@ export default function App() {
     address: 'Main Bazar Adhi Kot, Syed Market, Almaroof Tailors Wali Market, Left side last shop'
   };
 
-  // 🛡️ [SENIOR DEVELOPER MIGRATION & HYDRATION GUARD]
-  // LocalStorage se data load karte waqt schema validate karna lazmi hai taake app crash na ho
+  // 🛡️ CENTRAL STATE HOOKS
   const [clients, setClients] = useState(() => {
     const savedClients = localStorage.getItem('gul_tailors_clients');
     if (!savedClients) {
-      // Default initial mock data matching your exact v3.5 specifications
       return [{ 
         id: 1, 
         name: 'Asif Ali', 
@@ -31,17 +29,15 @@ export default function App() {
         silayi: 800,       
         pKarhayi: 0,
         gKarhayi: 0,
-        payments: [{ amount: 800, date: '2026-06-08', note: 'Initial Registry Paid' }], // Upgraded payments ledger array
+        payments: [{ amount: 800, date: '2026-06-08', note: 'Initial Registry Paid' }],
         suitType: 'Shalwar Kameez', 
         deliveryDate: '2026-06-15',
         status: 'Pending',
         naap: { lambaai: '40', teera: '18', baazu: '23', ghera: '24', shalwar: '38', paincha: '8', asan: '15', galla: '16' }
       }];
     }
-    
     try {
       const parsed = JSON.parse(savedClients);
-      // Migration Logic: Agar purane data mein payments array nahi hai, to manually inject karo
       return parsed.map(client => {
         if (!client.payments || !Array.isArray(client.payments)) {
           return {
@@ -53,12 +49,10 @@ export default function App() {
         return client;
       });
     } catch (e) {
-      console.error("Data loading corrupted, creating fresh instance", e);
       return [];
     }
   });
 
-  // Load Workers with State Hydration
   const [workers, setWorkers] = useState(() => {
     const saved = localStorage.getItem('gul_tailors_workers');
     return saved ? JSON.parse(saved) : [
@@ -66,7 +60,6 @@ export default function App() {
     ];
   });
 
-  // Load Wholesalers with State Hydration
   const [wholesalers, setWholesalers] = useState(() => {
     const saved = localStorage.getItem('gul_tailors_wholesalers');
     return saved ? JSON.parse(saved) : [
@@ -74,8 +67,6 @@ export default function App() {
     ];
   });
 
-  // 🔄 [AUTOMATIC BACKGROUND STORAGE SYNC ENGINE]
-  // Jab bhi koi state change hogi, yeh automatic storage save trigger karega
   useEffect(() => {
     localStorage.setItem('gul_tailors_clients', JSON.stringify(clients));
   }, [clients]);
@@ -88,14 +79,9 @@ export default function App() {
     localStorage.setItem('gul_tailors_wholesalers', JSON.stringify(wholesalers));
   }, [wholesalers]);
 
-  // 📥 [DATA DISASTER RECOVERY TOOLKIT - BACKUP & RESTORE ENGINE]
+  // SYSTEM BACKUP HANDLERS (Pass down to MoreSection)
   const exportMasterBackup = () => {
-    const masterPayload = {
-      clients,
-      workers,
-      wholesalers,
-      exportedAt: new Date().toISOString()
-    };
+    const masterPayload = { clients, workers, wholesalers, exportedAt: new Date().toISOString() };
     const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(masterPayload));
     const downloadAnchor = document.createElement('a');
     downloadAnchor.setAttribute("href", dataStr);
@@ -145,31 +131,17 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-[#fdf6e9] pb-24 font-sans text-[#1a1a1a]">
-      {/* Premium Header with Shop Identity */}
+      
+      {/* 🔥 CLEAN PREMIUM HEADER: Cleaned up and perfectly aligned */}
       <header className="sticky top-0 z-50 bg-[#1f1610] px-4 py-3 shadow-xl border-b border-[#cca464]/25">
-        <div className="flex justify-between items-start">
+        <div className="flex justify-between items-center">
           <div>
             <h1 className="text-xl font-black tracking-wider text-[#cca464]">{shopInfo.name}</h1>
             <p className="text-[9px] font-bold text-[#cca464]/60 uppercase tracking-widest">{shopInfo.owner}</p>
-            
-            {/* 🛠️ INLINE UTILITY CONSOLE (Backup Tools) */}
-            <div className="flex items-center gap-2 mt-2">
-              <button 
-                onClick={exportMasterBackup} 
-                className="text-[9px] bg-[#cca464]/10 hover:bg-[#cca464]/20 text-[#cca464] px-2 py-0.5 rounded-md border border-[#cca464]/30 font-bold transition-all"
-              >
-                💾 Backup Data
-              </button>
-              <label className="text-[9px] bg-emerald-600/10 hover:bg-emerald-600/20 text-emerald-400 px-2 py-0.5 rounded-md border border-emerald-500/30 font-bold cursor-pointer transition-all">
-                📥 Restore
-                <input type="file" accept=".json" onChange={importMasterBackup} className="hidden" />
-              </label>
-            </div>
           </div>
-
           <div className="text-right">
             <p className="text-[10px] text-[#cca464] font-bold">{shopInfo.phone}</p>
-            <p className="text-[8px] text-[#cca464]/50 max-w-[120px] leading-tight mt-1">{shopInfo.address}</p>
+            <p className="text-[8px] text-[#cca464]/50 max-w-[150px] leading-tight mt-0.5">{shopInfo.address}</p>
           </div>
         </div>
       </header>
@@ -205,10 +177,12 @@ export default function App() {
           />
         )}
         {activeTab === 'aur' && (
-          /* 🔥 FIXED: Now passing clients data into MoreSection for exact real-time live metrics sync */
+          /* Passing handlers to MoreSection to render elegantly inside the system options panel */
           <MoreSection 
             data={clients} 
             navigateTo={navigateTo} 
+            exportBackup={exportMasterBackup}
+            importBackup={importMasterBackup}
           />
         )}
       </main>

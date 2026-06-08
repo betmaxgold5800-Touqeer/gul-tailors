@@ -151,67 +151,82 @@ export default function Workers({ data, setWorkers, onDelete }) {
 
   return (
     <div className="space-y-4 animate-fadeIn pb-12">
-      {/* Premium Management Header */}
-      <div className="flex items-center justify-between bg-white p-4 rounded-3xl shadow-sm border border-gray-100">
+      
+      {/* PREMIUM MANAGEMENT HEADER */}
+      <div className="flex items-center justify-between bg-slate-900/40 p-4 rounded-3xl border border-white/5 shadow-lg backdrop-blur-xl">
         <div>
-          <h3 className="text-xs font-black tracking-widest text-[#8a6d3b] uppercase">🧳 KARIGAR VAULT ENGINE</h3>
-          <p className="text-[10px] font-bold text-gray-400">Total Staff Force: {data.length}</p>
+          <h3 className="text-xs font-black tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-amber-200 uppercase">🧳 KARIGAR VAULT ENGINE</h3>
+          <p className="text-[10px] font-bold text-slate-500">Total Active Staff Force: {data.length}</p>
         </div>
-        <button onClick={openAddManager} className="bg-[#1f1610] text-[#cca464] font-black text-xs px-5 py-2.5 rounded-xl active:scale-95 transition-all shadow-md">
+        <button 
+          onClick={openAddManager} 
+          className="bg-gradient-to-r from-yellow-500 to-amber-500 hover:from-yellow-600 hover:to-amber-600 text-slate-950 font-black text-xs px-5 py-2.5 rounded-xl active:scale-95 transition-all shadow-[0_0_15px_rgba(234,179,8,0.2)]"
+        >
           ➕ Add New Karigar
         </button>
       </div>
 
-      {/* Financial Analytics Summary Bar */}
-      <div className="bg-gradient-to-r from-[#1f1610] to-[#2d221a] p-3 rounded-2xl text-center shadow-xs">
-        <span className="text-[10px] font-bold text-rose-400 block uppercase tracking-wider">Total Outstandings (Dukan ka Udhaar)</span>
-        <span className="text-sm font-black text-white">Rs. {totalPayableToStaff}</span>
+      {/* FINANCIAL ANALYTICS SUMMARY BAR */}
+      <div className="bg-slate-900/60 p-3.5 rounded-2xl text-center border border-white/5 shadow-inner">
+        <span className="text-[10px] font-black text-rose-400 block uppercase tracking-wider">Total Outstandings (Dukan ka Udhaar)</span>
+        <span className="text-lg font-black text-slate-200 mt-0.5 block">Rs. {totalPayableToStaff.toLocaleString('en-IN')}</span>
       </div>
 
-      {/* Main Karigar Cards List */}
+      {/* MAIN KARIGAR CARDS LIST */}
       <div className="space-y-3">
         {data.map((worker) => {
           const currentBalance = getWorkerBalance(worker);
           return (
-            <div key={worker.id} className="bg-white rounded-3xl p-4 border border-gray-100 shadow-sm space-y-3 transition-all duration-300">
+            <div key={worker.id} className="bg-slate-900/30 rounded-3xl p-4 border border-white/5 shadow-xl space-y-3 relative overflow-hidden transition-all duration-300">
               
               {/* Card Main Info Row */}
               <div className="flex justify-between items-start">
                 <div>
-                  <h4 className="font-black text-base text-gray-800 tracking-wide">{worker.name}</h4>
-                  <p className="text-xs text-gray-500 font-medium mt-0.5">🧵 Specialty: <span className="font-bold text-gray-700">{worker.specializedIn}</span></p>
-                  <p className="text-[10px] font-bold text-amber-700 mt-0.5">🏷️ Fix Rate: Rs. {worker.baseRate || 0} / suit</p>
-                  <p className="text-[10px] text-gray-400 font-medium">📞 {worker.phone}</p>
+                  <h4 className="font-black text-base text-slate-200 tracking-wide">{worker.name}</h4>
+                  <p className="text-xs text-slate-400 font-medium mt-0.5">🧵 Specialty: <span className="font-black text-yellow-500">{worker.specializedIn}</span></p>
+                  <p className="text-[10px] font-black text-amber-500/90 mt-0.5 bg-amber-500/10 px-2 py-0.5 border border-amber-500/20 rounded-md inline-block">🏷️ Fix Rate: Rs. {worker.baseRate || 0} / suit</p>
+                  <p className="text-[10px] text-slate-500 font-medium mt-1">📞 {worker.phone}</p>
                 </div>
                 
                 {/* Clickable Ledger Trigger Badge */}
                 <button
                   onClick={() => openLedgerManager(worker)}
                   className={`text-[11px] font-black px-3 py-2 rounded-xl border text-right transition-all active:scale-95 cursor-pointer ${
-                    currentBalance > 0 ? 'bg-rose-50 text-rose-700 border-rose-100' : 'bg-emerald-50 text-emerald-700 border-emerald-100'
+                    currentBalance > 0 
+                      ? 'bg-rose-500/10 text-rose-400 border-rose-500/30 shadow-[0_0_10px_rgba(244,63,94,0.1)]' 
+                      : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30 shadow-[0_0_10px_rgba(16,185,129,0.1)]'
                   }`}
                 >
-                  <span className="block text-[8px] uppercase tracking-wider text-gray-400 font-bold">Payable Balance</span>
-                  Rs. {currentBalance} 💸
+                  <span className="block text-[8px] uppercase tracking-wider text-slate-500 font-bold mb-0.5">Payable Balance</span>
+                  Rs. {currentBalance.toLocaleString('en-IN')} 💸
                 </button>
               </div>
 
               {/* Actions Control Console Row */}
-              <div className="flex items-center justify-between pt-2 border-t border-gray-100">
+              <div className="flex items-center justify-between pt-2 border-t border-white/5">
                 <div className="flex items-center gap-1.5">
-                  <button onClick={() => openLedgerManager(worker)} className="bg-[#1f1610] text-[#cca464] font-black text-xs px-3.5 py-2 rounded-xl active:scale-95 transition-all">
+                  <button 
+                    onClick={() => openLedgerManager(worker)} 
+                    className="bg-gradient-to-r from-slate-900 to-slate-950 text-slate-300 border border-white/10 hover:border-white/20 font-black text-xs px-3.5 py-2 rounded-xl active:scale-95 transition-all"
+                  >
                     ⚖️ Quick Khata
                   </button>
-                  <button onClick={() => openEditManager(worker)} className="bg-blue-50 text-blue-600 font-black text-xs px-3 py-2 rounded-xl active:scale-95 transition-colors">
+                  <button 
+                    onClick={() => openEditManager(worker)} 
+                    className="bg-blue-500/10 text-blue-400 border border-blue-500/20 font-black text-xs px-3 py-2 rounded-xl active:scale-95 transition-colors"
+                  >
                     📝 Edit Rate
                   </button>
                 </div>
 
                 <div className="flex items-center gap-1.5">
-                  <button onClick={() => triggerWorkerWhatsApp(worker)} className="bg-[#25D366] text-white flex items-center gap-1 text-xs font-black px-3 py-2 rounded-xl active:scale-95 transition-all">
-                    💬 WhatsApp
+                  <button 
+                    onClick={() => triggerWorkerWhatsApp(worker)} 
+                    className="bg-[#25D366]/10 text-[#25D366] border border-[#25D366]/30 flex items-center gap-1 text-xs font-black px-3 py-2 rounded-xl active:scale-95 transition-all hover:bg-[#25D366]/20"
+                  >
+                    <span>💬</span> WhatsApp
                   </button>
-                  <button onClick={() => onDelete(worker.id)} className="bg-rose-50 text-rose-600 p-2 rounded-xl transition-colors">🗑️</button>
+                  <button onClick={() => onDelete(worker.id)} className="bg-rose-500/10 text-rose-400 hover:bg-rose-500/20 border border-rose-500/20 p-2 rounded-xl transition-colors">🗑️</button>
                 </div>
               </div>
 
@@ -222,79 +237,89 @@ export default function Workers({ data, setWorkers, onDelete }) {
 
       {/* 💸 [MODAL OVERLAY 1] DOUBLE ENTRY LEDGER TRANSACTION ENGINE */}
       {showLedgerModal && selectedWorker && (
-        <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/70 p-4 backdrop-blur-xs">
-          <div className="w-full max-w-sm rounded-3xl bg-white p-5 shadow-2xl border-t-8 border-[#1f1610] space-y-4 max-h-[88vh] overflow-y-auto">
+        <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/80 p-4 backdrop-blur-md animate-fadeIn">
+          <div className="w-full max-w-sm rounded-3xl bg-[#0f172a] border border-white/10 p-5 shadow-2xl border-t-8 border-yellow-500 space-y-4 max-h-[88vh] overflow-y-auto">
             <div>
-              <h4 className="font-black text-gray-800 text-base">⚖️ KARIGAR LEDGER CONSOLE</h4>
-              <p className="text-xs font-bold text-gray-500">Staff Account: <span className="text-gray-900 font-black">{selectedWorker.name}</span></p>
+              <h4 className="font-black text-slate-200 text-base tracking-wide">⚖️ KARIGAR LEDGER CONSOLE</h4>
+              <p className="text-xs font-bold text-slate-400 mt-0.5">Staff Account: <span className="text-yellow-400 font-black">{selectedWorker.name}</span></p>
             </div>
 
             {/* Quick Transaction Segment Tabs */}
-            <div className="grid grid-cols-2 gap-1 bg-gray-100 p-1 rounded-xl border">
-              <button onClick={() => setTxType('WAGE')} className={`text-xs font-black py-2 rounded-lg transition-all ${txType === 'WAGE' ? 'bg-[#1f1610] text-white shadow-xs' : 'text-gray-500'}`}>🪡 Record Sile Suit (+)</button>
-              <button onClick={() => setTxType('DEBIT')} className={`text-xs font-black py-2 rounded-lg transition-all ${txType === 'DEBIT' ? 'bg-rose-600 text-white shadow-xs' : 'text-gray-500'}`}>💵 Give Hafta / Advance (-)</button>
+            <div className="grid grid-cols-2 gap-1 bg-slate-950/60 p-1 rounded-xl border border-white/5">
+              <button 
+                onClick={() => setTxType('WAGE')} 
+                className={`text-[10px] font-black py-2 rounded-lg transition-all ${txType === 'WAGE' ? 'bg-gradient-to-r from-yellow-500 to-amber-500 text-slate-950 shadow-sm' : 'text-slate-400'}`}
+              >
+                🪡 Record Sile Suit (+)
+              </button>
+              <button 
+                onClick={() => setTxType('DEBIT')} 
+                className={`text-[10px] font-black py-2 rounded-lg transition-all ${txType === 'DEBIT' ? 'bg-rose-600 text-white shadow-sm' : 'text-slate-400'}`}
+              >
+                💵 Give Hafta / Advance (-)
+              </button>
             </div>
 
             {/* Dynamic UI Render Base on Tab Type */}
             {txType === 'WAGE' ? (
-              <div className="bg-amber-50/40 p-3 rounded-xl border border-amber-100 space-y-2.5">
-                <p className="text-[10px] font-black text-amber-800 uppercase tracking-wider">🪡 Mazdoori Calculator Engine (Talent Base Rate)</p>
+              <div className="bg-slate-950/40 p-3 rounded-xl border border-white/5 space-y-2.5">
+                <p className="text-[10px] font-black text-yellow-500 uppercase tracking-wider">🪡 Mazdoori Calculator Engine</p>
                 <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <label className="text-[9px] font-black text-gray-400 uppercase block mb-0.5">Suits Siled Count</label>
-                    <input type="number" value={suitCount} onChange={(e) => setSuitCount(e.target.value)} className="p-2 w-full text-xs font-black rounded-lg border bg-white" min="1" />
+                    <label className="text-[9px] font-black text-slate-400 uppercase block mb-0.5 tracking-wide">Suits Count</label>
+                    <input type="number" value={suitCount} onChange={(e) => setSuitCount(e.target.value)} className="p-2 w-full text-xs font-black rounded-lg border border-white/10 bg-slate-900 text-slate-200 focus:outline-none focus:border-yellow-500/30" min="1" />
                   </div>
                   <div>
-                    <label className="text-[9px] font-black text-gray-400 uppercase block mb-0.5">Rate Per Suit (Rs.)</label>
-                    <input type="number" value={customRate} onChange={(e) => setCustomRate(e.target.value)} className="p-2 w-full text-xs font-black rounded-lg border bg-white text-amber-700" />
+                    <label className="text-[9px] font-black text-slate-400 uppercase block mb-0.5 tracking-wide font-black">Rate Per Suit (Rs.)</label>
+                    <input type="number" value={customRate} onChange={(e) => setCustomRate(e.target.value)} className="p-2 w-full text-xs font-black rounded-lg border border-white/10 bg-slate-900 text-yellow-400 focus:outline-none focus:border-yellow-500/30" />
                   </div>
                 </div>
-                <div className="text-xs font-black text-right text-gray-700">
-                  Total Added Wages: <span className="text-emerald-600 text-sm">Rs. {(Number(suitCount) || 1) * (Number(customRate) || 0)}</span>
+                <div className="text-xs font-black text-right text-slate-400 pt-1">
+                  Total Added Wages: <span className="text-emerald-400 text-sm">Rs. {((Number(suitCount) || 1) * (Number(customRate) || 0)).toLocaleString('en-IN')}</span>
                 </div>
               </div>
             ) : (
-              <div className="bg-rose-50/40 p-3 rounded-xl border border-rose-100 space-y-2">
-                <p className="text-[10px] font-black text-rose-800 uppercase tracking-wider">💵 Record Debit Transaction</p>
+              <div className="bg-slate-950/40 p-3 rounded-xl border border-white/5 space-y-2">
+                <p className="text-[10px] font-black text-rose-400 uppercase tracking-wider">💵 Record Debit Transaction</p>
                 <div>
-                  <label className="text-[9px] font-black text-gray-400 uppercase block mb-0.5">Paid Amount (Rs.)</label>
-                  <input type="number" placeholder="Enter Cash Amount" value={txAmount} onChange={(e) => setTxAmount(e.target.value)} className="p-2.5 w-full text-xs font-black rounded-lg border bg-white text-rose-700" />
+                  <label className="text-[9px] font-black text-slate-400 uppercase block mb-0.5 tracking-wide">Paid Amount (Rs.)</label>
+                  <input type="number" placeholder="Enter Cash Amount" value={txAmount} onChange={(e) => setTxAmount(e.target.value)} className="p-2.5 w-full text-xs font-black rounded-lg border border-white/10 bg-slate-900 text-rose-400 focus:outline-none focus:border-rose-500/40" />
                 </div>
               </div>
             )}
 
             {/* Meta Notes & Logs Input */}
             <div className="space-y-2">
-              <input type="text" placeholder="Optional Description Note (e.g. 3 Cotton, 2 WashWear)" value={txNote} onChange={(e) => setTxNote(e.target.value)} className="w-full p-2.5 text-xs font-bold bg-gray-50 border rounded-xl" />
-              <input type="date" value={txDate} onChange={(e) => setTxDate(e.target.value)} className="w-full p-2 text-xs font-bold bg-gray-50 border rounded-xl text-center" />
+              <input type="text" placeholder="Optional Description Note (e.g. 3 Cotton, 2 WashWear)" value={txNote} onChange={(e) => setTxNote(e.target.value)} className="w-full p-2.5 text-xs font-bold border border-white/10 bg-slate-900 text-slate-200 rounded-xl focus:outline-none" />
+              <input type="date" value={txDate} onChange={(e) => setTxDate(e.target.value)} className="w-full p-2 text-xs font-bold border border-white/10 bg-slate-900 text-slate-300 rounded-xl text-center focus:outline-none" />
             </div>
 
             {/* Micro Past Ledger Logs Timeline view */}
             <div className="space-y-1">
-              <label className="text-[9px] font-black text-gray-400 uppercase block">📋 History Logs Timeline</label>
-              <div className="bg-gray-50 p-2 rounded-xl border max-h-[110px] overflow-y-auto space-y-1.5">
+              <label className="text-[9px] font-black text-slate-400 uppercase block mb-1 tracking-wide">📋 History Logs Timeline</label>
+              <div className="bg-slate-950/30 p-2 rounded-xl border border-white/5 max-h-[110px] overflow-y-auto space-y-1.5 border-dashed">
                 {selectedWorker.transactions && selectedWorker.transactions.length > 0 ? (
                   selectedWorker.transactions.map((tx, idx) => (
-                    <div key={idx} className="flex justify-between items-center text-[10px] bg-white p-1.5 rounded-md border shadow-2xs">
+                    <div key={idx} className="flex justify-between items-center text-[10px] bg-slate-900/60 p-1.5 rounded-md border border-white/5 shadow-sm">
                       <div>
-                        <span className={`font-black ${tx.type === 'WAGE' ? 'text-emerald-600' : 'text-rose-600'}`}>
-                          {tx.type === 'WAGE' ? '+' : '-'} Rs. {tx.amount}
+                        <span className={`font-black ${tx.type === 'WAGE' ? 'text-emerald-400' : 'text-rose-400'}`}>
+                          {tx.type === 'WAGE' ? '+' : '-'} Rs. {tx.amount.toLocaleString('en-IN')}
                         </span>
-                        <p className="text-[8px] text-gray-400 font-medium leading-none">{tx.note}</p>
+                        <p className="text-[8px] text-slate-500 font-medium mt-0.5 leading-none">{tx.note}</p>
                       </div>
-                      <span className="text-[9px] text-gray-400 font-bold">{tx.date}</span>
+                      <span className="text-[9px] text-slate-400 font-bold">📅 {tx.date}</span>
                     </div>
                   ))
                 ) : (
-                  <p className="text-[10px] text-center text-gray-400 py-2 font-medium">Koi transaction log nahi hai.</p>
+                  <p className="text-[10px] text-center text-slate-500 py-2 font-medium">Koi transaction log nahi hai.</p>
                 )}
               </div>
             </div>
 
             {/* Action Controllers */}
             <div className="flex gap-2 pt-1">
-              <button onClick={executeInjectTransaction} className="flex-1 bg-emerald-600 text-white font-black py-2.5 rounded-xl text-xs active:bg-emerald-700 shadow-xs">Post Transaction</button>
-              <button onClick={() => setShowLedgerModal(false)} className="bg-gray-100 text-gray-600 font-black px-4 py-2.5 rounded-xl text-xs active:bg-gray-200">Cancel</button>
+              <button onClick={executeInjectTransaction} className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-black py-2.5 rounded-xl text-xs shadow-md transition-colors">Post Transaction</button>
+              <button onClick={() => setShowLedgerModal(false)} className="bg-slate-800 text-slate-300 hover:bg-slate-700 font-black px-4 py-2.5 rounded-xl text-xs border border-white/5">Cancel</button>
             </div>
           </div>
         </div>
@@ -302,40 +327,40 @@ export default function Workers({ data, setWorkers, onDelete }) {
 
       {/* 🧳 [MODAL OVERLAY 2] REGISTRATION AND PROFILE UPDATE FLOW FORM */}
       {showAddModal && (
-        <div className="fixed inset-0 z-[999] flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs">
-          <div className="w-full max-w-sm rounded-3xl bg-[#fdf6e9] p-5 shadow-2xl border border-[#cca464]/30 space-y-4">
-            <h4 className="font-black text-gray-800 text-sm uppercase border-b pb-2">
+        <div className="fixed inset-0 z-[999] flex items-center justify-center bg-black/80 p-4 backdrop-blur-md animate-fadeIn">
+          <div className="w-full max-w-sm rounded-3xl bg-[#0f172a] border border-white/10 p-5 shadow-2xl space-y-4">
+            <h4 className="font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 via-amber-200 to-yellow-500 text-sm uppercase border-b border-white/5 pb-2 tracking-wide">
               {isEditing ? '📝 EDIT STAFF ARCHITECTURE PROFILE' : '🧳 NEW STAFF FORCE REGISTRY'}
             </h4>
             <form onSubmit={handleSaveWorker} className="space-y-3.5">
               <div>
-                <label className="text-[10px] font-black text-gray-500 uppercase block mb-1">Karigar / Master Name</label>
-                <input type="text" placeholder="e.g. Zahid Karigar" value={wName} onChange={(e) => setWName(e.target.value)} className="w-full p-2.5 rounded-xl bg-white border border-gray-200 text-sm font-bold" required />
+                <label className="text-[10px] font-black text-slate-400 uppercase block mb-1 tracking-wider">Karigar / Master Name</label>
+                <input type="text" placeholder="e.g. Zahid Karigar" value={wName} onChange={(e) => setWName(e.target.value)} className="w-full p-2.5 rounded-xl border border-white/10 bg-slate-900 text-slate-200 font-bold text-sm focus:outline-none focus:border-yellow-500/40" required />
               </div>
               <div>
-                <label className="text-[10px] font-black text-gray-500 uppercase block mb-1">WhatsApp Number (923... Format)</label>
-                <input type="text" placeholder="e.g. 923123456789" value={wPhone} onChange={(e) => setWPhone(e.target.value)} className="w-full p-2.5 rounded-xl bg-white border border-gray-200 text-sm font-bold" required />
+                <label className="text-[10px] font-black text-slate-400 uppercase block mb-1 tracking-wider">WhatsApp Number (923... Format)</label>
+                <input type="text" placeholder="e.g. 923123456789" value={wPhone} onChange={(e) => setWPhone(e.target.value)} className="w-full p-2.5 rounded-xl border border-white/10 bg-slate-900 text-slate-200 font-bold text-sm focus:outline-none focus:border-yellow-500/40" required />
               </div>
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="text-[10px] font-black text-gray-500 uppercase block mb-1">Specialization</label>
-                  <select value={wSpec} onChange={(e) => setWSpec(e.target.value)} className="w-full p-2.5 rounded-xl bg-white border border-gray-200 text-xs font-black text-gray-700">
+                  <label className="text-[10px] font-black text-slate-400 uppercase block mb-1 tracking-wider">Specialization</label>
+                  <select value={wSpec} onChange={(e) => setWSpec(e.target.value)} className="w-full p-2.5 rounded-xl border border-white/10 bg-slate-900 font-black text-xs text-slate-300 focus:outline-none">
                     <option value="Suit Stitching">Suit Stitching</option>
                     <option value="Cutting Master">Cutting Master</option>
                     <option value="Kaj / Button Press">Kaj / Button Press</option>
                   </select>
                 </div>
                 <div>
-                  <label className="text-[10px] font-black text-gray-500 uppercase block mb-1">Fix Suit Rate (Rs.)</label>
-                  <input type="number" placeholder="Fix Rate e.g. 450" value={wBaseRate} onChange={(e) => setWBaseRate(e.target.value)} className="w-full p-2.5 rounded-xl bg-white border border-gray-200 text-xs font-black text-amber-700 text-center" />
+                  <label className="text-[10px] font-black text-slate-400 uppercase block mb-1 tracking-wider">Fix Suit Rate (Rs.)</label>
+                  <input type="number" placeholder="Fix Rate e.g. 450" value={wBaseRate} onChange={(e) => setWBaseRate(e.target.value)} className="w-full p-2.5 rounded-xl border border-white/10 bg-slate-900 text-xs font-black text-yellow-400 text-center focus:outline-none" />
                 </div>
               </div>
 
               <div className="flex gap-2 pt-2">
-                <button type="submit" className="flex-1 bg-emerald-600 active:bg-emerald-700 text-white font-black py-2.5 rounded-xl text-sm shadow-md">
+                <button type="submit" className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-black py-2.5 rounded-xl text-sm shadow-md transition-colors">
                   {isEditing ? 'Update Configuration' : 'Save Worker Profile'}
                 </button>
-                <button type="button" onClick={() => setShowAddModal(false)} className="bg-gray-200 text-gray-700 font-black px-4 py-2.5 rounded-xl text-sm active:bg-gray-300">Cancel</button>
+                <button type="button" onClick={() => setShowAddModal(false)} className="bg-slate-800 text-slate-300 hover:bg-slate-700 font-black px-4 py-2.5 rounded-xl text-sm border border-white/5">Cancel</button>
               </div>
             </form>
           </div>

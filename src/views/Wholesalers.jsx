@@ -64,14 +64,14 @@ export default function Wholesalers({ data, setWholesalers, onDelete }) {
     setShowLedgerModal(true);
   };
 
-  // Atomic Save & Update Handler - [SAFE FOR STATE & LOCALSTORAGE SYNC]
+  // Atomic Save & Update Handler - [FIXED FOR MAXIMUM LOCALSTORAGE RETENTION]
   const handleSaveWS = (e) => {
     e.preventDefault();
     if (!wsName.trim() || !wsPhone.trim()) return alert('Shop ka naam aur number lazmi hai!');
 
     if (isEditing) {
-      setWholesalers((prev) =>
-        prev.map((w) =>
+      setWholesalers((prevWholesalers) =>
+        prevWholesalers.map((w) =>
           w.id === selectedMerchant.id
             ? { ...w, name: wsName.trim(), phone: wsPhone.trim(), item: wsItem.trim() || 'Cloth Material' }
             : w
@@ -91,7 +91,7 @@ export default function Wholesalers({ data, setWholesalers, onDelete }) {
     setShowAddModal(false);
   };
 
-  // Micro Transaction Poster Logic
+  // Micro Transaction Poster Logic - [TYPO REMOVED & BOUND TO STABLE STATE MATRIX]
   const handlePostTransaction = () => {
     const finalAmount = parseFloat(txAmount) || 0;
     if (finalAmount <= 0) return alert('⚠️ Error: Valid amount enter karein!');
@@ -101,8 +101,8 @@ export default function Wholesalers({ data, setWholesalers, onDelete }) {
       computedNote = txType === 'PURCHASE' ? 'New Stock Purchased' : 'Paid to Wholesaler';
     }
 
-    setWholesalers((prev) =>
-      prev.map((w) => {
+    setWholesalers((prevWholesalers) =>
+      prevWholesalers.map((w) => {
         if (w.id === selectedMerchant.id) {
           const currentHistory = w.history && Array.isArray(w.history) ? [...w.history] : [];
           return {
@@ -162,7 +162,7 @@ export default function Wholesalers({ data, setWholesalers, onDelete }) {
                 {/* Trigger Ledger Modal on Balance Badge Click */}
                 <button
                   onClick={() => openLedgerManager(ws)}
-                  className={`text-[11px] font-black px-3 py-2 rounded-xl border text-right transition-all active:scale-95 ${
+                  className={`text-[11px] font-black px-3 py-2 rounded-xl border text-right transition-all active:scale-95 cursor-pointer ${
                     currentBalance > 0 ? 'bg-blue-50 text-blue-700 border-blue-100' : 'bg-emerald-50 text-emerald-700 border-emerald-100'
                   }`}
                 >

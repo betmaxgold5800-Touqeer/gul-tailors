@@ -88,6 +88,21 @@ export default function MoreSection({
     }
   };
 
+  // 🗑️ WHOLE LEDGER RESET ACTION HANDLER
+  const handleClearAllExpenses = () => {
+    if (window.confirm("⚠️ WARNING: Kya aap dukan ka poora Expense Registry clear karna chahte hain taake shuru se start ho? (Yeh action wapas nahi ho sakta)")) {
+      // Loop through all items and execute global deletes or direct storage refresh
+      if (expenses && expenses.length > 0) {
+        expenses.forEach(exp => {
+          if (onDeleteExpense) onDeleteExpense(exp.id);
+        });
+        showToaster('♻️ Expense ledger reset successfully! Starting from zero.');
+      } else {
+        alert("Ledger pehle se hi zero hai ustad ji!");
+      }
+    }
+  };
+
   const handleSaveProfile = (e) => {
     e.preventDefault();
     localStorage.setItem('gt_profile_name', profileName.trim());
@@ -260,7 +275,20 @@ export default function MoreSection({
               </form>
 
               <div className="space-y-2 border-t border-white/5 pt-3">
-                <span className="text-[9px] font-black text-slate-500 uppercase tracking-wider block">📋 Recent Expense History</span>
+                {/* 🔥 FLEX ROW HEADER WITH CLEAN ZERO RESET TRIGGER */}
+                <div className="flex items-center justify-between">
+                  <span className="text-[9px] font-black text-slate-500 uppercase tracking-wider block">📋 Recent Expense History</span>
+                  {expenses.length > 0 && (
+                    <button 
+                      type="button" 
+                      onClick={handleClearAllExpenses}
+                      className="text-[8px] font-black tracking-wider uppercase text-rose-400 bg-rose-500/10 border border-rose-500/20 px-2 py-0.5 rounded-md hover:bg-rose-500/20 active:scale-95 transition-all"
+                    >
+                      Clear All Zero
+                    </button>
+                  )}
+                </div>
+
                 <div className="max-h-[140px] overflow-y-auto space-y-1.5 pr-1 scrollbar-thin">
                   {expenses && expenses.length > 0 ? (
                     expenses.map((exp) => (

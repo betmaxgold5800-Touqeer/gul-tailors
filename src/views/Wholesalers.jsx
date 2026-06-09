@@ -64,34 +64,33 @@ export default function Wholesalers({ data, setWholesalers, onDelete }) {
     setShowLedgerModal(true);
   };
 
-  // Atomic Save & Update Handler - [FIXED FOR MAXIMUM LOCALSTORAGE RETENTION]
+  // Atomic Save & Update Handler - [CLOUD INTEGRATED]
   const handleSaveWS = (e) => {
     e.preventDefault();
     if (!wsName.trim() || !wsPhone.trim()) return alert('Shop ka naam aur number lazmi hai!');
 
     if (isEditing) {
-      setWholesalers((prevWholesalers) =>
-        prevWholesalers.map((w) =>
-          w.id === selectedMerchant.id
-            ? { ...w, name: wsName.trim(), phone: wsPhone.trim(), item: wsItem.trim() || 'Cloth Material' }
-            : w
-        )
+      const updatedArray = data.map((w) =>
+        w.id === selectedMerchant.id
+          ? { ...w, name: wsName.trim(), phone: wsPhone.trim(), item: wsItem.trim() || 'Cloth Material' }
+          : w
       );
+      setWholesalers(updatedArray);
     } else {
       const openingAmt = parseFloat(wsBalance) || 0;
       const record = {
-        id: Date.now(),
+        id: String(Date.now()), // String format for seamless Firebase sync
         name: wsName.trim(),
         phone: wsPhone.trim(),
         item: wsItem.trim() || 'Cloth Material',
         history: openingAmt > 0 ? [{ type: 'PURCHASE', amount: openingAmt, date: new Date().toISOString().split('T')[0], note: 'Opening Balance' }] : []
       };
-      setWholesalers([record, ...data]); // Correct state propagation
+      setWholesalers([record, ...data]); // Correct state propagation using pure direct arrays
     }
     setShowAddModal(false);
   };
 
-  // Micro Transaction Poster Logic - [TYPO REMOVED & BOUND TO STABLE STATE MATRIX]
+  // Micro Transaction Poster Logic - [CLOUD INTEGRATED]
   const handlePostTransaction = () => {
     const finalAmount = parseFloat(txAmount) || 0;
     if (finalAmount <= 0) return alert('⚠️ Error: Valid amount enter karein!');
@@ -101,18 +100,18 @@ export default function Wholesalers({ data, setWholesalers, onDelete }) {
       computedNote = txType === 'PURCHASE' ? 'New Stock Purchased' : 'Paid to Wholesaler';
     }
 
-    setWholesalers((prevWholesalers) =>
-      prevWholesalers.map((w) => {
-        if (w.id === selectedMerchant.id) {
-          const currentHistory = w.history && Array.isArray(w.history) ? [...w.history] : [];
-          return {
-            ...w,
-            history: [...currentHistory, { type: txType, amount: finalAmount, date: txDate, note: computedNote }]
-          };
-        }
-        return w;
-      })
-    );
+    const updatedArray = data.map((w) => {
+      if (w.id === selectedMerchant.id) {
+        const currentHistory = w.history && Array.isArray(w.history) ? [...w.history] : [];
+        return {
+          ...w,
+          history: [...currentHistory, { type: txType, amount: finalAmount, date: txDate, note: computedNote }]
+        };
+      }
+      return w;
+    });
+
+    setWholesalers(updatedArray);
     setShowLedgerModal(false);
   };
 

@@ -68,42 +68,40 @@ export default function Workers({ data, setWorkers, onDelete }) {
     setShowLedgerModal(true);
   };
 
-  // Atomic Save / Update Handler - [FIXED BY SENIOR DEVELOPER]
+  // Atomic Save / Update Handler - [CLOUD INTEGRATED]
   const handleSaveWorker = (e) => {
     e.preventDefault();
     if (!wName.trim() || !wPhone.trim()) return alert('⚠️ Error: Naam aur Phone number lazmi hai!');
 
     if (isEditing) {
-      setWorkers((prevWorkers) =>
-        prevWorkers.map((w) =>
-          w.id === selectedWorker.id
-            ? {
-                ...w,
-                name: wName.trim(),
-                phone: wPhone.trim(),
-                specializedIn: wSpec,
-                baseRate: Number(wBaseRate) || 0,
-                transactions: w.transactions || []
-              }
-            : w
-        )
+      const updatedArray = data.map((w) =>
+        w.id === selectedWorker.id
+          ? {
+              ...w,
+              name: wName.trim(),
+              phone: wPhone.trim(),
+              specializedIn: wSpec,
+              baseRate: Number(wBaseRate) || 0,
+              transactions: w.transactions || []
+            }
+          : w
       );
+      setWorkers(updatedArray);
     } else {
       const newWorker = {
-        id: Date.now(),
+        id: String(Date.now()), // String synchronization for database standard
         name: wName.trim(),
         phone: wPhone.trim(),
         specializedIn: wSpec,
         baseRate: Number(wBaseRate) || 0,
         transactions: [] // Empty ledger for fresh staff
       };
-      // Fixed: Target explicitly directed to 'data' matrix to eliminate runtime freeze
       setWorkers([newWorker, ...data]);
     }
     setShowAddModal(false);
   };
 
-  // Dynamic Transaction Injection Engine
+  // Dynamic Transaction Injection Engine - [CLOUD INTEGRATED]
   const executeInjectTransaction = () => {
     let finalAmount = Number(txAmount) || 0;
     let computedNote = txNote.trim();
@@ -121,19 +119,18 @@ export default function Workers({ data, setWorkers, onDelete }) {
       if (!computedNote) computedNote = "Hafta / Advance Cash Paid";
     }
 
-    setWorkers((prevWorkers) =>
-      prevWorkers.map((w) => {
-        if (w.id === selectedWorker.id) {
-          const currentTxs = w.transactions && Array.isArray(w.transactions) ? [...w.transactions] : [];
-          return {
-            ...w,
-            transactions: [...currentTxs, { type: txType, amount: finalAmount, date: txDate, note: computedNote }]
-          };
-        }
-        return w;
-      })
-    );
+    const updatedArray = data.map((w) => {
+      if (w.id === selectedWorker.id) {
+        const currentTxs = w.transactions && Array.isArray(w.transactions) ? [...w.transactions] : [];
+        return {
+          ...w,
+          transactions: [...currentTxs, { type: txType, amount: finalAmount, date: txDate, note: computedNote }]
+        };
+      }
+      return w;
+    });
 
+    setWorkers(updatedArray);
     setShowLedgerModal(false);
   };
 

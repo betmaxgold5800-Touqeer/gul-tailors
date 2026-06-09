@@ -8,6 +8,23 @@ import MoreSection from './views/MoreSection';
 export default function App() {
   const [activeTab, setActiveTab] = useState('home');
 
+  // 🛡️ MOBILE BACK BUTTON HISTORY PATROLLING ENGINE
+  useEffect(() => {
+    const handleMobileBackButton = (event) => {
+      // Jab bhi browser ka back button trigger ho aur user home par na ho
+      if (activeTab !== 'home') {
+        setActiveTab('home');
+      }
+    };
+
+    // Popstate window layer tracking activation
+    window.addEventListener('popstate', handleMobileBackButton);
+
+    return () => {
+      window.removeEventListener('popstate', handleMobileBackButton);
+    };
+  }, [activeTab]);
+
   // CENTRALIZED SHOP IDENTITY
   const shopInfo = {
     name: 'GUL TAILORS',
@@ -230,6 +247,10 @@ export default function App() {
 
   const navigateTo = (tabName) => {
     setActiveTab(tabName);
+    // 🔥 Push synthetic tracking step into history map every time user routes to another tab
+    if (tabName !== 'home') {
+      window.history.pushState({ activeRoute: tabName }, "");
+    }
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -306,9 +327,9 @@ export default function App() {
             navigateTo={navigateTo} 
             exportBackup={exportMasterBackup}
             importBackup={importMasterBackup}
-            expenses={expenses}                 // 🔥 Pass shared list
-            onAddExpense={handleAddExpense}       // 🔥 Pass submit trigger
-            onDeleteExpense={handleDeleteExpense} // 🔥 Pass delete trigger
+            expenses={expenses}                 
+            onAddExpense={handleAddExpense}       
+            onDeleteExpense={handleDeleteExpense} 
           />
         )}
       </main>

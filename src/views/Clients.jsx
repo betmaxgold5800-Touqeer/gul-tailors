@@ -72,9 +72,8 @@ export default function Clients({ data, setClients, onDelete }) {
   // SENIOR REFINE: Direct Toggle with Guaranteed PascalCase Status
   const toggleStatusDirectly = (clientId, currentStatus) => {
     const nextStatus = currentStatus === 'Delivered' ? 'Pending' : 'Delivered';
-    setClients((prevClients) =>
-      prevClients.map((c) => (c.id === clientId ? { ...c, status: nextStatus } : c))
-    );
+    const targetArray = data.map((c) => (c.id === clientId ? { ...c, status: nextStatus } : c));
+    setClients(targetArray);
   };
 
   const openEditManager = (client) => {
@@ -116,29 +115,28 @@ export default function Clients({ data, setClients, onDelete }) {
     }
 
     if (isEditing) {
-      setClients((prevClients) =>
-        prevClients.map((c) =>
-          c.id === editingClientId
-            ? {
-                ...c,
-                name: clientName.trim(),
-                phone: clientPhone.trim(),
-                totalSuits: Number(suitCount) || 1,
-                isUrgent: isUrgent,
-                silayi: Number(silayiPrice) || 0,
-                pKarhayi: Number(pKarhayiPrice) || 0,
-                gKarhayi: Number(gKarhayiPrice) || 0,
-                deliveryDate: deliveryDate,
-                status: orderStatus,
-                payments: c.payments || [{ amount: Number(c.received) || 0, date: c.orderDate || 'N/A', note: 'Initial Deposit' }]
-              }
-            : c
-        )
+      const updatedArray = data.map((c) =>
+        c.id === editingClientId
+          ? {
+              ...c,
+              name: clientName.trim(),
+              phone: clientPhone.trim(),
+              totalSuits: Number(suitCount) || 1,
+              isUrgent: isUrgent,
+              silayi: Number(silayiPrice) || 0,
+              pKarhayi: Number(pKarhayiPrice) || 0,
+              gKarhayi: Number(gKarhayiPrice) || 0,
+              deliveryDate: deliveryDate,
+              status: orderStatus,
+              payments: c.payments || [{ amount: Number(c.received) || 0, date: c.orderDate || 'N/A', note: 'Initial Deposit' }]
+            }
+          : c
       );
+      setClients(updatedArray);
     } else {
       const today = new Date().toISOString().split('T')[0];
       const newClientRecord = {
-        id: Date.now(),
+        id: String(Date.now()), // String format standard synchronization
         name: clientName.trim(),
         phone: clientPhone.trim(),
         totalSuits: Number(suitCount) || 1,
@@ -152,7 +150,7 @@ export default function Clients({ data, setClients, onDelete }) {
         payments: [], 
         naap: { lambaai: '', teera: '', baazu: '', ghera: '', shalwar: '', paincha: '', asan: '', galla: '' }
       };
-      setClients((prevClients) => [newClientRecord, ...prevClients]);
+      setClients([newClientRecord, ...data]);
     }
 
     setShowAddModal(false);
@@ -165,19 +163,18 @@ export default function Clients({ data, setClients, onDelete }) {
       return;
     }
 
-    setClients((prevClients) =>
-      prevClients.map((c) => {
-        if (c.id === selectedClient.id) {
-          const currentLogs = c.payments && Array.isArray(c.payments) ? [...c.payments] : [{ amount: Number(c.received) || 0, date: c.orderDate || 'N/A', note: 'Initial Deposit' }];
-          return {
-            ...c,
-            payments: [...currentLogs, { amount: amountToInsert, date: recoveryDate, note: 'Udhaar Recovery' }]
-          };
-        }
-        return c;
-      })
-    );
+    const updatedArray = data.map((c) => {
+      if (c.id === selectedClient.id) {
+        const currentLogs = c.payments && Array.isArray(c.payments) ? [...c.payments] : [{ amount: Number(c.received) || 0, date: c.orderDate || 'N/A', note: 'Initial Deposit' }];
+        return {
+          ...c,
+          payments: [...currentLogs, { amount: amountToInsert, date: recoveryDate, note: 'Udhaar Recovery' }]
+        };
+      }
+      return c;
+    });
 
+    setClients(updatedArray);
     setRecoveryAmount('');
     setShowRecoveryModal(false);
   };
@@ -210,9 +207,8 @@ export default function Clients({ data, setClients, onDelete }) {
   };
 
   const executeSaveNaap = () => {
-    setClients((prevClients) =>
-      prevClients.map((c) => (c.id === selectedClient.id ? { ...c, naap: naapForm } : c))
-    );
+    const updatedArray = data.map((c) => (c.id === selectedClient.id ? { ...c, naap: naapForm } : c));
+    setClients(updatedArray);
     setShowNaapModal(false);
   };
 

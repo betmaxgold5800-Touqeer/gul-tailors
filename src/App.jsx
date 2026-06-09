@@ -5,19 +5,21 @@ import Workers from './views/Workers';
 import Wholesalers from './views/Wholesalers';
 import MoreSection from './views/MoreSection';
 
+// ☁️ FIREBASE INFRASTRUCTURE CORE IMPORTS
+import { db } from './firebase'; 
+import { collection, onSnapshot, doc, setDoc, deleteDoc } from 'firebase/firestore';
+
 export default function App() {
   const [activeTab, setActiveTab] = useState('home');
 
   // 🛡️ MOBILE BACK BUTTON HISTORY PATROLLING ENGINE
   useEffect(() => {
     const handleMobileBackButton = (event) => {
-      // Jab bhi browser ka back button trigger ho aur user home par na ho
       if (activeTab !== 'home') {
         setActiveTab('home');
       }
     };
 
-    // Popstate window layer tracking activation
     window.addEventListener('popstate', handleMobileBackButton);
 
     return () => {
@@ -33,86 +35,117 @@ export default function App() {
     address: 'Main Bazar Adhi Kot, Syed Market, Almaroof Tailors Wali Market'
   };
 
-  // 🛡️ CENTRAL STATE HOOKS (Safely Intact & Synced)
-  const [clients, setClients] = useState(() => {
-    const savedClients = localStorage.getItem('gul_tailors_clients');
-    if (!savedClients) {
-      return [{ 
-        id: 1, 
-        name: 'Asif Ali', 
-        phone: '923001234567', 
-        totalSuits: 1,
-        isUrgent: false,
-        silayi: 800,       
-        pKarhayi: 0,
-        gKarhayi: 0,
-        payments: [{ amount: 800, date: '2026-06-08', note: 'Initial Registry Paid' }],
-        suitType: 'Shalwar Kameez', 
-        deliveryDate: '2026-06-15',
-        status: 'Pending',
-        naap: { lambaai: '40', teera: '18', baazu: '23', ghera: '24', shalwar: '38', paincha: '8', asan: '15', galla: '16' }
-      }];
+  // 🛡️ CENTRAL REAL-TIME STATE HOOKS
+  const [clients, setClients] = useState([]);
+  const [workers, setWorkers] = useState([]);
+  const [wholesalers, setWholesalers] = useState([]);
+  const [expenses, setExpenses] = useState([]);
+
+  // ☁️ REAL-TIME CLOUD SYNCHRONIZATION MATRIX
+  useEffect(() => {
+    // 1. Clients Stream
+    const unsubClients = onSnapshot(collection(db, "gul_tailors_clients"), (snapshot) => {
+      const docs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      if (docs.length === 0) {
+        // Fallback default structure setup for new cloud instances
+        setClients([{ 
+          id: '1', 
+          name: 'Asif Ali', 
+          phone: '923001234567', 
+          totalSuits: 1,
+          isUrgent: false,
+          silayi: 800,       
+          pKarhayi: 0,
+          gKarhayi: 0,
+          payments: [{ amount: 800, date: '2026-06-08', note: 'Initial Registry Paid' }],
+          suitType: 'Shalwar Kameez', 
+          deliveryDate: '2026-06-15',
+          status: 'Pending',
+          naap: { lambaai: '40', teera: '18', baazu: '23', ghera: '24', shalwar: '38', paincha: '8', asan: '15', galla: '16' }
+        }]);
+      } else {
+        // Safe mapping architecture for historical payments configurations
+        const verifiedDocs = docs.map(client => {
+          if (!client.payments || !Array.isArray(client.payments)) {
+            return {
+              ...client,
+              payments: [{ amount: Number(client.received) || 0, date: client.orderDate || '2026-06-08', note: 'Legacy Sync Data' }],
+              status: client.status || 'Pending'
+            };
+          }
+          return client;
+        });
+        setClients(verifiedDocs);
+      }
+    });
+
+    // 2. Workers Stream
+    const unsubWorkers = onSnapshot(collection(db, "gul_tailors_workers"), (snapshot) => {
+      const docs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      if (docs.length === 0) {
+        setWorkers([{ id: '1', name: 'Zahid Karigar', phone: '923123456789', payable: 12000, specializedIn: 'Suit Stitching', activeSuits: 5 }]);
+      } else {
+        setWorkers(docs);
+      }
+    });
+
+    // 3. Wholesalers Stream
+    const unsubWholesalers = onSnapshot(collection(db, "gul_tailors_wholesalers"), (snapshot) => {
+      const docs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      if (docs.length === 0) {
+        setWholesalers([{ id: '1', name: 'Faisalabad Cloth House', phone: '923007654321', balance: 25000, item: 'Latha & Wash n Wear' }]);
+      } else {
+        setWholesalers(docs);
+      }
+    });
+
+    // 4. Expenses Stream
+    const unsubExpenses = onSnapshot(collection(db, "gt_expenses"), (snapshot) => {
+      setExpenses(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+    });
+
+    return () => {
+      unsubClients();
+      unsubWorkers();
+      unsubWholesalers();
+      unsubExpenses();
+    };
+  }, []);
+
+  // FIRESTORE CLOUD-SPECIFIC MIDDLEWARE PROPAGATORS FOR CHILD COMPONENTS
+  const setClientsCloud = async (updatedClientsOrFunc) => {
+    const nextState = typeof updatedClientsOrFunc === 'function' ? updatedClientsOrFunc(clients) : updatedClientsOrFunc;
+    // Single node or batch updates are caught via onSnapshot, here we save targeted items safely
+    for (const client of nextState) {
+      const stringId = String(client.id);
+      await setDoc(doc(db, "gul_tailors_clients", stringId), client);
     }
-    try {
-      const parsed = JSON.parse(savedClients);
-      return parsed.map(client => {
-        if (!client.payments || !Array.isArray(client.payments)) {
-          return {
-            ...client,
-            payments: [{ amount: Number(client.received) || 0, date: client.orderDate || '2026-06-08', note: 'Legacy Sync Data' }],
-            status: client.status || 'Pending'
-          };
-        }
-        return client;
-      });
-    } catch (e) {
-      return [];
-    }
-  });
-
-  const [workers, setWorkers] = useState(() => {
-    const saved = localStorage.getItem('gul_tailors_workers');
-    return saved ? JSON.parse(saved) : [
-      { id: 1, name: 'Zahid Karigar', phone: '923123456789', payable: 12000, specializedIn: 'Suit Stitching', activeSuits: 5 }
-    ];
-  });
-
-  const [wholesalers, setWholesalers] = useState(() => {
-    const saved = localStorage.getItem('gul_tailors_wholesalers');
-    return saved ? JSON.parse(saved) : [
-      { id: 1, name: 'Faisalabad Cloth House', phone: '923007654321', balance: 25000, item: 'Latha & Wash n Wear' }
-    ];
-  });
-
-  // 📦 GLOBAL STATE FOR EXPENSES (Synchronized)
-  const [expenses, setExpenses] = useState(() => {
-    const savedExpenses = localStorage.getItem('gt_expenses');
-    return savedExpenses ? JSON.parse(savedExpenses) : [];
-  });
-
-  useEffect(() => {
-    localStorage.setItem('gul_tailors_clients', JSON.stringify(clients));
-  }, [clients]);
-
-  useEffect(() => {
-    localStorage.setItem('gul_tailors_workers', JSON.stringify(workers));
-  }, [workers]);
-
-  useEffect(() => {
-    localStorage.setItem('gul_tailors_wholesalers', JSON.stringify(wholesalers));
-  }, [wholesalers]);
-
-  useEffect(() => {
-    localStorage.setItem('gt_expenses', JSON.stringify(expenses));
-  }, [expenses]);
-
-  // EXPENSES ACTION HANDLERS
-  const handleAddExpense = (newExp) => {
-    setExpenses(prev => [newExp, ...prev]);
   };
 
-  const handleDeleteExpense = (id) => {
-    setExpenses(prev => prev.filter(exp => exp.id !== id));
+  const setWorkersCloud = async (updatedWorkersOrFunc) => {
+    const nextState = typeof updatedWorkersOrFunc === 'function' ? updatedWorkersOrFunc(workers) : updatedWorkersOrFunc;
+    for (const worker of nextState) {
+      const stringId = String(worker.id);
+      await setDoc(doc(db, "gul_tailors_workers", stringId), worker);
+    }
+  };
+
+  const setWholesalersCloud = async (updatedWholesalersOrFunc) => {
+    const nextState = typeof updatedWholesalersOrFunc === 'function' ? updatedWholesalersOrFunc(wholesalers) : updatedWholesalersOrFunc;
+    for (const ws of nextState) {
+      const stringId = String(ws.id);
+      await setDoc(doc(db, "gul_tailors_wholesalers", stringId), ws);
+    }
+  };
+
+  // CLOUD EXPENSES ACTION HANDLERS
+  const handleAddExpense = async (newExp) => {
+    const stringId = String(newExp.id);
+    await setDoc(doc(db, "gt_expenses", stringId), newExp);
+  };
+
+  const handleDeleteExpense = async (id) => {
+    await deleteDoc(doc(db, "gt_expenses", String(id)));
   };
 
   // 🧮 SENIOR DEVELOPMENT REAL-TIME FINANCIAL ENGINES
@@ -142,15 +175,12 @@ export default function App() {
       }
     });
 
-    // 🔴 DYNAMIC DAILY EXPENSE CALCULATION
     let todayExpense = expenses
       .filter(exp => exp.date === todayStr)
       .reduce((acc, exp) => acc + (Number(exp.amount) || 0), 0);
 
-    // 🔵 SAAF MUNAFA (Net Profit Calculation)
     let netProfit = monthlyRevenue - todayExpense; 
 
-    // 🏦 Ledger Matrices Summation Logic
     const totalClientUdhaar = clients.reduce((acc, client) => {
       const totalCost = (Number(client.silayi) || 0) + (Number(client.pKarhayi) || 0) + (Number(client.gKarhayi) || 0);
       const totalPaid = client.payments ? client.payments.reduce((pAcc, p) => pAcc + (Number(p.amount) || 0), 0) : 0;
@@ -199,7 +229,7 @@ export default function App() {
   const metrics = getFinancialMetrics();
   const proximityAlerts = getProximityAlerts();
 
-  // SYSTEM BACKUP HANDLERS (With Expenses Included)
+  // SYSTEM BACKUP HANDLERS
   const exportMasterBackup = () => {
     const masterPayload = { clients, workers, wholesalers, expenses, exportedAt: new Date().toISOString() };
     const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(masterPayload));
@@ -211,21 +241,24 @@ export default function App() {
     downloadAnchor.remove();
   };
 
-  const importMasterBackup = (event) => {
+  const importMasterBackup = async (event) => {
     const fileReader = new FileReader();
     const file = event.target.files[0];
     if (!file) return;
 
-    fileReader.onload = (e) => {
+    fileReader.onload = async (e) => {
       try {
         const importedData = JSON.parse(e.target.result);
         if (importedData.clients && importedData.workers && importedData.wholesalers) {
           if (window.confirm("⚠️ Kya aap backup file restore karna chahte hain? Aapka maujooda data override ho jayega.")) {
-            setClients(importedData.clients);
-            setWorkers(importedData.workers);
-            setWholesalers(importedData.wholesalers);
-            if (importedData.expenses) setExpenses(importedData.expenses);
-            alert("✅ Khushamdeed! Gul Tailors ka poora data kamyabi se restore ho gaya hai.");
+            // Processing cloud batch synchronization
+            for (const c of importedData.clients) await setDoc(doc(db, "gul_tailors_clients", String(c.id)), c);
+            for (const w of importedData.workers) await setDoc(doc(db, "gul_tailors_workers", String(w.id)), w);
+            for (const ws of importedData.wholesalers) await setDoc(doc(db, "gul_tailors_wholesalers", String(ws.id)), ws);
+            if (importedData.expenses) {
+              for (const exp of importedData.expenses) await setDoc(doc(db, "gt_expenses", String(exp.id)), exp);
+            }
+            alert("✅ Khushamdeed! Gul Tailors ka poora data kamyabi se cloud par restore ho gaya hai.");
           }
         } else {
           alert("❌ Error: Yeh file valid backup format mein nahi hai.");
@@ -237,17 +270,16 @@ export default function App() {
     fileReader.readAsText(file);
   };
 
-  const handleDelete = (type, id) => {
+  const handleDelete = async (type, id) => {
     if (window.confirm(`Kya aap is ${type} record ko permanently delete karna chahte hain?`)) {
-      if (type === 'client') setClients(clients.filter(c => c.id !== id));
-      if (type === 'worker') setWorkers(workers.filter(w => w.id !== id));
-      if (type === 'wholesaler') setWholesalers(wholesalers.filter(ws => ws.id !== id));
+      if (type === 'client') await deleteDoc(doc(db, "gul_tailors_clients", String(id)));
+      if (type === 'worker') await deleteDoc(doc(db, "gul_tailors_workers", String(id)));
+      if (type === 'wholesaler') await deleteDoc(doc(db, "gul_tailors_wholesalers", String(id)));
     }
   };
 
   const navigateTo = (tabName) => {
     setActiveTab(tabName);
-    // 🔥 Push synthetic tracking step into history map every time user routes to another tab
     if (tabName !== 'home') {
       window.history.pushState({ activeRoute: tabName }, "");
     }
@@ -303,21 +335,21 @@ export default function App() {
         {activeTab === 'clients' && (
           <Clients 
             data={clients} 
-            setClients={setClients}
+            setClients={setClientsCloud}
             onDelete={(id) => handleDelete('client', id)} 
           />
         )}
         {activeTab === 'workers' && (
           <Workers 
             data={workers} 
-            setWorkers={setWorkers}
+            setWorkers={setWorkersCloud}
             onDelete={(id) => handleDelete('worker', id)} 
           />
         )}
         {activeTab === 'ws' && (
           <Wholesalers 
             data={wholesalers} 
-            setWholesalers={setWholesalers}
+            setWholesalers={setWholesalersCloud}
             onDelete={(id) => handleDelete('wholesaler', id)} 
           />
         )}

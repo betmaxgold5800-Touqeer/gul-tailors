@@ -14,29 +14,30 @@ import {
 export default function MoreSection({ 
   data = [], 
   navigateTo,
-  expenses = [],          // 🔥 Connected to global state
+  expenses = [],          // 🔥 Connected to global Firestore state
   onAddExpense,           // 🔥 Trigger for parent submit
-  onDeleteExpense         // 🔥 Trigger for parent delete
+  onDeleteExpense,        // 🔥 Trigger for parent delete
+  onResetExpenses,        // ⚡ New cloud trigger to empty entire expense array at once
+  stitchingRate = 1000,   // 🔥 Cloud managed configuration variables
+  setStitchingRate,
+  shopProfile = { name: 'Gul Tailors', phone: '03007614329', address: 'Adhi Kot' }, // 🔥 Cloud profile state
+  setShopProfile
 }) {
   // Master Accordion Panel State Control
   const [activePanel, setActivePanel] = useState(null); 
   const [statusMessage, setStatusMessage] = useState('');
 
-  // 1️⃣ Stitching Rate State Matrix
-  const [stitchingRate, setStitchingRate] = useState(() => {
-    return Number(localStorage.getItem('gt_stitching_rate')) || 1000;
-  });
+  // Local state controls for temporary fields editing
+  const [localRate, setLocalRate] = useState(stitchingRate);
+  const [profileName, setProfileName] = useState(shopProfile.name);
+  const [profilePhone, setProfilePhone] = useState(shopProfile.phone);
+  const [profileAddress, setProfileAddress] = useState(shopProfile.address);
 
   // 2️⃣ Expense Registry Input Form States
   const [expAmount, setExpAmount] = useState('');
   const [expCategory, setExpCategory] = useState('Raw Material'); 
   const [expNote, setExpNote] = useState('');
   const [expDate, setExpDate] = useState(new Date().toISOString().split('T')[0]);
-
-  // 3️⃣ Shop Profile Settings State Registry
-  const [profileName, setProfileName] = useState(() => localStorage.getItem('gt_profile_name') || 'Waseem Gul Baghoor');
-  const [profilePhone, setProfilePhone] = useState(() => localStorage.getItem('gt_profile_phone') || '03007614329');
-  const [profileAddress, setProfileAddress] = useState(() => localStorage.getItem('gt_profile_address') || 'Main Bazar Adhi Kot, Syed Market');
 
   // 📊 LIVE REAL-TIME METRICS FOR "AUR..." TAB - 100% SECURED SYNCHRONIZATION
   const liveMetrics = data.reduce((acc, curr) => {
@@ -72,14 +73,13 @@ export default function MoreSection({
     if (amt <= 0) return alert('Valid expense amount darj karein!');
 
     const newExpense = {
-      id: Date.now(),
+      id: String(Date.now()), // String normalization for Firestore documents integration
       amount: amt,
       category: expCategory,
       note: expNote.trim() || `${expCategory} Kharcha`,
       date: expDate
     };
 
-    // 🔥 Push to global App.jsx state handler
     if (onAddExpense) {
       onAddExpense(newExpense);
       setExpAmount('');
@@ -88,14 +88,15 @@ export default function MoreSection({
     }
   };
 
-  // 🗑️ WHOLE LEDGER RESET ACTION HANDLER
+  // 🗑️ WHOLE LEDGER RESET ACTION HANDLER - [CLOUD CONFIGURED]
   const handleClearAllExpenses = () => {
     if (window.confirm("⚠️ WARNING: Kya aap dukan ka poora Expense Registry clear karna chahte hain taake shuru se start ho? (Yeh action wapas nahi ho sakta)")) {
-      // Loop through all items and execute global deletes or direct storage refresh
       if (expenses && expenses.length > 0) {
-        expenses.forEach(exp => {
-          if (onDeleteExpense) onDeleteExpense(exp.id);
-        });
+        if (onResetExpenses) {
+          onResetExpenses(); // High-speed collection truncation logic
+        } else {
+          expenses.forEach(exp => onDeleteExpense && onDeleteExpense(exp.id));
+        }
         showToaster('♻️ Expense ledger reset successfully! Starting from zero.');
       } else {
         alert("Ledger pehle se hi zero hai ustad ji!");
@@ -105,11 +106,23 @@ export default function MoreSection({
 
   const handleSaveProfile = (e) => {
     e.preventDefault();
-    localStorage.setItem('gt_profile_name', profileName.trim());
-    localStorage.setItem('gt_profile_phone', profilePhone.trim());
-    localStorage.setItem('gt_profile_address', profileAddress.trim());
-    showToaster('✨ Shop Profile configuration updated safely!');
+    if (setShopProfile) {
+      setShopProfile({
+        name: profileName.trim(),
+        phone: profilePhone.trim(),
+        address: profileAddress.trim()
+      });
+      showToaster('✨ Shop Profile configuration updated safely on Cloud!');
+    }
     setActivePanel(null);
+  };
+
+  const handleSaveRateLocal = () => {
+    if (setStitchingRate) {
+      setStitchingRate(Number(localRate) || 0);
+      showToaster('💰 New standard stitching rate implemented on Cloud!');
+    }
+    togglePanel('RATES');
   };
 
   return (
@@ -171,12 +184,12 @@ export default function MoreSection({
                 <div className="flex gap-2">
                   <input 
                     type="number" 
-                    value={stitchingRate} 
-                    onChange={(e) => setStitchingRate(Number(e.target.value) || 0)}
+                    value={localRate} 
+                    onChange={(e) => setLocalRate(Number(e.target.value) || 0)}
                     className="flex-1 p-2.5 bg-slate-900 border border-white/10 rounded-xl text-sm font-black text-amber-400 text-center focus:outline-none focus:border-amber-500/30" 
                   />
                   <button 
-                    onClick={() => { togglePanel('RATES'); showToaster('💰 New standard stitching rate implemented!'); }}
+                    onClick={handleSaveRateLocal}
                     className="bg-gradient-to-r from-amber-500 to-yellow-500 text-slate-950 text-xs font-black px-5 rounded-xl shadow-md active:scale-95 transition-all"
                   >
                     Lock Rate
@@ -275,7 +288,6 @@ export default function MoreSection({
               </form>
 
               <div className="space-y-2 border-t border-white/5 pt-3">
-                {/* 🔥 FLEX ROW HEADER WITH CLEAN ZERO RESET TRIGGER */}
                 <div className="flex items-center justify-between">
                   <span className="text-[9px] font-black text-slate-500 uppercase tracking-wider block">📋 Recent Expense History</span>
                   {expenses.length > 0 && (
@@ -333,7 +345,7 @@ export default function MoreSection({
               </div>
               <div>
                 <span className="text-xs font-black text-slate-200 block">Shop Profile</span>
-                <span className="text-[10px] text-slate-400 font-bold">{profileName} • {profilePhone} • Adhi Kot</span>
+                <span className="text-[10px] text-slate-400 font-bold">{shopProfile.name} • {shopProfile.phone} • Adhi Kot</span>
               </div>
             </div>
             <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform duration-300 ${activePanel === 'PROFILE' ? 'rotate-180 text-white' : ''}`} />
@@ -364,7 +376,7 @@ export default function MoreSection({
 
       <div className="text-center py-2">
         <span className="text-[9px] font-black tracking-widest text-slate-600 uppercase">
-          Gul Tailors Engine v2.1.0 • Connected to LocalStorage
+          Gul Tailors Cloud-Sync Engine v2.2.0 • Powered by Firestore
         </span>
       </div>
     </div>

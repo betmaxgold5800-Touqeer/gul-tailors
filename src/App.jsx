@@ -27,19 +27,23 @@ export default function App() {
     };
   }, [activeTab]);
 
-  // CENTRALIZED SHOP IDENTITY
-  const shopInfo = {
-    name: 'GUL TAILORS',
-    owner: 'Waseem Gul Baghoor',
-    phone: '0300-7614329',
-    address: 'Main Bazar Adhi Kot, Syed Market, Almaroof Tailors Wali Market'
-  };
-
   // 🛡️ CENTRAL REAL-TIME STATE HOOKS
   const [clients, setClients] = useState([]);
   const [workers, setWorkers] = useState([]);
   const [wholesalers, setWholesalers] = useState([]);
   const [expenses, setExpenses] = useState([]);
+
+  // ☁️ CLOUD MANIPULATED DYNAMIC PREFERENCES
+  const [stitchingRate, setStitchingRate] = useState(() => {
+    return Number(localStorage.getItem('gt_stitching_rate')) || 1000;
+  });
+  
+  const [shopProfile, setShopProfile] = useState({
+    name: localStorage.getItem('gt_profile_name') || 'GUL TAILORS',
+    owner: 'Waseem Gul Baghoor',
+    phone: localStorage.getItem('gt_profile_phone') || '0300-7614329',
+    address: localStorage.getItem('gt_profile_address') || 'Main Bazar Adhi Kot, Syed Market, Almaroof Tailors Wali Market'
+  });
 
   // ☁️ REAL-TIME CLOUD SYNCHRONIZATION MATRIX
   useEffect(() => {
@@ -47,7 +51,6 @@ export default function App() {
     const unsubClients = onSnapshot(collection(db, "gul_tailors_clients"), (snapshot) => {
       const docs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       if (docs.length === 0) {
-        // Fallback default structure setup for new cloud instances
         setClients([{ 
           id: '1', 
           name: 'Asif Ali', 
@@ -64,7 +67,6 @@ export default function App() {
           naap: { lambaai: '40', teera: '18', baazu: '23', ghera: '24', shalwar: '38', paincha: '8', asan: '15', galla: '16' }
         }]);
       } else {
-        // Safe mapping architecture for historical payments configurations
         const verifiedDocs = docs.map(client => {
           if (!client.payments || !Array.isArray(client.payments)) {
             return {
@@ -115,40 +117,59 @@ export default function App() {
   // FIRESTORE CLOUD-SPECIFIC MIDDLEWARE PROPAGATORS FOR CHILD COMPONENTS
   const setClientsCloud = async (updatedClientsOrFunc) => {
     const nextState = typeof updatedClientsOrFunc === 'function' ? updatedClientsOrFunc(clients) : updatedClientsOrFunc;
-    // Single node or batch updates are caught via onSnapshot, here we save targeted items safely
     for (const client of nextState) {
-      const stringId = String(client.id);
-      await setDoc(doc(db, "gul_tailors_clients", stringId), client);
+      await setDoc(doc(db, "gul_tailors_clients", String(client.id)), client);
     }
   };
 
   const setWorkersCloud = async (updatedWorkersOrFunc) => {
     const nextState = typeof updatedWorkersOrFunc === 'function' ? updatedWorkersOrFunc(workers) : updatedWorkersOrFunc;
     for (const worker of nextState) {
-      const stringId = String(worker.id);
-      await setDoc(doc(db, "gul_tailors_workers", stringId), worker);
+      await setDoc(doc(db, "gul_tailors_workers", String(worker.id)), worker);
     }
   };
 
   const setWholesalersCloud = async (updatedWholesalersOrFunc) => {
     const nextState = typeof updatedWholesalersOrFunc === 'function' ? updatedWholesalersOrFunc(wholesalers) : updatedWholesalersOrFunc;
     for (const ws of nextState) {
-      const stringId = String(ws.id);
-      await setDoc(doc(db, "gul_tailors_wholesalers", stringId), ws);
+      await setDoc(doc(db, "gul_tailors_wholesalers", String(ws.id)), ws);
     }
   };
 
   // CLOUD EXPENSES ACTION HANDLERS
   const handleAddExpense = async (newExp) => {
-    const stringId = String(newExp.id);
-    await setDoc(doc(db, "gt_expenses", stringId), newExp);
+    await setDoc(doc(db, "gt_expenses", String(newExp.id)), newExp);
   };
 
   const handleDeleteExpense = async (id) => {
     await deleteDoc(doc(db, "gt_expenses", String(id)));
   };
 
-  // 🧮 SENIOR DEVELOPMENT REAL-TIME FINANCIAL ENGINES
+  // ♻️ BATCH CLEAR PROCESS FOR EXPENSES LEDGER RESET
+  const handleResetExpensesCloud = async () => {
+    try {
+      const deletePromises = expenses.map(exp => deleteDoc(doc(db, "gt_expenses", String(exp.id))));
+      await Promise.all(deletePromises);
+    } catch (err) {
+      console.error("Ledger reset failed: ", err);
+    }
+  };
+
+  // ☁️ WRAPPERS FOR PERSISTENT STITCHING CONTROL WITH FALLBACKS
+  const handleUpdateStitchingRate = (rate) => {
+    setStitchingRate(rate);
+    localStorage.setItem('gt_stitching_rate', String(rate));
+  };
+
+  const handleUpdateShopProfile = (updatedProfile) => {
+    const fullProfile = { ...shopProfile, ...updatedProfile };
+    setShopProfile(fullProfile);
+    localStorage.setItem('gt_profile_name', fullProfile.name);
+    localStorage.setItem('gt_profile_phone', fullProfile.phone);
+    localStorage.setItem('gt_profile_address', fullProfile.address);
+  };
+
+  // 🧮 REAL-TIME FINANCIAL ENGINES
   const getFinancialMetrics = () => {
     const localTarget = new Date();
     const offset = localTarget.getTimezoneOffset();
@@ -251,7 +272,6 @@ export default function App() {
         const importedData = JSON.parse(e.target.result);
         if (importedData.clients && importedData.workers && importedData.wholesalers) {
           if (window.confirm("⚠️ Kya aap backup file restore karna chahte hain? Aapka maujooda data override ho jayega.")) {
-            // Processing cloud batch synchronization
             for (const c of importedData.clients) await setDoc(doc(db, "gul_tailors_clients", String(c.id)), c);
             for (const w of importedData.workers) await setDoc(doc(db, "gul_tailors_workers", String(w.id)), w);
             for (const ws of importedData.wholesalers) await setDoc(doc(db, "gul_tailors_wholesalers", String(ws.id)), ws);
@@ -290,7 +310,7 @@ export default function App() {
     <div className="min-h-screen bg-[#020617] pb-32 font-sans text-slate-100 antialiased selection:bg-yellow-500/30">
       
       {/* 🏛️ ULTRA-MODERN NEON GLOW HEADER BAR */}
-      <header className="sticky top-0 z-50 bg-[#020617]/85 backdrop-blur-xl px-5 py-3 border-b border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.5)]">
+      <header className="sticky top-0 z-50 bg-[#020617]/85 backdrop-blur-xl px-5 py-3 border-b border-b-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.5)]">
         <div className="flex justify-between items-center max-w-md mx-auto">
           <div className="flex items-center gap-3">
             <div className="h-12 w-12 rounded-xl bg-slate-950 border border-white/10 p-0.5 flex items-center justify-center shadow-[0_0_15px_rgba(59,130,246,0.3)] overflow-hidden">
@@ -306,15 +326,15 @@ export default function App() {
               <span className="text-xl hidden">✂️</span>
             </div>
             <div>
-              <h1 className="text-lg font-black tracking-[0.12em] text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 via-amber-200 to-yellow-500 leading-none">
-                {shopInfo.name}
+              <h1 className="text-lg font-black tracking-[0.12em] text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 via-amber-200 to-yellow-500 leading-none uppercase">
+                {shopProfile.name}
               </h1>
-              <p className="text-[9px] font-black text-slate-400 tracking-widest uppercase mt-1">{shopInfo.owner}</p>
+              <p className="text-[9px] font-black text-slate-400 tracking-widest uppercase mt-1">{shopProfile.owner}</p>
             </div>
           </div>
           <div className="text-right">
             <span className="text-[10px] font-black text-yellow-400 bg-yellow-500/10 border border-yellow-500/30 px-3 py-1 rounded-full shadow-[0_0_15px_rgba(234,179,8,0.2)]">
-              📞 {shopInfo.phone}
+              📞 {shopProfile.phone}
             </span>
           </div>
         </div>
@@ -362,6 +382,11 @@ export default function App() {
             expenses={expenses}                 
             onAddExpense={handleAddExpense}       
             onDeleteExpense={handleDeleteExpense} 
+            onResetExpenses={handleResetExpensesCloud} // ⚡ Atomic clean handler
+            stitchingRate={stitchingRate}              // 💰 Live Rate state pass
+            setStitchingRate={handleUpdateStitchingRate}
+            shopProfile={shopProfile}                  // ✨ Live Header title config
+            setShopProfile={handleUpdateShopProfile}
           />
         )}
       </main>

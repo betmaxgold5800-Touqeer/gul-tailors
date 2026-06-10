@@ -350,6 +350,7 @@ export default function App() {
             wholesalersCount={wholesalers.length}
             financials={metrics}
             proximityAlerts={proximityAlerts}
+            workersData={workers} // 🟢 STRICT LINE FIX: Prop passed seamlessly for counter widget
           />
         )}
         {activeTab === 'clients' && (
@@ -382,10 +383,10 @@ export default function App() {
             expenses={expenses}                 
             onAddExpense={handleAddExpense}       
             onDeleteExpense={handleDeleteExpense} 
-            onResetExpenses={handleResetExpensesCloud} // ⚡ Atomic clean handler
-            stitchingRate={stitchingRate}              // 💰 Live Rate state pass
+            onResetExpenses={handleResetExpensesCloud}
+            stitchingRate={stitchingRate}              
             setStitchingRate={handleUpdateStitchingRate}
-            shopProfile={shopProfile}                  // ✨ Live Header title config
+            shopProfile={shopProfile}                  
             setShopProfile={handleUpdateShopProfile}
           />
         )}

@@ -40,14 +40,38 @@ export default function Dashboard({
       <div className="relative p-6 rounded-3xl bg-gradient-to-br from-slate-900 via-[#0b1329] to-[#020617] border border-white/5 text-center overflow-hidden shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(59,130,246,0.08),transparent)]" />
         
-        {/* BIG HERO LOGO */}
-        <div className="mx-auto mb-3 flex h-20 w-20 items-center justify-center rounded-2xl bg-slate-950 border border-white/10 p-1 shadow-[0_0_25px_rgba(59,130,246,0.2)]">
-          <img 
-            src="/logo.png" 
-            alt="Gul Tailors Main Logo" 
-            className="h-full w-full object-cover scale-110 rounded-xl"
-          />
+        {/* DUAL BRANDING EMBLAZONED LOGO HOUSING (OPTION A: PREMIUM SPLIT MODULARITY) */}
+        <div className="flex items-center justify-center gap-4 mx-auto mb-4 max-w-xs">
+          
+          {/* Main Scissor Logo Container */}
+          <div className="h-16 w-16 rounded-2xl bg-slate-950 border border-white/10 p-1 shadow-[0_0_20px_rgba(59,130,246,0.15)] flex-shrink-0 overflow-hidden">
+            <img 
+              src="/logo.png" 
+              alt="Gul Tailors Core Emblem" 
+              className="h-full w-full object-cover scale-110 rounded-xl"
+            />
+          </div>
+
+          {/* Luxury High-Tech Divider Vector */}
+          <div className="h-8 w-[1px] bg-gradient-to-b from-transparent via-white/20 to-transparent" />
+
+          {/* Tailoring Identity / Profile Logo Container */}
+          <div className="h-16 w-16 rounded-2xl bg-slate-950 border border-white/10 p-1 shadow-[0_0_20px_rgba(234,179,8,0.15)] flex-shrink-0 overflow-hidden">
+            <img 
+              src="/waseem.png" 
+              alt="Waseem Signature Profile" 
+              className="h-full w-full object-cover scale-110 rounded-xl"
+              onError={(e) => {
+                // Fallback architecture if resource takes time to load over latency
+                e.target.style.display = 'none';
+                e.target.nextSibling.style.display = 'flex';
+              }}
+            />
+            <div className="hidden h-full w-full items-center justify-center text-xs bg-yellow-500/10 text-yellow-500 font-black">WGM</div>
+          </div>
+
         </div>
+
         <h2 className="text-xl font-black tracking-[0.25em] text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 via-amber-200 to-yellow-500">
           GUL TAILORS
         </h2>

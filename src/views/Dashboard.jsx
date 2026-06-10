@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   ArrowUpRight, 
   ArrowDownRight, 
@@ -9,7 +9,8 @@ import {
   UserCheck, 
   Store,
   Clock,
-  TrendingUp
+  TrendingUp,
+  Target // Imported for proactive insight icons
 } from 'lucide-react';
 
 export default function Dashboard({ 
@@ -33,49 +34,114 @@ export default function Dashboard({
     totalWholesalerBalance = 0
   } = financials;
 
-  return (
-    <div className="space-y-6 animate-fadeIn pb-6">
+  // 🛡️ DYNAMIC PKT REAL-TIME CLOCK MODULE (STRICT STANDARDS)
+  const [currentTime, setCurrentTime] = useState('');
+  const [currentDate, setCurrentDate] = useState('');
+
+  useEffect(() => {
+    const updatePKTDateTime = () => {
+      // Automatic timezone conversion to Pakistan Time Standard (UTC+5)
+      const options = { 
+        timeZone: 'Asia/Karachi', 
+        hour: '2-digit', 
+        minute: '2-digit', 
+        second: '2-digit', 
+        hour12: true 
+      };
       
-      {/* 👑 PREMIUM NEON HERO DISPLAY BANNER */}
-      <div className="relative p-6 rounded-3xl bg-gradient-to-br from-slate-900 via-[#0b1329] to-[#020617] border border-white/5 text-center overflow-hidden shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]">
+      const dateFormatterOptions = {
+        timeZone: 'Asia/Karachi',
+        weekday: 'short', 
+        year: 'numeric', 
+        month: 'short', 
+        day: 'numeric'
+      };
+
+      const now = new Date();
+      setCurrentTime(now.toLocaleTimeString('en-PK', options));
+      setCurrentDate(now.toLocaleDateString('en-PK', dateFormatterOptions));
+    };
+
+    updatePKTDateTime(); // Instant initial render
+    const timerId = setInterval(updatePKTDateTime, 1000); // 1-second pulse for clock accuracy
+
+    return () => clearInterval(timerId); // Memory clean closure
+  }, []);
+
+  return (
+    <div className="space-y-6 animate-fadeIn pb-6 selection:bg-amber-500/30">
+      
+      {/* 👑 PREMIUM NEON HERO DISPLAY BANNER (UPGRADED LAYOUT) */}
+      <div className="relative p-6 rounded-3xl bg-gradient-to-br from-slate-900 via-[#0b1329] to-[#020617] text-center overflow-hidden border border-white/5 shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(59,130,246,0.08),transparent)]" />
         
-        {/* DUAL BRANDING EMBLAZONED LOGO HOUSING (OPTION A: PREMIUM SPLIT MODULARITY) */}
-        <div className="flex items-center justify-center gap-4 mx-auto mb-4 max-w-xs">
+        {/* MODULAR TOP BAR: PKT DATETIME ENGINE (RIGHT SIDE INTEGRATION) */}
+        <div className="absolute top-4 right-5 text-right z-10 p-2.5 rounded-2xl bg-black/30 border border-white/5 backdrop-blur-sm shadow-[0_4px_15px_rgba(0,0,0,0.3)]">
+          <p className="text-sm font-black text-slate-100 tracking-tight">{currentTime}</p>
+          <p className="text-[10px] font-bold text-slate-400 tracking-wide mt-1 uppercase">{currentDate} (PKT)</p>
+        </div>
+
+        {/* =========================================================
+            PROACTIVE BRANDING AREA: TRIPLE BLOCK MATRIX INTEGRATION
+           ========================================================= */}
+        <div className="flex items-center justify-center gap-4 mx-auto mb-5 max-w-sm mt-8 relative">
           
           {/* Main Scissor Logo Container */}
-          <div className="h-16 w-16 rounded-2xl bg-slate-950 border border-white/10 p-1 shadow-[0_0_20px_rgba(59,130,246,0.15)] flex-shrink-0 overflow-hidden">
+          <div className="h-16 w-16 rounded-2xl bg-slate-950 border border-white/10 p-1 shadow-[0_0_20px_rgba(59,130,246,0.15)] flex-shrink-0 overflow-hidden relative">
+            <div className="absolute inset-0 bg-blue-500/5 blur-xl"></div>
             <img 
               src="/logo.png" 
               alt="Gul Tailors Core Emblem" 
-              className="h-full w-full object-cover scale-110 rounded-xl"
+              className="h-full w-full object-cover scale-110 rounded-xl relative z-10"
             />
           </div>
 
-          {/* Luxury High-Tech Divider Vector */}
-          <div className="h-8 w-[1px] bg-gradient-to-b from-transparent via-white/20 to-transparent" />
+          {/* Luxury High-Tech Modular Joint Barrier Divider Vector */}
+          <div className="h-10 w-[1px] bg-gradient-to-b from-transparent via-white/15 to-transparent flex-shrink-0" />
 
           {/* Tailoring Identity / Profile Logo Container */}
-          <div className="h-16 w-16 rounded-2xl bg-slate-950 border border-white/10 p-1 shadow-[0_0_20px_rgba(234,179,8,0.15)] flex-shrink-0 overflow-hidden">
+          <div className="h-16 w-16 rounded-2xl bg-slate-950 border border-white/10 p-1 shadow-[0_0_20px_rgba(234,179,8,0.15)] flex-shrink-0 overflow-hidden relative">
+            <div className="absolute inset-0 bg-amber-500/5 blur-xl"></div>
             <img 
               src="/waseem.png" 
               alt="Waseem Signature Profile" 
-              className="h-full w-full object-cover scale-110 rounded-xl"
+              className="h-full w-full object-cover scale-110 rounded-xl relative z-10"
               onError={(e) => {
-                // Fallback architecture if resource takes time to load over latency
                 e.target.style.display = 'none';
                 e.target.nextSibling.style.display = 'flex';
               }}
             />
-            <div className="hidden h-full w-full items-center justify-center text-xs bg-yellow-500/10 text-yellow-500 font-black">WGM</div>
+            <div className="hidden h-full w-full items-center justify-center text-xs bg-yellow-500/10 text-yellow-500 font-black relative z-10">WGM</div>
+          </div>
+
+          {/* Luxury High-Tech Modular Joint Barrier Divider Vector */}
+          <div className="h-10 w-[1px] bg-gradient-to-b from-transparent via-white/15 to-transparent flex-shrink-0" />
+
+          {/* =========================================================
+              SENIOR SUGGESTION WIDGET: KARIGAR LOAD INSIGHT CHARACTER
+             ========================================================= */}
+          <div 
+            onClick={() => navigateTo('workers')}
+            className="group h-16 w-16 rounded-2xl bg-slate-950 border border-white/10 p-1 flex items-center justify-center cursor-pointer overflow-hidden transition-all duration-300 hover:border-blue-500/40 shadow-[0_0_20px_rgba(59,130,246,0.15)] hover:shadow-[0_0_25px_rgba(59,130,246,0.25)] relative"
+          >
+            <div className="absolute inset-0 bg-blue-500/5 blur-xl group-hover:bg-blue-500/10 transition-colors"></div>
+            
+            <div className="text-center z-10">
+              <UserCheck className="w-6 h-6 text-blue-400 group-hover:scale-110 group-hover:-rotate-6 transition-transform" />
+              <div className="mt-1 flex items-baseline justify-center gap-1">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span className="text-xs font-black text-slate-100 group-hover:text-white transition-colors">{workersCount} Active</span>
+              </div>
+              <p className="text-[8px] font-black tracking-wider text-slate-500 uppercase mt-0.5">Counter</p>
+            </div>
           </div>
 
         </div>
 
-        <h2 className="text-xl font-black tracking-[0.25em] text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 via-amber-200 to-yellow-500">
+        <h2 className="text-xl font-black tracking-[0.25em] text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 via-amber-200 to-yellow-500 uppercase leading-tight">
           GUL TAILORS
         </h2>
-        <p className="text-[9px] font-black tracking-[0.2em] text-slate-400 uppercase mt-2 bg-white/5 inline-block px-3 py-0.5 rounded-full border border-white/10">
+        <p className="text-[9px] font-black tracking-[0.2em] text-slate-400 uppercase mt-2.5 bg-white/5 inline-block px-3.5 py-1 rounded-full border border-white/10">
           PREMIUM DIGITAL VAULT & LEDGER
         </p>
       </div>
@@ -89,7 +155,7 @@ export default function Dashboard({
           className="group p-4 rounded-3xl bg-slate-900/40 border border-emerald-500/20 hover:border-emerald-500/50 transition-all duration-300 shadow-[0_0_15px_rgba(16,185,129,0.05)] hover:shadow-[0_0_20px_rgba(16,185,129,0.1)] active:scale-95 text-left focus:outline-none"
         >
           <div className="flex w-full items-center justify-between">
-            <span className="text-[9px] font-black tracking-wider text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20">AAJ AAYA</span>
+            <span className="text-[9px] font-black tracking-wider text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20 uppercase">AAJ AAYA</span>
             <ArrowUpRight className="w-4 h-4 text-emerald-400 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
           </div>
           <div className="mt-4">
@@ -106,7 +172,7 @@ export default function Dashboard({
           className="group p-4 rounded-3xl bg-slate-900/40 border border-rose-500/20 hover:border-rose-500/50 transition-all duration-300 shadow-[0_0_15px_rgba(244,63,94,0.05)] hover:shadow-[0_0_20px_rgba(244,63,94,0.1)] active:scale-95 text-left focus:outline-none"
         >
           <div className="flex w-full items-center justify-between">
-            <span className="text-[9px] font-black tracking-wider text-rose-400 bg-rose-500/10 px-2 py-0.5 rounded-md border border-rose-500/20">AAJ KHARCHA</span>
+            <span className="text-[9px] font-black tracking-wider text-rose-400 bg-rose-500/10 px-2 py-0.5 rounded-md border border-rose-500/20 uppercase">AAJ KHARCHA</span>
             <ArrowDownRight className="w-4 h-4 text-rose-400 group-hover:translate-x-0.5 group-hover:translate-y-0.5 transition-transform" />
           </div>
           <div className="mt-4">
@@ -123,7 +189,7 @@ export default function Dashboard({
           className="group p-4 rounded-3xl bg-slate-900/40 border border-amber-500/20 hover:border-amber-500/50 transition-all duration-300 shadow-[0_0_15px_rgba(245,158,11,0.05)] hover:shadow-[0_0_20px_rgba(245,158,11,0.1)] active:scale-95 text-left focus:outline-none"
         >
           <div className="flex w-full items-center justify-between">
-            <span className="text-[9px] font-black tracking-wider text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-md border border-amber-500/20">MAHANA AAYA</span>
+            <span className="text-[9px] font-black tracking-wider text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-md border border-amber-500/20 uppercase">MAHANA AAYA</span>
             <Briefcase className="w-3.5 h-3.5 text-amber-400 group-hover:scale-110 transition-transform" />
           </div>
           <div className="mt-4">
@@ -140,7 +206,7 @@ export default function Dashboard({
           className="group p-4 rounded-3xl bg-slate-900/40 border border-blue-500/20 hover:border-blue-500/50 transition-all duration-300 shadow-[0_0_15px_rgba(59,130,246,0.05)] hover:shadow-[0_0_20px_rgba(59,130,246,0.1)] active:scale-95 text-left focus:outline-none"
         >
           <div className="flex w-full items-center justify-between">
-            <span className="text-[9px] font-black tracking-wider text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded-md border border-blue-500/20">SAAF MUNAFA</span>
+            <span className="text-[9px] font-black tracking-wider text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded-md border border-blue-500/20 uppercase">SAAF MUNAFA</span>
             <ShieldCheck className="w-3.5 h-3.5 text-blue-400 group-hover:rotate-6 transition-transform" />
           </div>
           <div className="mt-4">
@@ -155,7 +221,7 @@ export default function Dashboard({
       {/* 🚨 DYNAMIC TIMELINE RADAR: DELIVERY PROXIMITY ALERTS */}
       <div className="rounded-3xl border border-white/5 bg-slate-900/30 p-5 shadow-[inset_0_1px_1px_rgba(255,255,255,0.02)]">
         <h3 className="text-[10px] font-black tracking-[0.2em] text-slate-400 uppercase mb-4 flex items-center gap-2 border-b border-white/5 pb-3">
-          <span className="relative flex h-2 w-2">
+          <span className="relative flex h-2 w-2 flex-shrink-0">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
             <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-500"></span>
           </span>
@@ -178,7 +244,7 @@ export default function Dashboard({
                     : 'border-amber-500/20 hover:border-amber-500/40 shadow-[0_0_15px_rgba(245,158,11,0.02)]'
                 }`}
               >
-                <div className="space-y-1">
+                <div className="space-y-1 pr-3">
                   <div className="flex items-center gap-2">
                     <span className="text-xs font-black text-slate-200">{order.name}</span>
                     {order.isUrgent && (
@@ -192,7 +258,7 @@ export default function Dashboard({
                   </p>
                 </div>
                 
-                <span className={`text-[9px] font-black px-2.5 py-1 rounded-xl uppercase tracking-wider border ${
+                <span className={`text-[9px] font-black px-2.5 py-1 rounded-xl uppercase tracking-wider border flex-shrink-0 ${
                   order.zone === 'crisis'
                     ? 'bg-rose-500/10 text-rose-400 border-rose-500/20 shadow-[0_0_10px_rgba(244,63,94,0.05)]'
                     : 'bg-amber-500/10 text-amber-400 border-amber-500/20 shadow-[0_0_10px_rgba(245,158,11,0.05)]'
@@ -230,7 +296,7 @@ export default function Dashboard({
                 >
                   <div className="space-y-0.5">
                     <div className="flex items-center gap-2">
-                      <span className={`h-1.5 w-1.5 rounded-full ${activeSuitsCount > 4 ? 'bg-rose-500 animate-pulse' : 'bg-emerald-500'}`}></span>
+                      <span className={`h-1.5 w-1.5 rounded-full flex-shrink-0 ${activeSuitsCount > 4 ? 'bg-rose-500 animate-pulse' : 'bg-emerald-500'}`}></span>
                       <span className="text-xs font-black text-slate-200">{worker.name}</span>
                     </div>
                     <p className="text-[9px] text-slate-500 font-bold uppercase tracking-wider">{worker.specializedIn || 'Stitching Specialist'}</p>
@@ -243,7 +309,7 @@ export default function Dashboard({
                         {activeSuitsCount} Active
                       </span>
                     </div>
-                    <div className="border-l border-white/10 pl-3 min-w-[75px]">
+                    <div className="border-l border-white/10 pl-3 min-w-[75px] flex-shrink-0">
                       <p className="text-[8px] font-black text-slate-500 uppercase">Payable</p>
                       <span className="text-xs font-black text-emerald-400">Rs. {Number(worker.payable || 0).toLocaleString('en-IN')}</span>
                     </div>
@@ -268,11 +334,11 @@ export default function Dashboard({
             onClick={() => navigateTo('clients')} 
             className="group flex items-center justify-between p-3 cursor-pointer hover:bg-white/5 rounded-2xl transition-all border border-transparent hover:border-white/5"
           >
-            <div className="flex items-center gap-2.5">
-              <Coins className="w-4 h-4 text-amber-500 group-hover:scale-110 transition-transform" />
+            <div className="flex items-center gap-2.5 pr-2">
+              <Coins className="w-4 h-4 text-amber-500 group-hover:scale-110 flex-shrink-0 transition-transform" />
               <span className="text-xs font-bold text-slate-300 group-hover:text-slate-200 transition-colors">Clients Se Lena Hai (Udhaar)</span>
             </div>
-            <span className="text-xs font-black text-amber-400 bg-amber-500/10 px-2.5 py-1 rounded-xl border border-amber-500/20 shadow-[0_0_10px_rgba(245,158,11,0.05)]">
+            <span className="text-xs font-black text-amber-400 bg-amber-500/10 px-2.5 py-1 rounded-xl border border-amber-500/20 shadow-[0_0_10px_rgba(245,158,11,0.05)] flex-shrink-0">
               Rs. {totalClientUdhaar.toLocaleString('en-IN')}
             </span>
           </div>
@@ -282,11 +348,11 @@ export default function Dashboard({
             onClick={() => navigateTo('workers')} 
             className="group flex items-center justify-between p-3 cursor-pointer hover:bg-white/5 rounded-2xl transition-all border border-transparent hover:border-white/5"
           >
-            <div className="flex items-center gap-2.5">
-              <UserCheck className="w-4 h-4 text-rose-500 group-hover:scale-110 transition-transform" />
+            <div className="flex items-center gap-2.5 pr-2">
+              <UserCheck className="w-4 h-4 text-rose-500 group-hover:scale-110 flex-shrink-0 transition-transform" />
               <span className="text-xs font-bold text-slate-300 group-hover:text-slate-200 transition-colors">Karigaron Ka Baqi (Payable)</span>
             </div>
-            <span className="text-xs font-black text-rose-400 bg-rose-500/10 px-2.5 py-1 rounded-xl border border-rose-500/20 shadow-[0_0_10px_rgba(244,63,94,0.05)]">
+            <span className="text-xs font-black text-rose-400 bg-rose-500/10 px-2.5 py-1 rounded-xl border border-rose-500/20 shadow-[0_0_10px_rgba(244,63,94,0.05)] flex-shrink-0">
               Rs. {totalWorkerPayable.toLocaleString('en-IN')}
             </span>
           </div>
@@ -296,11 +362,11 @@ export default function Dashboard({
             onClick={() => navigateTo('ws')} 
             className="group flex items-center justify-between p-3 cursor-pointer hover:bg-white/5 rounded-2xl transition-all border border-transparent hover:border-white/5"
           >
-            <div className="flex items-center gap-2.5">
-              <Store className="w-4 h-4 text-blue-500 group-hover:scale-110 transition-transform" />
+            <div className="flex items-center gap-2.5 pr-2">
+              <Store className="w-4 h-4 text-blue-500 group-hover:scale-110 flex-shrink-0 transition-transform" />
               <span className="text-xs font-bold text-slate-300 group-hover:text-slate-200 transition-colors">Wholesalers Ka Dena Hai</span>
             </div>
-            <span className="text-xs font-black text-blue-400 bg-blue-500/10 px-2.5 py-1 rounded-xl border border-blue-500/20 shadow-[0_0_10px_rgba(59,130,246,0.05)]">
+            <span className="text-xs font-black text-blue-400 bg-blue-500/10 px-2.5 py-1 rounded-xl border border-blue-500/20 shadow-[0_0_10px_rgba(59,130,246,0.05)] flex-shrink-0">
               Rs. {totalWholesalerBalance.toLocaleString('en-IN')}
             </span>
           </div>

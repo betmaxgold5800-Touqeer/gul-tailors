@@ -39,15 +39,14 @@ export default function App() {
   });
   
   const [shopProfile, setShopProfile] = useState({
-    name: localStorage.getItem('gt_profile_name') || 'GUL TAILORS',
+    name: localStorage.getItem('gt_profile_name') || 'WASEEM GUL BAGHOOR',
     owner: 'Waseem Gul Baghoor',
-    phone: localStorage.getItem('gt_profile_phone') || '0300-7614329',
-    address: localStorage.getItem('gt_profile_address') || 'Main Bazar Adhi Kot, Syed Market, Almaroof Tailors Wali Market'
+    phone: localStorage.getItem('gt_profile_phone') || '03007614329',
+    address: localStorage.getItem('gt_profile_address') || 'Main Bazar Adhi Kot, Syed Market (Tailors Market)'
   });
 
   // ☁️ REAL-TIME CLOUD SYNCHRONIZATION MATRIX
   useEffect(() => {
-    // 1. Clients Stream
     const unsubClients = onSnapshot(collection(db, "gul_tailors_clients"), (snapshot) => {
       const docs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       if (docs.length === 0) {
@@ -81,7 +80,6 @@ export default function App() {
       }
     });
 
-    // 2. Workers Stream
     const unsubWorkers = onSnapshot(collection(db, "gul_tailors_workers"), (snapshot) => {
       const docs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       if (docs.length === 0) {
@@ -91,7 +89,6 @@ export default function App() {
       }
     });
 
-    // 3. Wholesalers Stream
     const unsubWholesalers = onSnapshot(collection(db, "gul_tailors_wholesalers"), (snapshot) => {
       const docs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       if (docs.length === 0) {
@@ -101,7 +98,6 @@ export default function App() {
       }
     });
 
-    // 4. Expenses Stream
     const unsubExpenses = onSnapshot(collection(db, "gt_expenses"), (snapshot) => {
       setExpenses(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
     });
@@ -114,7 +110,6 @@ export default function App() {
     };
   }, []);
 
-  // FIRESTORE CLOUD-SPECIFIC MIDDLEWARE PROPAGATORS FOR CHILD COMPONENTS
   const setClientsCloud = async (updatedClientsOrFunc) => {
     const nextState = typeof updatedClientsOrFunc === 'function' ? updatedClientsOrFunc(clients) : updatedClientsOrFunc;
     for (const client of nextState) {
@@ -136,7 +131,6 @@ export default function App() {
     }
   };
 
-  // CLOUD EXPENSES ACTION HANDLERS
   const handleAddExpense = async (newExp) => {
     await setDoc(doc(db, "gt_expenses", String(newExp.id)), newExp);
   };
@@ -145,7 +139,6 @@ export default function App() {
     await deleteDoc(doc(db, "gt_expenses", String(id)));
   };
 
-  // ♻️ BATCH CLEAR PROCESS FOR EXPENSES LEDGER RESET
   const handleResetExpensesCloud = async () => {
     try {
       const deletePromises = expenses.map(exp => deleteDoc(doc(db, "gt_expenses", String(exp.id))));
@@ -155,7 +148,6 @@ export default function App() {
     }
   };
 
-  // ☁️ WRAPPERS FOR PERSISTENT STITCHING CONTROL WITH FALLBACKS
   const handleUpdateStitchingRate = (rate) => {
     setStitchingRate(rate);
     localStorage.setItem('gt_stitching_rate', String(rate));
@@ -169,7 +161,6 @@ export default function App() {
     localStorage.setItem('gt_profile_address', fullProfile.address);
   };
 
-  // 🧮 REAL-TIME FINANCIAL ENGINES
   const getFinancialMetrics = () => {
     const localTarget = new Date();
     const offset = localTarget.getTimezoneOffset();
@@ -223,7 +214,6 @@ export default function App() {
     };
   };
 
-  // 🚨 REAL-TIME DELIVERY TIMELINE RADAR
   const getProximityAlerts = () => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -250,7 +240,6 @@ export default function App() {
   const metrics = getFinancialMetrics();
   const proximityAlerts = getProximityAlerts();
 
-  // SYSTEM BACKUP HANDLERS
   const exportMasterBackup = () => {
     const masterPayload = { clients, workers, wholesalers, expenses, exportedAt: new Date().toISOString() };
     const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(masterPayload));
@@ -309,39 +298,65 @@ export default function App() {
   return (
     <div className="min-h-screen bg-[#020617] pb-32 font-sans text-slate-100 antialiased selection:bg-yellow-500/30">
       
-      {/* 🏛️ ULTRA-MODERN NEON GLOW HEADER BAR */}
-      <header className="sticky top-0 z-50 bg-[#020617]/85 backdrop-blur-xl px-5 py-3 border-b border-b-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.5)]">
-        <div className="flex justify-between items-center max-w-md mx-auto">
-          <div className="flex items-center gap-3">
-            <div className="h-12 w-12 rounded-xl bg-slate-950 border border-white/10 p-0.5 flex items-center justify-center shadow-[0_0_15px_rgba(59,130,246,0.3)] overflow-hidden">
+      {/* 🏛️ ULTRA-MODERN NEON GLOW HEADER BAR - FIXED REDUNDANCY & BALANCED LOCATIONS */}
+      <header className="sticky top-0 z-50 bg-[#020617]/85 backdrop-blur-xl px-4 py-3 border-b border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.5)]">
+        <div className="w-full max-w-md mx-auto flex justify-between items-center gap-2">
+          
+          {/* LEFT PANEL: BRANDING NAME & INTERACTIVE WHATSAPP TRIGGER */}
+          <div className="flex items-center gap-2.5 max-w-[50%]">
+            <div className="h-10 w-10 rounded-xl bg-slate-950 border border-white/10 p-0.5 flex flex-shrink-0 items-center justify-center shadow-[0_0_15px_rgba(234,179,8,0.2)] overflow-hidden">
               <img 
                 src="/logo.png" 
-                alt="Gul Tailors Logo" 
+                alt="Core Icon" 
                 className="h-full w-full object-cover scale-110"
                 onError={(e) => {
                   e.target.style.display = 'none';
                   e.target.nextSibling.style.display = 'block';
                 }}
               />
-              <span className="text-xl hidden">✂️</span>
+              <span className="text-lg hidden">✂️</span>
             </div>
-            <div>
-              <h1 className="text-lg font-black tracking-[0.12em] text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 via-amber-200 to-yellow-500 leading-none uppercase">
-                {shopProfile.name}
+            <div className="leading-tight truncate">
+              <h1 className="text-sm font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 via-amber-200 to-yellow-500 uppercase truncate">
+                WASEEM GUL BAGHOOR
               </h1>
-              <p className="text-[9px] font-black text-slate-400 tracking-widest uppercase mt-1">{shopProfile.owner}</p>
+              
+              {/* WHATSAPP ACTION ENGINE WITH NEON PULSE EFFECT */}
+              <a 
+                href="https://wa.me/923007614329" 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="inline-flex items-center gap-1 mt-0.5 group focus:outline-none"
+              >
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                </span>
+                <span className="text-[10px] font-black text-emerald-400 tracking-wide group-hover:text-emerald-300 transition-colors">
+                  03007614329
+                </span>
+              </a>
             </div>
           </div>
-          <div className="text-right">
-            <span className="text-[10px] font-black text-yellow-400 bg-yellow-500/10 border border-yellow-500/30 px-3 py-1 rounded-full shadow-[0_0_15px_rgba(234,179,8,0.2)]">
-              📞 {shopProfile.phone}
-            </span>
+
+          {/* RIGHT PANEL: TWO-LINE MATRIX LOCATION HUD */}
+          <div className="text-right flex items-start gap-1.5 max-w-[50%]">
+            <span className="text-[11px] text-amber-400 mt-0.5 flex-shrink-0 animate-pulse">📍</span>
+            <div className="flex flex-col text-left leading-none">
+              <span className="text-[8px] font-black tracking-wide text-slate-300 uppercase block leading-tight">
+                MAIN BAZAR ADHI KOT, SYED MARKET (TAILORS MARKET)
+              </span>
+              <span className="text-[7.5px] font-black tracking-wider text-slate-500 uppercase mt-0.5 block">
+                LEFT SIDE LAST CORNER SHOP
+              </span>
+            </div>
           </div>
+
         </div>
       </header>
 
       {/* Dynamic Main Workspace Wrapper */}
-      <main className="mx-auto max-w-md px-4 pt-6">
+      <main className="mx-auto max-w-md px-4 pt-4">
         {activeTab === 'home' && (
           <Dashboard 
             navigateTo={navigateTo} 
@@ -350,7 +365,7 @@ export default function App() {
             wholesalersCount={wholesalers.length}
             financials={metrics}
             proximityAlerts={proximityAlerts}
-            workersData={workers} // 🟢 STRICT LINE FIX: Prop passed seamlessly for counter widget
+            workersData={workers}
           />
         )}
         {activeTab === 'clients' && (

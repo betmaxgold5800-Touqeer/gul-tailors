@@ -6,11 +6,10 @@ import {
   ShieldCheck, 
   Layers, 
   Coins, 
-  UserCheck, 
   Store,
-  Clock,
-  TrendingUp,
-  Target // Imported for proactive insight icons
+  CloudSun,
+  Thermometer,
+  Wind
 } from 'lucide-react';
 
 export default function Dashboard({ 
@@ -19,11 +18,10 @@ export default function Dashboard({
   workersCount, 
   wholesalersCount, 
   financials = {},
-  proximityAlerts = [], // 🚨 Live Timeline Radar Alerts Prop
-  workersData = []      // 🧳 Live Karigar Load counter data stream
+  proximityAlerts = [], 
+  workersData = []      
 }) {
   
-  // Safely fallback to 0 if the state metric is not computed yet
   const {
     todayRevenue = 0,
     todayExpense = 0,
@@ -34,61 +32,85 @@ export default function Dashboard({
     totalWholesalerBalance = 0
   } = financials;
 
-  // 🛡️ DYNAMIC PKT REAL-TIME CLOCK MODULE (STRICT STANDARDS)
+  // ⏰ NEON CLOCK STATE ENGINE (PKT)
   const [currentTime, setCurrentTime] = useState('');
   const [currentDate, setCurrentDate] = useState('');
 
   useEffect(() => {
     const updatePKTDateTime = () => {
-      // Automatic timezone conversion to Pakistan Time Standard (UTC+5)
-      const options = { 
+      const timeOptions = { 
         timeZone: 'Asia/Karachi', 
         hour: '2-digit', 
-        minute: '2-digit', 
-        second: '2-digit', 
+        minute: '2-digit',
         hour12: true 
       };
-      
-      const dateFormatterOptions = {
+      const dateOptions = {
         timeZone: 'Asia/Karachi',
-        weekday: 'short', 
-        year: 'numeric', 
         month: 'short', 
         day: 'numeric'
       };
 
       const now = new Date();
-      setCurrentTime(now.toLocaleTimeString('en-PK', options));
-      setCurrentDate(now.toLocaleDateString('en-PK', dateFormatterOptions));
+      setCurrentTime(now.toLocaleTimeString('en-PK', timeOptions));
+      setCurrentDate(now.toLocaleDateString('en-PK', dateOptions));
     };
 
-    updatePKTDateTime(); // Instant initial render
-    const timerId = setInterval(updatePKTDateTime, 1000); // 1-second pulse for clock accuracy
-
-    return () => clearInterval(timerId); // Memory clean closure
+    updatePKTDateTime();
+    const timerId = setInterval(updatePKTDateTime, 1000);
+    return () => clearInterval(timerId);
   }, []);
 
   return (
     <div className="space-y-6 animate-fadeIn pb-6 selection:bg-amber-500/30">
       
-      {/* 👑 PREMIUM NEON HERO DISPLAY BANNER (UPGRADED LAYOUT) */}
+      {/* 👑 PREMIUM NEON HERO DISPLAY BANNER (BALANCED DUAL-WIDGET EDITION) */}
       <div className="relative p-6 rounded-3xl bg-gradient-to-br from-slate-900 via-[#0b1329] to-[#020617] text-center overflow-hidden border border-white/5 shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(59,130,246,0.08),transparent)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(59,130,246,0.06),transparent)]" />
         
-        {/* MODULAR TOP BAR: PKT DATETIME ENGINE (RIGHT SIDE INTEGRATION) */}
-        <div className="absolute top-4 right-5 text-right z-10 p-2.5 rounded-2xl bg-black/30 border border-white/5 backdrop-blur-sm shadow-[0_4px_15px_rgba(0,0,0,0.3)]">
-          <p className="text-sm font-black text-slate-100 tracking-tight">{currentTime}</p>
-          <p className="text-[10px] font-bold text-slate-400 tracking-wide mt-1 uppercase">{currentDate} (PKT)</p>
+        {/* =========================================================
+            HEADER GRID PANEL: CLOCK (LEFT) & WEATHER (RIGHT)
+           ========================================================= */}
+        <div className="w-full flex items-center justify-between relative z-10 mb-2">
+          
+          {/* ⚡ LEFT SIDE: DIGITAL CLOCK (NEON EMERALD INTERFACE) */}
+          <div className="flex items-center gap-2 p-2 px-3 rounded-2xl bg-black/40 border border-emerald-500/20 shadow-[0_0_15px_rgba(16,185,129,0.1)]">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+            </span>
+            <div className="text-left">
+              <p className="text-xs font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-300 tracking-tight leading-none">
+                {currentTime}
+              </p>
+              <p className="text-[8px] font-bold text-slate-500 uppercase tracking-wider mt-0.5">
+                {currentDate} • PKT
+              </p>
+            </div>
+          </div>
+
+          {/* 🌤️ RIGHT SIDE: ADHI KOT WEATHER WIDGET */}
+          <div className="flex items-center gap-2 p-2 px-3 rounded-2xl bg-black/40 border border-sky-500/20 shadow-[0_0_15px_rgba(56,189,248,0.1)]">
+            <CloudSun className="w-4 h-4 text-sky-400 animate-pulse" />
+            <div className="text-right">
+              <p className="text-xs font-black text-transparent bg-clip-text bg-gradient-to-r from-sky-400 to-blue-300 tracking-tight leading-none">
+                34°C
+              </p>
+              <p className="text-[8px] font-bold text-slate-500 uppercase tracking-wider mt-0.5">
+                Adhi Kot
+              </p>
+            </div>
+          </div>
+
         </div>
 
         {/* =========================================================
-            PROACTIVE BRANDING AREA: TRIPLE BLOCK MATRIX INTEGRATION
+            PROACTIVE BRANDING AREA: SYMMETRICAL DOUBLE BRANDING
            ========================================================= */}
-        <div className="flex items-center justify-center gap-4 mx-auto mb-5 max-w-sm mt-8 relative">
+        <div className="flex items-center justify-center gap-5 mx-auto mb-5 max-w-sm mt-6 relative">
           
-          {/* Main Scissor Logo Container */}
-          <div className="h-16 w-16 rounded-2xl bg-slate-950 border border-white/10 p-1 shadow-[0_0_20px_rgba(59,130,246,0.15)] flex-shrink-0 overflow-hidden relative">
-            <div className="absolute inset-0 bg-blue-500/5 blur-xl"></div>
+          {/* Logo 1: Core Gold Scissor Identity */}
+          <div className="h-16 w-16 rounded-2xl bg-slate-950 border border-white/10 p-1 shadow-[0_0_25px_rgba(234,179,8,0.15)] flex-shrink-0 overflow-hidden relative">
+            <div className="absolute inset-0 bg-amber-500/5 blur-xl"></div>
             <img 
               src="/logo.png" 
               alt="Gul Tailors Core Emblem" 
@@ -96,12 +118,12 @@ export default function Dashboard({
             />
           </div>
 
-          {/* Luxury High-Tech Modular Joint Barrier Divider Vector */}
+          {/* Symmetrical High-Tech Modular Joint Barrier Vector */}
           <div className="h-10 w-[1px] bg-gradient-to-b from-transparent via-white/15 to-transparent flex-shrink-0" />
 
-          {/* Tailoring Identity / Profile Logo Container */}
-          <div className="h-16 w-16 rounded-2xl bg-slate-950 border border-white/10 p-1 shadow-[0_0_20px_rgba(234,179,8,0.15)] flex-shrink-0 overflow-hidden relative">
-            <div className="absolute inset-0 bg-amber-500/5 blur-xl"></div>
+          {/* Logo 2: Master Profile Custom Visual */}
+          <div className="h-16 w-16 rounded-2xl bg-slate-950 border border-white/10 p-1 shadow-[0_0_25px_rgba(59,130,246,0.15)] flex-shrink-0 overflow-hidden relative">
+            <div className="absolute inset-0 bg-blue-500/5 blur-xl"></div>
             <img 
               src="/waseem.png" 
               alt="Waseem Signature Profile" 
@@ -111,29 +133,7 @@ export default function Dashboard({
                 e.target.nextSibling.style.display = 'flex';
               }}
             />
-            <div className="hidden h-full w-full items-center justify-center text-xs bg-yellow-500/10 text-yellow-500 font-black relative z-10">WGM</div>
-          </div>
-
-          {/* Luxury High-Tech Modular Joint Barrier Divider Vector */}
-          <div className="h-10 w-[1px] bg-gradient-to-b from-transparent via-white/15 to-transparent flex-shrink-0" />
-
-          {/* =========================================================
-              SENIOR SUGGESTION WIDGET: KARIGAR LOAD INSIGHT CHARACTER
-             ========================================================= */}
-          <div 
-            onClick={() => navigateTo('workers')}
-            className="group h-16 w-16 rounded-2xl bg-slate-950 border border-white/10 p-1 flex items-center justify-center cursor-pointer overflow-hidden transition-all duration-300 hover:border-blue-500/40 shadow-[0_0_20px_rgba(59,130,246,0.15)] hover:shadow-[0_0_25px_rgba(59,130,246,0.25)] relative"
-          >
-            <div className="absolute inset-0 bg-blue-500/5 blur-xl group-hover:bg-blue-500/10 transition-colors"></div>
-            
-            <div className="text-center z-10">
-              <UserCheck className="w-6 h-6 text-blue-400 group-hover:scale-110 group-hover:-rotate-6 transition-transform" />
-              <div className="mt-1 flex items-baseline justify-center gap-1">
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                <span className="text-xs font-black text-slate-100 group-hover:text-white transition-colors">{workersCount} Active</span>
-              </div>
-              <p className="text-[8px] font-black tracking-wider text-slate-500 uppercase mt-0.5">Counter</p>
-            </div>
+            <div className="hidden h-full w-full items-center justify-center text-xs bg-blue-500/10 text-blue-400 font-black relative z-10">WGM</div>
           </div>
 
         </div>
@@ -146,7 +146,7 @@ export default function Dashboard({
         </p>
       </div>
 
-      {/* 📊 NEON MATRIX GRID (REAL-TIME COMPUTED) */}
+      {/* 📊 REAL-TIME FINANCIAL SUMMARY GRID */}
       <div className="grid grid-cols-2 gap-4">
         
         {/* Card 1: Aaj Aaya */}
@@ -218,7 +218,7 @@ export default function Dashboard({
         </button>
       </div>
 
-      {/* 🚨 DYNAMIC TIMELINE RADAR: DELIVERY PROXIMITY ALERTS */}
+      {/* 🚨 TIMELINE RADAR: DELIVERY PROXIMITY ALERTS */}
       <div className="rounded-3xl border border-white/5 bg-slate-900/30 p-5 shadow-[inset_0_1px_1px_rgba(255,255,255,0.02)]">
         <h3 className="text-[10px] font-black tracking-[0.2em] text-slate-400 uppercase mb-4 flex items-center gap-2 border-b border-white/5 pb-3">
           <span className="relative flex h-2 w-2 flex-shrink-0">
@@ -274,53 +274,6 @@ export default function Dashboard({
         )}
       </div>
 
-      {/* ✂️ WIDGET 2: KARIGAR BURDEN COUNTER ENGINE */}
-      <div className="rounded-3xl border border-white/5 bg-slate-900/30 p-5 shadow-[inset_0_1px_1px_rgba(255,255,255,0.02)]">
-        <h3 className="text-[10px] font-black tracking-[0.2em] text-slate-400 uppercase mb-4 flex items-center gap-2 border-b border-white/5 pb-3">
-          <Clock className="w-4 h-4 text-blue-400" /> KARIGAR BURDEN COUNTER
-        </h3>
-        
-        {workersData.length === 0 ? (
-          <div className="rounded-2xl border border-white/[0.04] bg-slate-950/20 p-4 text-center">
-            <p className="text-xs text-slate-500 font-medium">Koi karigar data stream active nahi hai.</p>
-          </div>
-        ) : (
-          <div className="space-y-2 max-h-[220px] overflow-y-auto pr-1 scrollbar-thin">
-            {workersData.map((worker) => {
-              const activeSuitsCount = Number(worker.activeSuits) || 0;
-              return (
-                <div 
-                  key={worker.id}
-                  onClick={() => navigateTo('workers')}
-                  className="flex items-center justify-between p-3 rounded-2xl border border-white/5 bg-slate-950/40 hover:border-white/10 transition-all cursor-pointer active:scale-98"
-                >
-                  <div className="space-y-0.5">
-                    <div className="flex items-center gap-2">
-                      <span className={`h-1.5 w-1.5 rounded-full flex-shrink-0 ${activeSuitsCount > 4 ? 'bg-rose-500 animate-pulse' : 'bg-emerald-500'}`}></span>
-                      <span className="text-xs font-black text-slate-200">{worker.name}</span>
-                    </div>
-                    <p className="text-[9px] text-slate-500 font-bold uppercase tracking-wider">{worker.specializedIn || 'Stitching Specialist'}</p>
-                  </div>
-                  
-                  <div className="flex items-center gap-4 text-right">
-                    <div>
-                      <p className="text-[8px] font-black text-slate-500 uppercase">Suits Load</p>
-                      <span className={`text-xs font-black ${activeSuitsCount > 4 ? 'text-rose-400' : 'text-yellow-500'}`}>
-                        {activeSuitsCount} Active
-                      </span>
-                    </div>
-                    <div className="border-l border-white/10 pl-3 min-w-[75px] flex-shrink-0">
-                      <p className="text-[8px] font-black text-slate-500 uppercase">Payable</p>
-                      <span className="text-xs font-black text-emerald-400">Rs. {Number(worker.payable || 0).toLocaleString('en-IN')}</span>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
-
       {/* 🏦 LIVE LEDGER BALANCE MATRICES */}
       <div className="rounded-3xl border border-white/5 bg-slate-900/30 p-5 shadow-[inset_0_1px_1px_rgba(255,255,255,0.02)]">
         <h3 className="text-[10px] font-black tracking-[0.2em] text-slate-400 uppercase mb-4 flex items-center gap-2 border-b border-white/5 pb-3">
@@ -349,7 +302,7 @@ export default function Dashboard({
             className="group flex items-center justify-between p-3 cursor-pointer hover:bg-white/5 rounded-2xl transition-all border border-transparent hover:border-white/5"
           >
             <div className="flex items-center gap-2.5 pr-2">
-              <UserCheck className="w-4 h-4 text-rose-500 group-hover:scale-110 flex-shrink-0 transition-transform" />
+              <ShieldCheck className="w-4 h-4 text-rose-500 group-hover:scale-110 flex-shrink-0 transition-transform" />
               <span className="text-xs font-bold text-slate-300 group-hover:text-slate-200 transition-colors">Karigaron Ka Baqi (Payable)</span>
             </div>
             <span className="text-xs font-black text-rose-400 bg-rose-500/10 px-2.5 py-1 rounded-xl border border-rose-500/20 shadow-[0_0_10px_rgba(244,63,94,0.05)] flex-shrink-0">

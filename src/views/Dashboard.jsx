@@ -7,7 +7,9 @@ import {
   Layers, 
   Coins, 
   UserCheck, 
-  Store 
+  Store,
+  Clock,
+  TrendingUp
 } from 'lucide-react';
 
 export default function Dashboard({ 
@@ -16,7 +18,8 @@ export default function Dashboard({
   workersCount, 
   wholesalersCount, 
   financials = {},
-  proximityAlerts = [] // 🔥 Live Timeline Radar Alerts Prop Linked
+  proximityAlerts = [], // 🚨 Live Timeline Radar Alerts Prop
+  workersData = []      // 🧳 Live Karigar Load counter data stream
 }) {
   
   // Safely fallback to 0 if the state metric is not computed yet
@@ -125,6 +128,109 @@ export default function Dashboard({
         </button>
       </div>
 
+      {/* 🚨 DYNAMIC TIMELINE RADAR: DELIVERY PROXIMITY ALERTS */}
+      <div className="rounded-3xl border border-white/5 bg-slate-900/30 p-5 shadow-[inset_0_1px_1px_rgba(255,255,255,0.02)]">
+        <h3 className="text-[10px] font-black tracking-[0.2em] text-slate-400 uppercase mb-4 flex items-center gap-2 border-b border-white/5 pb-3">
+          <span className="relative flex h-2 w-2">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-500"></span>
+          </span>
+          DELIVERY PROXIMITY TIMELINE ALERTS
+        </h3>
+        
+        {proximityAlerts.length === 0 ? (
+          <div className="rounded-2xl border border-white/[0.04] bg-slate-950/20 p-4 text-center">
+            <p className="text-xs text-slate-500 font-medium">✅ Agle 5 din mein koi urgent delivery pending nahi hai.</p>
+          </div>
+        ) : (
+          <div className="space-y-2.5 max-h-[220px] overflow-y-auto pr-1 scrollbar-thin">
+            {proximityAlerts.map((order) => (
+              <div 
+                key={order.id} 
+                onClick={() => navigateTo('clients')}
+                className={`flex items-center justify-between p-3 rounded-2xl border transition-all cursor-pointer bg-slate-950/40 active:scale-98 ${
+                  order.zone === 'crisis' 
+                    ? 'border-rose-500/20 hover:border-rose-500/40 shadow-[0_0_15px_rgba(244,63,94,0.02)]' 
+                    : 'border-amber-500/20 hover:border-amber-500/40 shadow-[0_0_15px_rgba(245,158,11,0.02)]'
+                }`}
+              >
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-black text-slate-200">{order.name}</span>
+                    {order.isUrgent && (
+                      <span className="text-[7px] font-black tracking-widest bg-rose-500/10 border border-rose-500/30 text-rose-400 px-1.5 py-0.5 rounded-md uppercase animate-pulse">
+                        URGENT
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">
+                    {order.suitType || 'Suit'} • <span className="text-slate-500">Target: {order.deliveryDate}</span>
+                  </p>
+                </div>
+                
+                <span className={`text-[9px] font-black px-2.5 py-1 rounded-xl uppercase tracking-wider border ${
+                  order.zone === 'crisis'
+                    ? 'bg-rose-500/10 text-rose-400 border-rose-500/20 shadow-[0_0_10px_rgba(244,63,94,0.05)]'
+                    : 'bg-amber-500/10 text-amber-400 border-amber-500/20 shadow-[0_0_10px_rgba(245,158,11,0.05)]'
+                }`}>
+                  {order.remainingDays <= 0 
+                    ? `Overdue (${Math.abs(order.remainingDays)} Days)` 
+                    : `${order.remainingDays} Days Left`
+                  }
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* ✂️ WIDGET 2: KARIGAR BURDEN COUNTER ENGINE */}
+      <div className="rounded-3xl border border-white/5 bg-slate-900/30 p-5 shadow-[inset_0_1px_1px_rgba(255,255,255,0.02)]">
+        <h3 className="text-[10px] font-black tracking-[0.2em] text-slate-400 uppercase mb-4 flex items-center gap-2 border-b border-white/5 pb-3">
+          <Clock className="w-4 h-4 text-blue-400" /> KARIGAR BURDEN COUNTER
+        </h3>
+        
+        {workersData.length === 0 ? (
+          <div className="rounded-2xl border border-white/[0.04] bg-slate-950/20 p-4 text-center">
+            <p className="text-xs text-slate-500 font-medium">Koi karigar data stream active nahi hai.</p>
+          </div>
+        ) : (
+          <div className="space-y-2 max-h-[220px] overflow-y-auto pr-1 scrollbar-thin">
+            {workersData.map((worker) => {
+              const activeSuitsCount = Number(worker.activeSuits) || 0;
+              return (
+                <div 
+                  key={worker.id}
+                  onClick={() => navigateTo('workers')}
+                  className="flex items-center justify-between p-3 rounded-2xl border border-white/5 bg-slate-950/40 hover:border-white/10 transition-all cursor-pointer active:scale-98"
+                >
+                  <div className="space-y-0.5">
+                    <div className="flex items-center gap-2">
+                      <span className={`h-1.5 w-1.5 rounded-full ${activeSuitsCount > 4 ? 'bg-rose-500 animate-pulse' : 'bg-emerald-500'}`}></span>
+                      <span className="text-xs font-black text-slate-200">{worker.name}</span>
+                    </div>
+                    <p className="text-[9px] text-slate-500 font-bold uppercase tracking-wider">{worker.specializedIn || 'Stitching Specialist'}</p>
+                  </div>
+                  
+                  <div className="flex items-center gap-4 text-right">
+                    <div>
+                      <p className="text-[8px] font-black text-slate-500 uppercase">Suits Load</p>
+                      <span className={`text-xs font-black ${activeSuitsCount > 4 ? 'text-rose-400' : 'text-yellow-500'}`}>
+                        {activeSuitsCount} Active
+                      </span>
+                    </div>
+                    <div className="border-l border-white/10 pl-3 min-w-[75px]">
+                      <p className="text-[8px] font-black text-slate-500 uppercase">Payable</p>
+                      <span className="text-xs font-black text-emerald-400">Rs. {Number(worker.payable || 0).toLocaleString('en-IN')}</span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
       {/* 🏦 LIVE LEDGER BALANCE MATRICES */}
       <div className="rounded-3xl border border-white/5 bg-slate-900/30 p-5 shadow-[inset_0_1px_1px_rgba(255,255,255,0.02)]">
         <h3 className="text-[10px] font-black tracking-[0.2em] text-slate-400 uppercase mb-4 flex items-center gap-2 border-b border-white/5 pb-3">
@@ -177,58 +283,6 @@ export default function Dashboard({
 
         </div>
       </div>
-
-      {/* 🚨 DYNAMIC TIMELINE RADAR: DELIVERY PROXIMITY ALERTS */}
-      {proximityAlerts.length > 0 && (
-        <div className="rounded-3xl border border-white/5 bg-slate-900/30 p-5 shadow-[inset_0_1px_1px_rgba(255,255,255,0.02)]">
-          <h3 className="text-[10px] font-black tracking-[0.2em] text-slate-400 uppercase mb-4 flex items-center gap-2 border-b border-white/5 pb-3">
-            <span className="animate-pulse relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-500"></span>
-            </span>
-            DELIVERY PROXIMITY TIMELINE ALERTS
-          </h3>
-          
-          <div className="space-y-2.5 max-h-[220px] overflow-y-auto pr-1 scrollbar-thin">
-            {proximityAlerts.map((order) => (
-              <div 
-                key={order.id} 
-                onClick={() => navigateTo('clients')}
-                className={`flex items-center justify-between p-3 rounded-2xl border transition-all cursor-pointer bg-slate-950/40 active:scale-98 ${
-                  order.zone === 'crisis' 
-                    ? 'border-rose-500/20 hover:border-rose-500/40 shadow-[0_0_15px_rgba(244,63,94,0.02)]' 
-                    : 'border-amber-500/20 hover:border-amber-500/40 shadow-[0_0_15px_rgba(245,158,11,0.02)]'
-                }`}
-              >
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-black text-slate-200">{order.name}</span>
-                    {order.isUrgent && (
-                      <span className="text-[7px] font-black tracking-widest bg-rose-500/10 border border-rose-500/30 text-rose-400 px-1.5 py-0.5 rounded-md uppercase animate-pulse">
-                        URGENT
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">
-                    {order.suitType} • <span className="text-slate-500">Target: {order.deliveryDate}</span>
-                  </p>
-                </div>
-                
-                <span className={`text-[9px] font-black px-2.5 py-1 rounded-xl uppercase tracking-wider border ${
-                  order.zone === 'crisis'
-                    ? 'bg-rose-500/10 text-rose-400 border-rose-500/20 shadow-[0_0_10px_rgba(244,63,94,0.05)]'
-                    : 'bg-amber-500/10 text-amber-400 border-amber-500/20 shadow-[0_0_10px_rgba(245,158,11,0.05)]'
-                }`}>
-                  {order.remainingDays <= 0 
-                    ? `Overdue (${Math.abs(order.remainingDays)} Days)` 
-                    : `${order.remainingDays} Days Left`
-                  }
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
 
     </div>
   );

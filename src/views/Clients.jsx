@@ -69,15 +69,16 @@ export default function Clients({ data, setClients, onDelete }) {
 
   // 🔥 SAFE EXTRACTOR UTILITY FOR ULTRA BULLETPROOF MAPPING
   const extractValue = (obj, keysArray) => {
+    if (!obj) return '';
     for (let key of keysArray) {
       if (obj[key] !== undefined && obj[key] !== null && obj[key] !== '') {
-        return String(obj[key]);
+        return String(obj[key]).trim();
       }
     }
     return '';
   };
 
-  // 🔥 INTELLIGENT AI AUTO-FILL HANDLER
+  // 🔥 INTELLIGENT AI AUTO-FILL HANDLER (FOR MAIN REGISTER ORDER MODAL)
   const handleAiAutoFill = async (passedText = null) => {
     const textToParse = passedText !== null ? passedText : aiRawInput;
     if (!textToParse.trim()) {
@@ -104,16 +105,16 @@ export default function Clients({ data, setClients, onDelete }) {
         if (parsedData.gKarhayi) setGKarhayiPrice(parsedData.gKarhayi);
 
         const mSource = parsedData.measurements || parsedData;
-        setNaapForm({
-          lambaai: extractValue(mSource, ['lambaai', 'length', 'lambai']),
-          teera: extractValue(mSource, ['teera', 'shoulder', 'tera']),
-          baazu: extractValue(mSource, ['baazu', 'sleeves', 'bazu', 'baju']),
-          ghera: extractValue(mSource, ['ghera', 'daman', 'gera']),
-          shalwar: extractValue(mSource, ['shalwar', 'trouser', 'shalwar_length']),
-          paincha: extractValue(mSource, ['paincha', 'poncha', 'pancha']),
-          asan: extractValue(mSource, ['asan', 'asand']),
-          galla: extractValue(mSource, ['galla', 'collar', 'gala'])
-        });
+        setNaapForm(prev => ({
+          lambaai: extractValue(mSource, ['lambaai', 'length', 'lambai']) || prev.lambaai,
+          teera: extractValue(mSource, ['teera', 'shoulder', 'tera']) || prev.teera,
+          baazu: extractValue(mSource, ['baazu', 'sleeves', 'bazu', 'baju']) || prev.baazu,
+          ghera: extractValue(mSource, ['ghera', 'daman', 'gera']) || prev.ghera,
+          shalwar: extractValue(mSource, ['shalwar', 'trouser', 'shalwar_length']) || prev.shalwar,
+          paincha: extractValue(mSource, ['paincha', 'poncha', 'pancha', 'paicha']) || prev.paincha,
+          asan: extractValue(mSource, ['asan', 'asand']) || prev.asan,
+          galla: extractValue(mSource, ['galla', 'collar', 'gala']) || prev.galla
+        }));
 
         alert("✅ AI ne data parse kar ke fields fill kar di hain!");
       }
@@ -124,7 +125,7 @@ export default function Clients({ data, setClients, onDelete }) {
     }
   };
 
-  // 🔥 SIZE VAULT SPECIFIC AI PARSER (FIXED PASSED STRING PARSING)
+  // 🔥 SIZE SPECIFIC VAULT ENGINE AUTO-FILL (INSTANT STATE PATCHER)
   const handleSizeVaultAiAutoFill = async (passedText = null) => {
     const textToParse = passedText !== null ? passedText : sizeVaultRawInput;
     if (!textToParse.trim()) {
@@ -138,20 +139,34 @@ export default function Clients({ data, setClients, onDelete }) {
       const parsedData = await parseTailoringInput(textToParse);
       
       if (parsedData) {
-        const mSource = parsedData.measurements || parsedData;
+        // Fallback target layered normalization
+        const mSource = parsedData.measurements && Object.keys(parsedData.measurements).length > 0 
+          ? parsedData.measurements 
+          : parsedData;
 
-        const newNaap = {
-          lambaai: extractValue(mSource, ['lambaai', 'length', 'lambai']) || naapForm.lambaai,
-          teera: extractValue(mSource, ['teera', 'shoulder', 'tera']) || naapForm.teera,
-          baazu: extractValue(mSource, ['baazu', 'sleeves', 'bazu', 'baju']) || naapForm.baazu,
-          ghera: extractValue(mSource, ['ghera', 'daman', 'gera']) || naapForm.ghera,
-          shalwar: extractValue(mSource, ['shalwar', 'trouser', 'shalwar_length']) || naapForm.shalwar,
-          paincha: extractValue(mSource, ['paincha', 'poncha', 'pancha']) || naapForm.paincha,
-          asan: extractValue(mSource, ['asan', 'asand']) || naapForm.asan,
-          galla: extractValue(mSource, ['galla', 'collar', 'gala']) || naapForm.galla
-        };
+        // Functional State Batching Matrix to prevent stale state values
+        setNaapForm(prevNaap => {
+          const parsedLambaai = extractValue(mSource, ['lambaai', 'length', 'lambai']);
+          const parsedTeera = extractValue(mSource, ['teera', 'shoulder', 'tera']);
+          const parsedBaazu = extractValue(mSource, ['baazu', 'sleeves', 'bazu', 'baju']);
+          const parsedGhera = extractValue(mSource, ['ghera', 'daman', 'gera']);
+          const parsedShalwar = extractValue(mSource, ['shalwar', 'trouser', 'shalwar_length']);
+          const parsedPaincha = extractValue(mSource, ['paincha', 'poncha', 'pancha', 'paicha']);
+          const parsedAsan = extractValue(mSource, ['asan', 'asand']);
+          const parsedGalla = extractValue(mSource, ['galla', 'collar', 'gala']);
 
-        setNaapForm(newNaap);
+          return {
+            lambaai: parsedLambaai !== '' ? parsedLambaai : prevNaap.lambaai,
+            teera: parsedTeera !== '' ? parsedTeera : prevNaap.teera,
+            baazu: parsedBaazu !== '' ? parsedBaazu : prevNaap.baazu,
+            ghera: parsedGhera !== '' ? parsedGhera : prevNaap.ghera,
+            shalwar: parsedShalwar !== '' ? parsedShalwar : prevNaap.shalwar,
+            paincha: parsedPaincha !== '' ? parsedPaincha : prevNaap.paincha,
+            asan: parsedAsan !== '' ? parsedAsan : prevNaap.asan,
+            galla: parsedGalla !== '' ? parsedGalla : prevNaap.galla
+          };
+        });
+
         setActiveGuideText('✅ AI ne Size Vault ke fields fill kar diye hain!');
       } else {
         setActiveGuideText('❌ AI naap ko samajh nahi saka, dobara boliein.');
@@ -164,7 +179,7 @@ export default function Clients({ data, setClients, onDelete }) {
     }
   };
 
-  // 🎙️ LIVE VOICE DICTATION HANDLERS (FIXED INJECTION FLOW)
+  // 🎙️ LIVE VOICE DICTATION HANDLERS
   const toggleVoiceListening = () => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) {
@@ -185,7 +200,6 @@ export default function Clients({ data, setClients, onDelete }) {
       const result = event.results[0][0].transcript;
       if (result.trim()) {
         setAiRawInput(result);
-        // 🔥 FIX: Direct pass result to bypass state rendering async lag
         handleAiAutoFill(result); 
       }
     };
@@ -215,7 +229,6 @@ export default function Clients({ data, setClients, onDelete }) {
       const result = event.results[0][0].transcript;
       if (result.trim()) {
         setSizeVaultRawInput(result); 
-        // 🔥 FIX: Direct pass result to bypass state rendering async lag
         handleSizeVaultAiAutoFill(result);
       }
     };
@@ -399,12 +412,6 @@ export default function Clients({ data, setClients, onDelete }) {
         : c
     ));
     setShowNaapModal(false);
-  };
-
-  const openUdhaarLedger = (client) => {
-    setSelectedClient(client);
-    setRecoveryAmount('');
-    setShowRecoveryModal(true);
   };
 
   const filteredData = data.filter((client) => {

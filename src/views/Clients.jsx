@@ -79,7 +79,7 @@ export default function Clients({ data, setClients, onDelete }) {
 
   // 🔥 INTELLIGENT AI AUTO-FILL HANDLER
   const handleAiAutoFill = async (passedText = null) => {
-    const textToParse = passedText || aiRawInput;
+    const textToParse = passedText !== null ? passedText : aiRawInput;
     if (!textToParse.trim()) {
       alert("⚠️ Meharbani kar ke pehle AI box mein kuch detail likhein ya boliein!");
       return;
@@ -124,9 +124,9 @@ export default function Clients({ data, setClients, onDelete }) {
     }
   };
 
-  // 🔥 SIZE VAULT SPECIFIC AI PARSER (FIXED STRUCTURE MATCHING)
+  // 🔥 SIZE VAULT SPECIFIC AI PARSER (FIXED PASSED STRING PARSING)
   const handleSizeVaultAiAutoFill = async (passedText = null) => {
-    const textToParse = passedText || sizeVaultRawInput;
+    const textToParse = passedText !== null ? passedText : sizeVaultRawInput;
     if (!textToParse.trim()) {
       alert("⚠️ Meharbani kar ke pehle Size Vault AI box mein naap likhein ya boliein!");
       return;
@@ -138,10 +138,8 @@ export default function Clients({ data, setClients, onDelete }) {
       const parsedData = await parseTailoringInput(textToParse);
       
       if (parsedData) {
-        // Flatten nested layers if any
         const mSource = parsedData.measurements || parsedData;
 
-        // Extract using alternative key matrix arrays
         const newNaap = {
           lambaai: extractValue(mSource, ['lambaai', 'length', 'lambai']) || naapForm.lambaai,
           teera: extractValue(mSource, ['teera', 'shoulder', 'tera']) || naapForm.teera,
@@ -166,7 +164,7 @@ export default function Clients({ data, setClients, onDelete }) {
     }
   };
 
-  // 🎙️ LIVE VOICE DICTATION HANDLERS
+  // 🎙️ LIVE VOICE DICTATION HANDLERS (FIXED INJECTION FLOW)
   const toggleVoiceListening = () => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) {
@@ -187,7 +185,8 @@ export default function Clients({ data, setClients, onDelete }) {
       const result = event.results[0][0].transcript;
       if (result.trim()) {
         setAiRawInput(result);
-        handleAiAutoFill(result);
+        // 🔥 FIX: Direct pass result to bypass state rendering async lag
+        handleAiAutoFill(result); 
       }
     };
     recognition.start();
@@ -215,7 +214,8 @@ export default function Clients({ data, setClients, onDelete }) {
     recognition.onresult = (event) => {
       const result = event.results[0][0].transcript;
       if (result.trim()) {
-        setSizeVaultRawInput(result); // Keeps string in text area so you can review it
+        setSizeVaultRawInput(result); 
+        // 🔥 FIX: Direct pass result to bypass state rendering async lag
         handleSizeVaultAiAutoFill(result);
       }
     };

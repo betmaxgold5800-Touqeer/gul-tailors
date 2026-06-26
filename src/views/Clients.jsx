@@ -67,7 +67,7 @@ export default function Clients({ data, setClients, onDelete }) {
     asan: "Asan: Shalwar ki guthni/crotch length ka standard naap."
   };
 
-  // 🔥 INTELLIGENT AI AUTO-FILL HANDLER
+  // 🔥 INTELLIGENT AI AUTO-FILL HANDLER (SENIOR DEV FIX FOR STATE DESYNC)
   const handleAiAutoFill = async (passedText = null) => {
     const textToParse = passedText || aiRawInput;
     if (!textToParse.trim()) {
@@ -79,22 +79,38 @@ export default function Clients({ data, setClients, onDelete }) {
       const parsedData = await parseTailoringInput(textToParse);
       
       if (parsedData) {
+        // Safe mapping of individual structural states
         if (parsedData.customer_name) setClientName(parsedData.customer_name);
+        
+        // 🌟 FORCE PHONE MATCHING MECHANISM LINKED
+        const matchedPhone = parsedData.whatsapp_mobile || parsedData.phone_number || parsedData.mobile || parsedData.phone || '';
+        if (matchedPhone) setClientPhone(matchedPhone);
+
+        // Map auxiliary billing/registry parameters safely if extracted
+        if (parsedData.total_suits) setSuitCount(Number(parsedData.total_suits) || 1);
+        if (parsedData.order_status) setOrderStatus(parsedData.order_status);
+        if (parsedData.delivery_date) setDeliveryDate(parsedData.delivery_date);
+        if (parsedData.is_urgent !== undefined) setIsUrgent(!!parsedData.is_urgent);
+        
+        // Split billing extraction sync
+        if (parsedData.silayi) setSilayiPrice(parsedData.silayi);
+        if (parsedData.pKarhayi) setPKarhayiPrice(parsedData.pKarhayi);
+        if (parsedData.gKarhayi) setGKarhayiPrice(parsedData.gKarhayi);
+
         if (parsedData.dress_type) setAiRawInput(prev => prev + `\n[Dress: ${parsedData.dress_type}]`);
         if (parsedData.style_notes) setAiRawInput(prev => prev + `\n[Notes: ${parsedData.style_notes}]`);
-        if (parsedData.delivery_date) setDeliveryDate(parsedData.delivery_date);
         
         // Handling deep state parsing safely
         if (parsedData.measurements) {
           setNaapForm({
-            lambaai: parsedData.measurements.length || '',
-            teera: parsedData.measurements.shoulder || '',
-            baazu: parsedData.measurements.sleeves || '',
+            lambaai: parsedData.measurements.length || parsedData.measurements.lambaai || '',
+            teera: parsedData.measurements.shoulder || parsedData.measurements.teera || '',
+            baazu: parsedData.measurements.sleeves || parsedData.measurements.baazu || '',
             ghera: parsedData.measurements.ghera || '',
             shalwar: parsedData.measurements.shalwar || '',
             paincha: parsedData.measurements.paincha || '',
             asan: parsedData.measurements.asan || '',
-            galla: parsedData.measurements.galla || ''
+            galla: parsedData.measurements.galla || parsedData.measurements.collar || ''
           });
         }
         alert("✅ AI ne data parse kar ke fields fill kar di hain! Aik baar check kar lein.");
@@ -123,14 +139,14 @@ export default function Clients({ data, setClients, onDelete }) {
       
       if (parsedData && parsedData.measurements) {
         setNaapForm({
-          lambaai: parsedData.measurements.length || naapForm.lambaai,
-          teera: parsedData.measurements.shoulder || naapForm.teera,
-          baazu: parsedData.measurements.sleeves || naapForm.baazu,
+          lambaai: parsedData.measurements.length || parsedData.measurements.lambaai || naapForm.lambaai,
+          teera: parsedData.measurements.shoulder || parsedData.measurements.teera || naapForm.teera,
+          baazu: parsedData.measurements.sleeves || parsedData.measurements.baazu || naapForm.baazu,
           ghera: parsedData.measurements.ghera || naapForm.ghera,
           shalwar: parsedData.measurements.shalwar || naapForm.shalwar,
           paincha: parsedData.measurements.paincha || naapForm.paincha,
           asan: parsedData.measurements.asan || naapForm.asan,
-          galla: parsedData.measurements.galla || naapForm.galla
+          galla: parsedData.measurements.galla || parsedData.measurements.collar || naapForm.galla
         });
         setActiveGuideText('✅ AI ne Size Vault ke fields fill kar diye hain!');
         setSizeVaultRawInput('');
@@ -144,7 +160,7 @@ export default function Clients({ data, setClients, onDelete }) {
           shalwar: parsedData.shalwar || naapForm.shalwar,
           paincha: parsedData.paincha || naapForm.paincha,
           asan: parsedData.asan || naapForm.asan,
-          galla: parsedData.galla || naapForm.galla
+          galla: parsedData.galla || parsedData.collar || naapForm.galla
         });
         setActiveGuideText('✅ AI ne Size Vault ke fields fill kar diye hain!');
         setSizeVaultRawInput('');
@@ -444,7 +460,7 @@ export default function Clients({ data, setClients, onDelete }) {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    try {
+    grid: try {
       setIsCompressing(true);
       setActiveGuideText('⚡ Image ko super-compress kiya ja raha hai space bachanay ke liye...');
       setImagePreview(URL.createObjectURL(file));

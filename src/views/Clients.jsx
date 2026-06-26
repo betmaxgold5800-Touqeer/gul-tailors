@@ -40,6 +40,11 @@ export default function Clients({ data, setClients, onDelete }) {
   // 🎙️ NATIVE SPEECH ENGINE STATES
   const [isListening, setIsListening] = useState(false);
 
+  // 🔥 NEW STATE: SIZE VAULT VA VOICE & TEXT ISOLATION MATRIX
+  const [sizeVaultRawInput, setSizeVaultRawInput] = useState('');
+  const [isSizeVaultAiLoading, setIsSizeVaultAiLoading] = useState(false);
+  const [isSizeVaultListening, setIsSizeVaultListening] = useState(false);
+
   // 🔥 SENIOR DEV MATRIX: Image Super-Compressor Pipeline States
   const [imagePreview, setImagePreview] = useState(null);
   const [naapImageBase64, setNaapImageBase64] = useState('');
@@ -104,6 +109,57 @@ export default function Clients({ data, setClients, onDelete }) {
     }
   };
 
+  // 🔥 NEW INTERFACE: SIZE VAULT SPECIFIC INTELLIGENT AI PARSER
+  const handleSizeVaultAiAutoFill = async (passedText = null) => {
+    const textToParse = passedText || sizeVaultRawInput;
+    if (!textToParse.trim()) {
+      alert("⚠️ Meharbani kar ke pehle Size Vault AI box mein kuch naap likhein ya boliein!");
+      return;
+    }
+    try {
+      setIsSizeVaultAiLoading(true);
+      setActiveGuideText('⚡ AI aap ke naap ko parse kar raha hai...');
+      const parsedData = await parseTailoringInput(textToParse);
+      
+      if (parsedData && parsedData.measurements) {
+        setNaapForm({
+          lambaai: parsedData.measurements.length || naapForm.lambaai,
+          teera: parsedData.measurements.shoulder || naapForm.teera,
+          baazu: parsedData.measurements.sleeves || naapForm.baazu,
+          ghera: parsedData.measurements.ghera || naapForm.ghera,
+          shalwar: parsedData.measurements.shalwar || naapForm.shalwar,
+          paincha: parsedData.measurements.paincha || naapForm.paincha,
+          asan: parsedData.measurements.asan || naapForm.asan,
+          galla: parsedData.measurements.galla || naapForm.galla
+        });
+        setActiveGuideText('✅ AI ne Size Vault ke fields fill kar diye hain!');
+        setSizeVaultRawInput('');
+      } else if (parsedData && !parsedData.measurements) {
+        // Fallback checks if the structure returns a flattened root model
+        setNaapForm({
+          lambaai: parsedData.lambaai || parsedData.length || naapForm.lambaai,
+          teera: parsedData.teera || parsedData.shoulder || naapForm.teera,
+          baazu: parsedData.baazu || parsedData.sleeves || naapForm.baazu,
+          ghera: parsedData.ghera || naapForm.ghera,
+          shalwar: parsedData.shalwar || naapForm.shalwar,
+          paincha: parsedData.paincha || naapForm.paincha,
+          asan: parsedData.asan || naapForm.asan,
+          galla: parsedData.galla || naapForm.galla
+        });
+        setActiveGuideText('✅ AI ne Size Vault ke fields fill kar diye hain!');
+        setSizeVaultRawInput('');
+      } else {
+        alert("❌ AI naap ko sahi se samajh nahi saka, dobara wazeh boliein.");
+        setActiveGuideText('❌ AI parsing operation down.');
+      }
+    } catch (err) {
+      console.error(err);
+      alert("⚠️ Size Extraction error failed.");
+    } finally {
+      setIsSizeVaultAiLoading(false);
+    }
+  };
+
   // 🎙️ LIVE VOICE DICTATION HANDLER
   const toggleVoiceListening = () => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -144,6 +200,52 @@ export default function Clients({ data, setClients, onDelete }) {
         setAiRawInput(speechToTextResult);
         // Direct execution for friction-less operational flow
         handleAiAutoFill(speechToTextResult);
+      }
+    };
+
+    recognition.start();
+  };
+
+  // 🔥 NEW VOICE DICTATION HANDLER FOR SPECIFIC SIZE VAULT MODAL
+  const toggleSizeVaultVoiceListening = () => {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    
+    if (!SpeechRecognition) {
+      alert("⚠️ Aap ka browser voice command support nahi karta. Chrome ya Android browser use karein.");
+      return;
+    }
+
+    if (isSizeVaultListening) {
+      setIsSizeVaultListening(false);
+      return;
+    }
+
+    const recognition = new SpeechRecognition();
+    recognition.continuous = false;
+    recognition.lang = 'ur-PK' || 'en-US';
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    recognition.onstart = () => {
+      setIsSizeVaultListening(true);
+      setActiveGuideText('🎙️ Listening... Abhi naap bolna shuru karein...');
+    };
+
+    recognition.onerror = (event) => {
+      console.error("Size Vault Speech error", event.error);
+      setIsSizeVaultListening(false);
+      setActiveGuideText(`🎙️ Mic error: ${event.error}`);
+    };
+
+    recognition.onend = () => {
+      setIsSizeVaultListening(false);
+    };
+
+    recognition.onresult = (event) => {
+      const speechToTextResult = event.results[0][0].transcript;
+      if (speechToTextResult.trim()) {
+        setSizeVaultRawInput(speechToTextResult);
+        handleSizeVaultAiAutoFill(speechToTextResult);
       }
     };
 
@@ -363,6 +465,7 @@ export default function Clients({ data, setClients, onDelete }) {
     setNaapForm(client.naap || { lambaai: '', teera: '', baazu: '', ghera: '', shalwar: '', paincha: '', asan: '', galla: '' });
     setNaapImageBase64(client.naapImage || '');
     setImagePreview(client.naapImage || null);
+    setSizeVaultRawInput(''); // Safe clean up on open
     
     setActiveGuideText('💡 Kisi bhi field par tap karein tailoring instruction dekhne ke liye.');
     setShowNaapModal(true);
@@ -736,6 +839,45 @@ export default function Clients({ data, setClients, onDelete }) {
             <div>
               <h4 className="font-black text-slate-200 text-base tracking-wide">📏 SIZE SPECIFICATIONS VAULT</h4>
               <p className="text-xs font-bold text-yellow-500 mt-0.5">Client Profile: {selectedClient.name}</p>
+            </div>
+
+            {/* 🔥 NEW INTEGRATED REVOLUTIONARY AI BOX SPECIFIC FOR SIZE VAULT MODAL */}
+            <div className="bg-slate-950/60 p-3 rounded-2xl border border-yellow-500/20 space-y-2">
+              <div className="flex justify-between items-center">
+                <label className="text-[10px] font-black text-yellow-400 uppercase tracking-wider block">✨ AI Magic Input (Naap Mode)</label>
+                {isSizeVaultAiLoading && <span className="text-[9px] text-yellow-500 animate-pulse font-bold">Parsing Naap...</span>}
+              </div>
+              
+              {/* 🎙️ VOICE CONTROL GRID FOR SIZE FIELDS */}
+              <div className="relative flex items-center">
+                <textarea
+                  rows="2"
+                  value={sizeVaultRawInput}
+                  onChange={(e) => setSizeVaultRawInput(e.target.value)}
+                  placeholder={isSizeVaultListening ? "Listening... Abhi naap boleinge..." : "Lambaai, teera, baazu wagera boliein..."}
+                  className="w-full p-2 pr-10 text-xs rounded-xl border border-white/5 bg-slate-900/80 text-slate-200 placeholder-slate-500 font-bold focus:outline-none focus:border-yellow-500/40 resize-none transition-all duration-300"
+                />
+                <button
+                  type="button"
+                  onClick={toggleSizeVaultVoiceListening}
+                  className={`absolute right-2 p-2 rounded-lg transition-all active:scale-90 ${
+                    isSizeVaultListening 
+                      ? 'bg-rose-500/20 border border-rose-500/60 text-rose-400 shadow-[0_0_15px_rgba(244,63,94,0.4)] animate-pulse' 
+                      : 'bg-slate-800 border border-white/5 text-yellow-400 hover:text-yellow-300 shadow-md'
+                  }`}
+                >
+                  {isSizeVaultListening ? '🛑' : '🎙️'}
+                </button>
+              </div>
+              
+              <button
+                type="button"
+                disabled={isSizeVaultAiLoading || isSizeVaultListening}
+                onClick={() => handleSizeVaultAiAutoFill()}
+                className="w-full bg-gradient-to-r from-yellow-500/20 to-amber-500/20 border border-yellow-500/30 text-yellow-400 font-black text-[11px] py-1.5 rounded-xl active:scale-95 transition-transform disabled:opacity-40"
+              >
+                {isSizeVaultAiLoading ? '⚡ Processing Naap Matrix...' : '✨ Magic Auto-Fill Naap'}
+              </button>
             </div>
             
             <div className="grid grid-cols-2 gap-3 bg-slate-950/40 p-3 rounded-2xl border border-white/5">

@@ -33,25 +33,33 @@ export const parseTailoringInput = async (userInput) => {
       systemInstruction: `Aap gul-tailors web app ke intelligent assistant hain.
       Urdu/Roman Urdu text se customer details aur tailoring measurements (naap) nikalna aapka kaam hai.
       
-      Strictly aapne niche diye gaye JSON format mein response return karna hai:
+      CRITICAL KEY MATCHING RULES FOR URDU TERMS:
+      - "گھیرا" or "ghera" -> Must map to "ghera"
+      - "آسن" or "اسن" or "asan" -> Must map to "asan"
+      - "پانچ" or "پانچہ" or "paincha" or "poncha" -> Must map to "paincha"
+      - "بازو" or "baazu" or "bazu" -> Must map to "baazu"
+      - "لمبائی" or "lambaai" or "lambai" -> Must map to "lambaai"
+      - "تیرا" or "teera" or "tera" -> Must map to "teera"
+      - "شلوار" or "shalwar" -> Must map to "shalwar"
+      - "گلا" or "گلہ" or "galla" or "gala" -> Must map to "galla"
+
+      Strictly aapne niche diye gaye FLAT JSON structure mein response return karna hai (Do not nest measurements):
       {
-        "customer_name": "Name of customer or empty string",
-        "phone_number": "Phone number or empty string",
-        "total_suits": "Total suits counts as string, default '1'",
-        "is_urgent": true/false,
-        "delivery_date": "YYYY-MM-DD or empty string",
+        "customer_name": "Name or empty string",
+        "phone_number": "Phone or empty string",
+        "total_suits": "1",
+        "is_urgent": false,
+        "delivery_date": "",
         "order_status": "Pending",
-        "silayi": "price if mentioned or empty string",
-        "measurements": {
-          "lambaai": "value or empty string",
-          "teera": "value or empty string",
-          "baazu": "value or empty string",
-          "ghera": "value or empty string",
-          "shalwar": "value or empty string",
-          "paincha": "value or empty string",
-          "asan": "value or empty string",
-          "galla": "value or empty string"
-        }
+        "silayi": "",
+        "lambaai": "value or empty string",
+        "teera": "value or empty string",
+        "baazu": "value or empty string",
+        "ghera": "value or empty string",
+        "shalwar": "value or empty string",
+        "paincha": "value or empty string",
+        "asan": "value or empty string",
+        "galla": "value or empty string"
       }`,
     });
 
@@ -75,19 +83,19 @@ export const parseTailoringInput = async (userInput) => {
 
     const detectedName = parsedData.customer_name || parsedData.name || "";
 
-    const mSource = parsedData.measurements || parsedData || {};
+    // Direct extraction from root or nested backup fallback
+    const mSource = parsedData;
 
-    // Standardize all size keys ahead of time
-    const finalLambaai = String(mSource.lambaai || mSource.length || mSource.lambai || "");
-    const finalTeera = String(mSource.teera || mSource.shoulder || mSource.tera || "");
-    const finalBaazu = String(mSource.baazu || mSource.sleeves || mSource.bazu || mSource.baju || "");
-    const finalGhera = String(mSource.ghera || mSource.daman || mSource.gera || "");
-    const finalShalwar = String(mSource.shalwar || mSource.trouser || mSource.shalwar_length || "");
-    const finalPaincha = String(mSource.paincha || mSource.poncha || mSource.pancha || mSource.paicha || "");
-    const finalAsan = String(mSource.asan || mSource.asand || "");
-    const finalGalla = String(mSource.galla || mSource.collar || mSource.gala || "");
+    const finalLambaai = String(mSource.lambaai || parsedData.measurements?.lambaai || "");
+    const finalTeera = String(mSource.teera || parsedData.measurements?.teera || "");
+    const finalBaazu = String(mSource.baazu || parsedData.measurements?.baazu || "");
+    const finalGhera = String(mSource.ghera || parsedData.measurements?.ghera || "");
+    const finalShalwar = String(mSource.shalwar || parsedData.measurements?.shalwar || "");
+    const finalPaincha = String(mSource.paincha || parsedData.measurements?.paincha || "");
+    const finalAsan = String(mSource.asan || parsedData.measurements?.asan || "");
+    const finalGalla = String(mSource.galla || parsedData.measurements?.galla || "");
 
-    // FRONTEND KEY NAMES MATCHING MATRIX WITH SINGLE LAYER ROOT AND CO-EXISTING CHILD MATRIX
+    // RETURN MAXIMUM LAYER COVERAGE
     return {
       customer_name: detectedName,
       name: detectedName,
@@ -96,8 +104,6 @@ export const parseTailoringInput = async (userInput) => {
       phone_number: finalPhone,
       whatsapp_mobile: finalPhone,
       whatsapp_number: finalPhone,
-      whatsappMobile: finalPhone,
-      whatsappNumber: finalPhone,
       mobile: finalPhone,
       phone: finalPhone,
 
@@ -106,13 +112,12 @@ export const parseTailoringInput = async (userInput) => {
       is_urgent: parsedData.is_urgent === true,
       delivery_date: parsedData.delivery_date || "",
       dress_type: "Shalwar Kameez",
-      style_notes: parsedData.style_notes || "",
       
       silayi: parsedData.silayi || "",
       pKarhayi: parsedData.pKarhayi || "",
       gKarhayi: parsedData.gKarhayi || "",
 
-      // Direct Root Injection (For Clients.jsx Size Vault instant lookup)
+      // Direct Flat Mapping for Size Vault
       lambaai: finalLambaai,
       teera: finalTeera,
       baazu: finalBaazu,
@@ -122,7 +127,7 @@ export const parseTailoringInput = async (userInput) => {
       asan: finalAsan,
       galla: finalGalla,
 
-      // Nested Matrix Isolation Structure
+      // Nested Object for backward compatibility
       measurements: {
         lambaai: finalLambaai,
         teera: finalTeera,
@@ -137,9 +142,7 @@ export const parseTailoringInput = async (userInput) => {
   } catch (error) {
     console.error("AI Error:", error);
     return {
-      customer_name: "", name: "",
-      phone_number: "", whatsapp_mobile: "", whatsapp_number: "",
-      order_status: "Pending", total_suits: "1", is_urgent: false, delivery_date: "", dress_type: "Shalwar Kameez", style_notes: "",
+      customer_name: "", name: "", phone_number: "",
       lambaai: "", teera: "", baazu: "", ghera: "", shalwar: "", paincha: "", asan: "", galla: "",
       measurements: { lambaai: "", teera: "", baazu: "", ghera: "", shalwar: "", paincha: "", asan: "", galla: "" }
     };

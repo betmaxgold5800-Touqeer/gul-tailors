@@ -9,7 +9,6 @@ export const parseTailoringInput = async (userInput) => {
     // Fast aur accurate model for structured data
     const model = genAI.getGenerativeModel({
       model: "gemini-1.5-flash",
-      // Advanced instructions for local tailoring terms, shortcuts, and edge cases
       systemInstruction: `Aap gul-tailors web app k intelligent assistant hain. Aapka kaam tailor ya customer k aam text, Roman Urdu, English, ya voice note data ko samajhna aur usy clean, standardized JSON m convert krna hai.
       
       Strict Formatting Rules:
@@ -39,7 +38,7 @@ export const parseTailoringInput = async (userInput) => {
       Expected JSON Format:
       {
         "customer_name": "Customer ka naam (agar bataya ho, warna null)",
-        "dress_type": "Shalwar Kameez / Kurta / Pent Shirt / Waistcoat / Pant / Shirt (Identify from text, default to 'Shalwar Kameez' if unclear)",
+        "dress_type": "Shalwar Kameez / Kurta / Pent Shirt / Waistcoat / Pant / Shirt",
         "measurements": {
           "length": null,
           "chest": null,
@@ -52,8 +51,8 @@ export const parseTailoringInput = async (userInput) => {
           "asan": null,
           "paicha": null
         },
-        "style_notes": "Design details jaise pocket, collar type, cuff style, double silai, etc. (Combine all styling notes here as a clean string)",
-        "delivery_date": "YYYY-MM-DD format m agar din, date ya 'haftay baad', 'eid se pehle' jesa koi hint ho to convert krein, warna null"
+        "style_notes": "Design details jaise pocket, collar type, cuff style, double silai, etc.",
+        "delivery_date": "YYYY-MM-DD format"
       }`,
     });
 
@@ -65,8 +64,14 @@ export const parseTailoringInput = async (userInput) => {
       },
     });
 
-    const responseText = result.response.text();
-    // JSON parse kr k return krein gy taa k direct frontend input fields m fill ho sakay
+    let responseText = result.response.text().trim();
+    
+    // 🔥 SENIOR DEV FIXED BUG MATRIX: Cleaning markdown or unexpected string wraps
+    if (responseText.startsWith("```")) {
+      responseText = responseText.replace(/^```json/i, "").replace(/```$/, "").trim();
+    }
+
+    // JSON parse kr k return krein gy
     return JSON.parse(responseText);
   } catch (error) {
     console.error("Gemini AI Integration Error:", error);

@@ -115,7 +115,7 @@ export default function Clients({ data, setClients, onDelete }) {
         const parsedAsan = extractValue(mSource, ['asan', 'asand', 'آسن', 'اسن']);
         const parsedGalla = extractValue(mSource, ['galla', 'collar', 'gala', 'گلا', 'گلہ']);
 
-        setNaapForm({
+        setNaapForm(() => ({
           lambaai: parsedLambaai !== '' ? parsedLambaai : '',
           teera: parsedTeera !== '' ? parsedTeera : '',
           baazu: parsedBaazu !== '' ? parsedBaazu : '',
@@ -124,7 +124,7 @@ export default function Clients({ data, setClients, onDelete }) {
           paincha: parsedPaincha !== '' ? parsedPaincha : '',
           asan: parsedAsan !== '' ? parsedAsan : '',
           galla: parsedGalla !== '' ? parsedGalla : ''
-        });
+        }));
 
         alert("✅ AI ne data parse kar ke fields fill kar di hain!");
       }
@@ -135,7 +135,7 @@ export default function Clients({ data, setClients, onDelete }) {
     }
   };
 
-  // 🔥 SIZE SPECIFIC VAULT ENGINE AUTO-FILL (SENIOR IMPLEMENTATION USING REFERENCE TEAR-DOWN)
+  // 🔥 SIZE SPECIFIC VAULT ENGINE AUTO-FILL (FIXED WITH FUNCTIONAL DISPATCH QUEUE FLUSH)
   const handleSizeVaultAiAutoFill = async (passedText = null) => {
     const textToParse = passedText !== null ? passedText : sizeVaultRawInput;
     if (!textToParse.trim()) {
@@ -162,17 +162,17 @@ export default function Clients({ data, setClients, onDelete }) {
         const parsedAsan = extractValue(mSource, ['asan', 'asand', 'آسن', 'اسن']);
         const parsedGalla = extractValue(mSource, ['galla', 'collar', 'gala', 'گلا', 'گلہ']);
 
-        // Destructuring memory allocation to enforce absolute controlled field update
-        setNaapForm({
-          lambaai: parsedLambaai !== '' ? parsedLambaai : '',
-          teera: parsedTeera !== '' ? parsedTeera : '',
-          baazu: parsedBaazu !== '' ? parsedBaazu : '',
-          ghera: parsedGhera !== '' ? parsedGhera : '',
-          shalwar: parsedShalwar !== '' ? parsedShalwar : '',
-          paincha: parsedPaincha !== '' ? parsedPaincha : '',
-          asan: parsedAsan !== '' ? parsedAsan : '',
-          galla: parsedGalla !== '' ? parsedGalla : ''
-        });
+        // 🔥 CRUCIAL FIX: Using functional update callback to enforce immediate state reconciliation
+        setNaapForm(() => ({
+          lambaai: parsedLambaai,
+          teera: parsedTeera,
+          baazu: parsedBaazu,
+          ghera: parsedGhera,
+          shalwar: parsedShalwar,
+          paincha: parsedPaincha,
+          asan: parsedAsan,
+          galla: parsedGalla
+        }));
 
         setActiveGuideText('✅ AI ne Size Vault ke fields fill kar diye hain!');
       } else {

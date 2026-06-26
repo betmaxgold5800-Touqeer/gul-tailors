@@ -67,17 +67,6 @@ export default function Clients({ data, setClients, onDelete }) {
     asan: "Asan: Shalwar ki guthni/crotch length ka standard naap."
   };
 
-  // 🔥 SAFE EXTRACTOR UTILITY FOR ULTRA BULLETPROOF MAPPING
-  const extractValue = (obj, keysArray) => {
-    if (!obj) return '';
-    for (let key of keysArray) {
-      if (obj[key] !== undefined && obj[key] !== null && obj[key] !== '') {
-        return String(obj[key]).trim();
-      }
-    }
-    return '';
-  };
-
   // 🔥 INTELLIGENT AI AUTO-FILL HANDLER (FOR MAIN REGISTER ORDER MODAL)
   const handleAiAutoFill = async (passedText = null) => {
     const textToParse = passedText !== null ? passedText : aiRawInput;
@@ -91,10 +80,7 @@ export default function Clients({ data, setClients, onDelete }) {
       
       if (parsedData) {
         if (parsedData.customer_name) setClientName(parsedData.customer_name);
-        
-        const matchedPhone = extractValue(parsedData, ['whatsapp_mobile', 'phone_number', 'mobile', 'phone']);
-        if (matchedPhone) setClientPhone(matchedPhone);
-
+        if (parsedData.phone_number) setClientPhone(parsedData.phone_number);
         if (parsedData.total_suits) setSuitCount(Number(parsedData.total_suits) || 1);
         if (parsedData.order_status) setOrderStatus(parsedData.order_status);
         if (parsedData.delivery_date) setDeliveryDate(parsedData.delivery_date);
@@ -104,26 +90,16 @@ export default function Clients({ data, setClients, onDelete }) {
         if (parsedData.pKarhayi) setPKarhayiPrice(parsedData.pKarhayi);
         if (parsedData.gKarhayi) setGKarhayiPrice(parsedData.gKarhayi);
 
-        const mSource = parsedData.measurements || parsedData;
-        
-        const parsedLambaai = extractValue(mSource, ['lambaai', 'length', 'lambai', 'لمبائی', 'لمبائ']);
-        const parsedTeera = extractValue(mSource, ['teera', 'shoulder', 'tera', 'تیra', 'تیرا']);
-        const parsedBaazu = extractValue(mSource, ['baazu', 'sleeves', 'bazu', 'baju', 'بازو']);
-        const parsedGhera = extractValue(mSource, ['ghera', 'daman', 'gera', 'گھیرا']);
-        const parsedShalwar = extractValue(mSource, ['shalwar', 'trouser', 'shalwar_length', 'شلوار']);
-        const parsedPaincha = extractValue(mSource, ['paincha', 'poncha', 'pancha', 'paicha', 'پانچہ', 'پانچ', 'پونچا']);
-        const parsedAsan = extractValue(mSource, ['asan', 'asand', 'آسن', 'اسن']);
-        const parsedGalla = extractValue(mSource, ['galla', 'collar', 'gala', 'گلا', 'گلہ']);
-
+        // Direct Layer Injection Mapping for Root Fields
         setNaapForm(() => ({
-          lambaai: parsedLambaai !== '' ? parsedLambaai : '',
-          teera: parsedTeera !== '' ? parsedTeera : '',
-          baazu: parsedBaazu !== '' ? parsedBaazu : '',
-          ghera: parsedGhera !== '' ? parsedGhera : '',
-          shalwar: parsedShalwar !== '' ? parsedShalwar : '',
-          paincha: parsedPaincha !== '' ? parsedPaincha : '',
-          asan: parsedAsan !== '' ? parsedAsan : '',
-          galla: parsedGalla !== '' ? parsedGalla : ''
+          lambaai: parsedData.lambaai || '',
+          teera: parsedData.teera || '',
+          baazu: parsedData.baazu || '',
+          ghera: parsedData.ghera || '',
+          shalwar: parsedData.shalwar || '',
+          paincha: parsedData.paincha || '',
+          asan: parsedData.asan || '',
+          galla: parsedData.galla || ''
         }));
 
         alert("✅ AI ne data parse kar ke fields fill kar di hain!");
@@ -135,7 +111,7 @@ export default function Clients({ data, setClients, onDelete }) {
     }
   };
 
-  // 🔥 SIZE SPECIFIC VAULT ENGINE AUTO-FILL (FIXED WITH FUNCTIONAL DISPATCH QUEUE FLUSH)
+  // 🔥 SIZE SPECIFIC VAULT ENGINE AUTO-FILL (CLEAN SINGLE LAYER ROOT MAPPING)
   const handleSizeVaultAiAutoFill = async (passedText = null) => {
     const textToParse = passedText !== null ? passedText : sizeVaultRawInput;
     if (!textToParse.trim()) {
@@ -149,29 +125,16 @@ export default function Clients({ data, setClients, onDelete }) {
       const parsedData = await parseTailoringInput(textToParse);
       
       if (parsedData) {
-        const mSource = parsedData.measurements && Object.keys(parsedData.measurements).length > 0 
-          ? parsedData.measurements 
-          : parsedData;
-
-        const parsedLambaai = extractValue(mSource, ['lambaai', 'length', 'lambai', 'لمبائی', 'لمبائ']);
-        const parsedTeera = extractValue(mSource, ['teera', 'shoulder', 'tera', 'تیra', 'تیرا']);
-        const parsedBaazu = extractValue(mSource, ['baazu', 'sleeves', 'bazu', 'baju', 'بازو']);
-        const parsedGhera = extractValue(mSource, ['ghera', 'daman', 'gera', 'گھیرا']);
-        const parsedShalwar = extractValue(mSource, ['shalwar', 'trouser', 'shalwar_length', 'شلوار']);
-        const parsedPaincha = extractValue(mSource, ['paincha', 'poncha', 'pancha', 'paicha', 'پانچہ', 'پانچ', 'پونچا']);
-        const parsedAsan = extractValue(mSource, ['asan', 'asand', 'آسن', 'اسن']);
-        const parsedGalla = extractValue(mSource, ['galla', 'collar', 'gala', 'گلا', 'گلہ']);
-
-        // 🔥 CRUCIAL FIX: Using functional update callback to enforce immediate state reconciliation
+        // Direct assignment from the fully standardized helper flat-response
         setNaapForm(() => ({
-          lambaai: parsedLambaai,
-          teera: parsedTeera,
-          baazu: parsedBaazu,
-          ghera: parsedGhera,
-          shalwar: parsedShalwar,
-          paincha: parsedPaincha,
-          asan: parsedAsan,
-          galla: parsedGalla
+          lambaai: parsedData.lambaai || '',
+          teera: parsedData.teera || '',
+          baazu: parsedData.baazu || '',
+          ghera: parsedData.ghera || '',
+          shalwar: parsedData.shalwar || '',
+          paincha: parsedData.paincha || '',
+          asan: parsedData.asan || '',
+          galla: parsedData.galla || ''
         }));
 
         setActiveGuideText('✅ AI ne Size Vault ke fields fill kar diye hain!');
@@ -260,8 +223,6 @@ export default function Clients({ data, setClients, onDelete }) {
     return acc;
   }, { totalSuits: 0, urgentCount: 0, totalUdhaar: 0 });
 
-  const currentTotalBill = ((Number(silayiPrice) || 0) + (Number(pKarhayiPrice) || 0) + (Number(gKarhayiPrice) || 0)) * (Number(suitCount) || 1);
-
   const toggleStatusDirectly = (clientId, currentStatus) => {
     const nextStatus = currentStatus === 'Delivered' ? 'Pending' : 'Delivered';
     setClients(data.map((c) => (c.id === clientId ? { ...c, status: nextStatus } : c)));
@@ -320,7 +281,8 @@ export default function Clients({ data, setClients, onDelete }) {
               pKarhayi: Number(pKarhayiPrice) || 0,
               gKarhayi: Number(gKarhayiPrice) || 0,
               deliveryDate: deliveryDate,
-              status: orderStatus
+              status: orderStatus,
+              naap: naapForm
             }
           : c
       ));

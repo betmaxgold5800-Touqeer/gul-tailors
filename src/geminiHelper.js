@@ -3,8 +3,16 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 const apiKey = import.meta.env.VITE_GEM_API_KEY;
 const genAI = new GoogleGenerativeAI(apiKey);
 
+// ========================================================
+// 1. BACKWARD COMPATIBILITY: Purane code ko crash se bachane k liye
+// ========================================================
+export const parseTailoringInput = async (userInput) => {
+  // Agar aapka purana component ise call kare, to yeh auto Registry wala kaam karega
+  return await parseOrderRegistry(userInput);
+};
+
 // ==========================================
-// 1. REGISTRY PROMPT: For Customer & Order Details
+// 2. REGISTRY PROMPT: For Customer & Order Details
 // ==========================================
 export const parseOrderRegistry = async (userInput) => {
   try {
@@ -14,7 +22,7 @@ export const parseOrderRegistry = async (userInput) => {
       
       Strict Formatting Rules:
       1. Response sirf aur sirf valid JSON hona chahiye. Koi markdown backticks ya extra text nahi.
-      2. Jo field text m na ho, uski value empty string "" rkhni hai ya specified default value.
+      2. Jo field text m na ho, uski value empty string "" rkhni hai.
       
       Expected JSON Format:
       {
@@ -23,7 +31,7 @@ export const parseOrderRegistry = async (userInput) => {
         "order_status": "Hamesha 'pending' rkhna hai jab tak text m 'completed' ya 'delivered' na bola jaye",
         "total_suits": "Suits ki tadad (numeric value, e.g. 1, 2, 3). Agar text m zikr na ho to default 1 rkhna hai",
         "is_urgent": true (agar text m 'urgent', 'jaldi', 'emergency' jesa zikr ho) warna false,
-        "delivery_date": "YYYY-MM-DD format m agar koi date ya hint ho (e.g., '30 tak' ya 'haftay baad'), warna ''"
+        "delivery_date": "YYYY-MM-DD format m agar koi date ya hint ho, warna ''"
       }`,
     });
 
@@ -42,7 +50,7 @@ export const parseOrderRegistry = async (userInput) => {
 };
 
 // ==========================================
-// 2. NAAP PROMPT: For Tailoring Measurements Only
+// 3. NAAP PROMPT: For Tailoring Measurements Only
 // ==========================================
 export const parseTailoringMeasurements = async (userInput) => {
   try {
@@ -52,7 +60,7 @@ export const parseTailoringMeasurements = async (userInput) => {
       
       Strict Formatting Rules:
       1. Response sirf aur sirf valid JSON hona chahiye.
-      2. Naap (measurements) m sirf numeric digits rkhne hain (e.g. 38.5, 40), inches likhne ki zarorat nahi. Agar koi naap na ho to use empty string "" rkhna hai.
+      2. Naap (measurements) m sirf numeric digits rkhne hain (e.g. 38.5, 40). Agar koi naap na ho to use empty string "" rkhna hai.
       
       Tailoring Vocabulary Mapping:
       - "Naap/Lambai/Length" -> length
@@ -68,7 +76,7 @@ export const parseTailoringMeasurements = async (userInput) => {
 
       Expected JSON Format:
       {
-        "dress_type": "Shalwar Kameez / Kurta / Pent Shirt / Waistcoat (Default: 'Shalwar Kameez')",
+        "dress_type": "Shalwar Kameez / Kurta / Pent Shirt / Waistcoat",
         "measurements": {
           "length": "",
           "chest": "",
@@ -95,7 +103,6 @@ export const parseTailoringMeasurements = async (userInput) => {
     
     const parsedData = JSON.parse(responseText);
 
-    // Protection layer: Ensure no nested property is null
     if (!parsedData.measurements) parsedData.measurements = {};
     const keys = ["length", "chest", "waist", "shoulder", "sleeves", "collar", "daman", "trouser_length", "asan", "paicha"];
     keys.forEach(key => {

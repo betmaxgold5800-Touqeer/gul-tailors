@@ -1,9 +1,13 @@
+import { GoogleGenAI } from '@google/generative-ai';
+
+// Vercel aur Local dono ke liye correct variable key verify karna
 const API_KEY = import.meta.env.VITE_GEM_API_KEY;
 
 if (!API_KEY) {
-  console.error("🚨 CRITICAL CONFIGURATION ERROR: VITE_GEM_API_KEY is not defined.");
+  console.error("🚨 CRITICAL CONFIGURATION ERROR: VITE_GEM_API_KEY is missing in your panel.");
 }
 
+// JSON data ko safely clean aur parse karne ka behtareen helper
 const safeExtractJSON = (rawString) => {
   if (!rawString || typeof rawString !== 'string') return null;
   try {
@@ -15,12 +19,12 @@ const safeExtractJSON = (rawString) => {
     const firstBrace = cleanText.indexOf('{');
     const lastBrace = cleanText.lastIndexOf('}');
     if (firstBrace === -1 || lastBrace === -1) {
-      throw new Error("Invalid output layout: No structural json payload boundaries located.");
+      throw new Error("Invalid output layout: No structural json boundaries located.");
     }
     const isolatedJson = cleanText.substring(firstBrace, lastBrace + 1);
     return JSON.parse(isolatedJson);
   } catch (error) {
-    console.error("❌ JSON SANITIZATION & PARSING PIPELINE EXCEPTION:", error.message);
+    console.error("❌ JSON PARSING EXCEPTION:", error.message);
     throw new Error(`Parsing Engine Mismatch: ${error.message}`);
   }
 };
@@ -31,43 +35,36 @@ export const parseTailoringInput = async (textToProcess) => {
   }
   if (!textToProcess || !textToProcess.trim()) return null;
 
-  const systemInstruction = `
-    You are an expert tailoring data extraction engine. Parse the given Urdu or English text.
-    Extract customer specifications cleanly into the following flat JSON object layout. Do NOT invent values.
-    {
-      "lambaai": "string/number or null",
-      "teera": "string/number or null",
-      "baazu": "string/number or null",
-      "ghera": "string/number or null",
-      "shalwar": "string/number or null",
-      "paincha": "string/number or null",
-      "asan": "string/number or null",
-      "galla": "string/number or null"
-    }
-  `;
-
   try {
-    // 🔥 PRODUCTION STABLE v1 ENDPOINT MATRIX - ELIMINATES 404 AND BETA MISMATCHES
-    const endpoint = `[https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=$](https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=$){API_KEY}`;
+    // 🛠️ USING OFFICIAL GOOGLE SDK - ELIMINATES ALL 404 URL ROUTING ISSUES FOREVER
+    const ai = new GoogleGenAI({ apiKey: API_KEY });
     
-    const response = await fetch(endpoint, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        contents: [{
-          parts: [{ text: `${systemInstruction}\n\nInput Text to Parse:\n"${textToProcess}"` }]
-        }]
-      })
-    });
+    // Using the absolute standard production model
+    const model = ai.getGenerativeModel({ model: "gemini-1.5-flash" });
 
-    if (!response.ok) {
-      const errorPayload = await response.json().catch(() => ({}));
-      const errorMessage = errorPayload?.error?.message || `HTTP Server Exception Code ${response.status}`;
-      throw new Error(`Gemini Engine Request Refused: ${errorMessage}`);
-    }
+    const systemInstruction = `
+      You are an expert tailoring data extraction engine. Parse the given Urdu or English text.
+      Extract customer specifications cleanly into the following flat JSON object layout. Do NOT invent values.
+      If a value is not mentioned, return null for that key.
+      
+      Expected Response Format (Strict JSON):
+      {
+        "lambaai": "string/number or null",
+        "teera": "string/number or null",
+        "baazu": "string/number or null",
+        "ghera": "string/number or null",
+        "shalwar": "string/number or null",
+        "paincha": "string/number or null",
+        "asan": "string/number or null",
+        "galla": "string/number or null"
+      }
+    `;
 
-    const outputData = await response.json();
-    const rawAiText = outputData?.candidates?.[0]?.content?.parts?.[0]?.text;
+    const prompt = `${systemInstruction}\n\nInput Text to Parse:\n"${textToProcess}"`;
+
+    const result = await model.generateContent(prompt);
+    const rawAiText = result.response.text();
+
     if (!rawAiText) throw new Error("Empty processing stream returned from Google Gemini.");
 
     return safeExtractJSON(rawAiText);

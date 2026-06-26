@@ -105,15 +105,25 @@ export default function Clients({ data, setClients, onDelete }) {
         if (parsedData.gKarhayi) setGKarhayiPrice(parsedData.gKarhayi);
 
         const mSource = parsedData.measurements || parsedData;
+        
+        const parsedLambaai = extractValue(mSource, ['lambaai', 'length', 'lambai', 'لمبائی', 'لمبائ']);
+        const parsedTeera = extractValue(mSource, ['teera', 'shoulder', 'tera', 'تیra', 'تیرا']);
+        const parsedBaazu = extractValue(mSource, ['baazu', 'sleeves', 'bazu', 'baju', 'بازو']);
+        const parsedGhera = extractValue(mSource, ['ghera', 'daman', 'gera', 'گھیرا']);
+        const parsedShalwar = extractValue(mSource, ['shalwar', 'trouser', 'shalwar_length', 'شلوار']);
+        const parsedPaincha = extractValue(mSource, ['paincha', 'poncha', 'pancha', 'paicha', 'پانچہ', 'پانچ', 'پونچا']);
+        const parsedAsan = extractValue(mSource, ['asan', 'asand', 'آسن', 'اسن']);
+        const parsedGalla = extractValue(mSource, ['galla', 'collar', 'gala', 'گلا', 'گلہ']);
+
         setNaapForm(prev => ({
-          lambaai: extractValue(mSource, ['lambaai', 'length', 'lambai', 'لمبائی', 'لمبائ']) || prev.lambaai,
-          teera: extractValue(mSource, ['teera', 'shoulder', 'tera', 'تیra', 'تیرا']) || prev.teera,
-          baazu: extractValue(mSource, ['baazu', 'sleeves', 'bazu', 'baju', 'بازو']) || prev.baazu,
-          ghera: extractValue(mSource, ['ghera', 'daman', 'gera', 'گھیرا']) || prev.ghera,
-          shalwar: extractValue(mSource, ['shalwar', 'trouser', 'shalwar_length', 'شلوار']) || prev.shalwar,
-          paincha: extractValue(mSource, ['paincha', 'poncha', 'pancha', 'paicha', 'پانچہ', 'پانچ', 'پونچا']) || prev.paincha,
-          asan: extractValue(mSource, ['asan', 'asand', 'آسن', 'اسن']) || prev.asan,
-          galla: extractValue(mSource, ['galla', 'collar', 'gala', 'گلا', 'گلہ']) || prev.galla
+          lambaai: parsedLambaai !== '' ? parsedLambaai : prev.lambaai,
+          teera: parsedTeera !== '' ? parsedTeera : prev.teera,
+          baazu: parsedBaazu !== '' ? parsedBaazu : prev.baazu,
+          ghera: parsedGhera !== '' ? parsedGhera : prev.ghera,
+          shalwar: parsedShalwar !== '' ? parsedShalwar : prev.shalwar,
+          paincha: parsedPaincha !== '' ? parsedPaincha : prev.paincha,
+          asan: parsedAsan !== '' ? parsedAsan : prev.asan,
+          galla: parsedGalla !== '' ? parsedGalla : prev.galla
         }));
 
         alert("✅ AI ne data parse kar ke fields fill kar di hain!");
@@ -139,33 +149,31 @@ export default function Clients({ data, setClients, onDelete }) {
       const parsedData = await parseTailoringInput(textToParse);
       
       if (parsedData) {
-        // Fallback target layered normalization
+        // Safe extraction layer across root level or sub-nested objects
         const mSource = parsedData.measurements && Object.keys(parsedData.measurements).length > 0 
           ? parsedData.measurements 
           : parsedData;
 
-        // Functional State Batching Matrix to prevent stale state values
-        setNaapForm(prevNaap => {
-          const parsedLambaai = extractValue(mSource, ['lambaai', 'length', 'lambai', 'لمبائی', 'لمبائ']);
-          const parsedTeera = extractValue(mSource, ['teera', 'shoulder', 'tera', 'تیra', 'تیرا']);
-          const parsedBaazu = extractValue(mSource, ['baazu', 'sleeves', 'bazu', 'baju', 'بازو']);
-          const parsedGhera = extractValue(mSource, ['ghera', 'daman', 'gera', 'گھیرا']);
-          const parsedShalwar = extractValue(mSource, ['shalwar', 'trouser', 'shalwar_length', 'شلوار']);
-          const parsedPaincha = extractValue(mSource, ['paincha', 'poncha', 'pancha', 'paicha', 'پانچہ', 'پانچ', 'پونچا']);
-          const parsedAsan = extractValue(mSource, ['asan', 'asand', 'آسن', 'اسن']);
-          const parsedGalla = extractValue(mSource, ['galla', 'collar', 'gala', 'گلا', 'گلہ']);
+        const parsedLambaai = extractValue(mSource, ['lambaai', 'length', 'lambai', 'لمبائی', 'لمبائ']);
+        const parsedTeera = extractValue(mSource, ['teera', 'shoulder', 'tera', 'تیra', 'تیرا']);
+        const parsedBaazu = extractValue(mSource, ['baazu', 'sleeves', 'bazu', 'baju', 'بازو']);
+        const parsedGhera = extractValue(mSource, ['ghera', 'daman', 'gera', 'گھیرا']);
+        const parsedShalwar = extractValue(mSource, ['shalwar', 'trouser', 'shalwar_length', 'شلوار']);
+        const parsedPaincha = extractValue(mSource, ['paincha', 'poncha', 'pancha', 'paicha', 'پانچہ', 'پانچ', 'پونچا']);
+        const parsedAsan = extractValue(mSource, ['asan', 'asand', 'آسن', 'اسن']);
+        const parsedGalla = extractValue(mSource, ['galla', 'collar', 'gala', 'گلا', 'گلہ']);
 
-          return {
-            lambaai: parsedLambaai !== '' ? parsedLambaai : prevNaap.lambaai,
-            teera: parsedTeera !== '' ? parsedTeera : prevNaap.teera,
-            baazu: parsedBaazu !== '' ? parsedBaazu : prevNaap.baazu,
-            ghera: parsedGhera !== '' ? parsedGhera : prevNaap.ghera,
-            shalwar: parsedShalwar !== '' ? parsedShalwar : prevNaap.shalwar,
-            paincha: parsedPaincha !== '' ? parsedPaincha : prevNaap.paincha,
-            asan: parsedAsan !== '' ? parsedAsan : prevNaap.asan,
-            galla: parsedGalla !== '' ? parsedGalla : prevNaap.galla
-          };
-        });
+        // Directly functionalizing state assignment to bypass batching failures
+        setNaapForm(prevNaap => ({
+          lambaai: parsedLambaai !== '' ? parsedLambaai : prevNaap.lambaai,
+          teera: parsedTeera !== '' ? parsedTeera : prevNaap.teera,
+          baazu: parsedBaazu !== '' ? parsedBaazu : prevNaap.baazu,
+          ghera: parsedGhera !== '' ? parsedGhera : prevNaap.ghera,
+          shalwar: parsedShalwar !== '' ? parsedShalwar : prevNaap.shalwar,
+          paincha: parsedPaincha !== '' ? parsedPaincha : prevNaap.paincha,
+          asan: parsedAsan !== '' ? parsedAsan : prevNaap.asan,
+          galla: parsedGalla !== '' ? parsedGalla : prevNaap.galla
+        }));
 
         setActiveGuideText('✅ AI ne Size Vault ke fields fill kar diye hain!');
       } else {
@@ -494,7 +502,7 @@ export default function Clients({ data, setClients, onDelete }) {
                   <button onClick={() => openEditManager(client)} className="bg-blue-500/10 text-blue-400 border border-blue-500/20 font-black text-xs px-3 py-2 rounded-xl">📝 Edit Profile</button>
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <button onClick={() => dispatchWhatsAppInvoice(client)} className="bg-[#25D366]/10 text-[#25D366] text-xs font-black px-3 py-2 rounded-xl">💬 WhatsApp</button>
+                  <button onClick={() => dispatchWhatsAppInvoice(client)} className="bg-gradient-to-r from-emerald-600 to-teal-600 text-white text-xs font-black px-3 py-2 rounded-xl">💬 WhatsApp</button>
                   <button onClick={() => onDelete(client.id)} className="bg-rose-500/10 text-rose-400 p-2 rounded-xl">🗑️</button>
                 </div>
               </div>
@@ -603,7 +611,7 @@ export default function Clients({ data, setClients, onDelete }) {
                   <label className="text-[10px] font-black text-slate-400 capitalize block mb-0.5 tracking-wide">{key}</label>
                   <input 
                     type="text" 
-                    value={naapForm[key]} 
+                    value={naapForm[key] || ''} 
                     onFocus={() => setActiveGuideText(`💡 ${guides[key] || "Tape ko bilkul straight rakhein."}`)}
                     onChange={(e) => setNaapForm({ ...naapForm, [key]: e.target.value })} 
                     className="w-full p-2 rounded-xl border border-white/10 bg-slate-900 text-center font-black text-sm text-yellow-400 focus:outline-none focus:border-yellow-500/30"

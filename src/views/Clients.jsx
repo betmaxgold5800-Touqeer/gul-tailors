@@ -125,7 +125,7 @@ export default function Clients({ data, setClients, onDelete }) {
     }
   };
 
-  // 🔥 NEW INTERFACE: SIZE VAULT SPECIFIC INTELLIGENT AI PARSER
+  // 🔥 NEW INTERFACE: SIZE VAULT SPECIFIC INTELLIGENT AI PARSER (SENIOR DEVELOPMENT FIX PATTERN)
   const handleSizeVaultAiAutoFill = async (passedText = null) => {
     const textToParse = passedText || sizeVaultRawInput;
     if (!textToParse.trim()) {
@@ -137,31 +137,21 @@ export default function Clients({ data, setClients, onDelete }) {
       setActiveGuideText('⚡ AI aap ke naap ko parse kar raha hai...');
       const parsedData = await parseTailoringInput(textToParse);
       
-      if (parsedData && parsedData.measurements) {
+      if (parsedData) {
+        // Target safe isolation of the deep data layers (Extracting from root or nested measurements seamlessly)
+        const mSource = parsedData.measurements || parsedData;
+
         setNaapForm({
-          lambaai: parsedData.measurements.length || parsedData.measurements.lambaai || naapForm.lambaai,
-          teera: parsedData.measurements.shoulder || parsedData.measurements.teera || naapForm.teera,
-          baazu: parsedData.measurements.sleeves || parsedData.measurements.baazu || naapForm.baazu,
-          ghera: parsedData.measurements.ghera || naapForm.ghera,
-          shalwar: parsedData.measurements.shalwar || naapForm.shalwar,
-          paincha: parsedData.measurements.paincha || naapForm.paincha,
-          asan: parsedData.measurements.asan || naapForm.asan,
-          galla: parsedData.measurements.galla || parsedData.measurements.collar || naapForm.galla
+          lambaai: mSource.length || mSource.lambaai || naapForm.lambaai,
+          teera: mSource.shoulder || mSource.teera || naapForm.teera,
+          baazu: mSource.sleeves || mSource.baazu || naapForm.baazu,
+          ghera: mSource.ghera || naapForm.ghera,
+          shalwar: mSource.shalwar || naapForm.shalwar,
+          paincha: mSource.paincha || naapForm.paincha,
+          asan: mSource.asan || naapForm.asan,
+          galla: mSource.galla || mSource.collar || naapForm.galla
         });
-        setActiveGuideText('✅ AI ne Size Vault ke fields fill kar diye hain!');
-        setSizeVaultRawInput('');
-      } else if (parsedData && !parsedData.measurements) {
-        // Fallback checks if the structure returns a flattened root model
-        setNaapForm({
-          lambaai: parsedData.lambaai || parsedData.length || naapForm.lambaai,
-          teera: parsedData.teera || parsedData.shoulder || naapForm.teera,
-          baazu: parsedData.baazu || parsedData.sleeves || naapForm.baazu,
-          ghera: parsedData.ghera || naapForm.ghera,
-          shalwar: parsedData.shalwar || naapForm.shalwar,
-          paincha: parsedData.paincha || naapForm.paincha,
-          asan: parsedData.asan || naapForm.asan,
-          galla: parsedData.galla || parsedData.collar || naapForm.galla
-        });
+        
         setActiveGuideText('✅ AI ne Size Vault ke fields fill kar diye hain!');
         setSizeVaultRawInput('');
       } else {
@@ -460,7 +450,7 @@ export default function Clients({ data, setClients, onDelete }) {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    grid: try {
+    try {
       setIsCompressing(true);
       setActiveGuideText('⚡ Image ko super-compress kiya ja raha hai space bachanay ke liye...');
       setImagePreview(URL.createObjectURL(file));

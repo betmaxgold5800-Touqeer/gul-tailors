@@ -1,13 +1,15 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
-// Vercel aur Local dono ke liye variable check
 const API_KEY = import.meta.env.VITE_GEM_API_KEY;
 
 if (!API_KEY) {
   console.error("🚨 CRITICAL CONFIGURATION ERROR: VITE_GEM_API_KEY is missing.");
 }
 
-// Safely JSON clean aur parse karne ka helper
+// 🛠️ FORCING STABLE ROUTING TO OVERRIDE THE SDK's DEFAULT v1BETA 404 BLOCKS
+const genAI = new GoogleGenerativeAI(API_KEY, { apiVersion: 'v1' });
+const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
 const safeExtractJSON = (rawString) => {
   if (!rawString || typeof rawString !== 'string') return null;
   try {
@@ -35,33 +37,26 @@ export const parseTailoringInput = async (textToProcess) => {
   }
   if (!textToProcess || !textToProcess.trim()) return null;
 
-  try {
-    // 🔥 CORRECTED SYNTAX: GoogleGenerativeAI ka use kiya hai
-    const genAI = new GoogleGenerativeAI(API_KEY);
+  const systemInstruction = `
+    You are an expert tailoring data extraction engine. Parse the given Urdu or English text.
+    Extract customer specifications cleanly into the following flat JSON object layout. Do NOT invent values.
+    If a value is not mentioned, return null for that key.
     
-    // Standard stable model
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    Expected Response Format (Strict JSON):
+    {
+      "lambaai": "string/number or null",
+      "teera": "string/number or null",
+      "baazu": "string/number or null",
+      "ghera": "string/number or null",
+      "shalwar": "string/number or null",
+      "paincha": "string/number or null",
+      "asan": "string/number or null",
+      "galla": "string/number or null"
+    }
+  `;
 
-    const systemInstruction = `
-      You are an expert tailoring data extraction engine. Parse the given Urdu or English text.
-      Extract customer specifications cleanly into the following flat JSON object layout. Do NOT invent values.
-      If a value is not mentioned, return null for that key.
-      
-      Expected Response Format (Strict JSON):
-      {
-        "lambaai": "string/number or null",
-        "teera": "string/number or null",
-        "baazu": "string/number or null",
-        "ghera": "string/number or null",
-        "shalwar": "string/number or null",
-        "paincha": "string/number or null",
-        "asan": "string/number or null",
-        "galla": "string/number or null"
-      }
-    `;
-
+  try {
     const prompt = `${systemInstruction}\n\nInput Text to Parse:\n"${textToProcess}"`;
-
     const result = await model.generateContent(prompt);
     const rawAiText = result.response.text();
 

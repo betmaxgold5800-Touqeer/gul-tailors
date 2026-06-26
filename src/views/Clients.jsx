@@ -1,6 +1,4 @@
 import React, { useState } from 'react';
-// 🔥 AI UTILITY IMPORT (Safe Alignment)
-import { parseTailoringInput } from '../geminiHelper';
 
 export default function Clients({ data, setClients, onDelete }) {
   // Modal controllers
@@ -33,10 +31,6 @@ export default function Clients({ data, setClients, onDelete }) {
   const [deliveryDate, setDeliveryDate] = useState('');
   const [orderStatus, setOrderStatus] = useState('Pending');
 
-  // 🔥 AI CUSTOM RAW TEXT INPUT STATE
-  const [aiRawInput, setAiRawInput] = useState('');
-  const [isAiLoading, setIsAiLoading] = useState(false);
-
   // 🔥 SENIOR DEV MATRIX: Image Super-Compressor Pipeline States
   const [imagePreview, setImagePreview] = useState(null);
   const [naapImageBase64, setNaapImageBase64] = useState('');
@@ -57,47 +51,6 @@ export default function Clients({ data, setClients, onDelete }) {
     ghera: "Ghera: Kameez ke daman ki total chaorai.",
     shalwar: "Shalwar: Jahan nemah/belt bandha jata hai wahan se ponchay tak.",
     asan: "Asan: Shalwar ki guthni/crotch length ka standard naap."
-  };
-
-  // 🔥 INTELLIGENT AI AUTO-FILL HANDLER
-  const handleAiAutoFill = async () => {
-    if (!aiRawInput.trim()) {
-      alert("⚠️ Meharbani kar ke pehle AI box mein kuch detail likhein!");
-      return;
-    }
-    try {
-      setIsAiLoading(true);
-      const parsedData = await parseTailoringInput(aiRawInput);
-      
-      if (parsedData) {
-        if (parsedData.customer_name) setClientName(parsedData.customer_name);
-        if (parsedData.dress_type) setAiRawInput(prev => prev + `\n[Dress: ${parsedData.dress_type}]`);
-        if (parsedData.style_notes) setAiRawInput(prev => prev + `\n[Notes: ${parsedData.style_notes}]`);
-        if (parsedData.delivery_date) setDeliveryDate(parsedData.delivery_date);
-        
-        // Handling deep state parsing safely
-        if (parsedData.measurements) {
-          setNaapForm({
-            lambaai: parsedData.measurements.length || '',
-            teera: parsedData.measurements.shoulder || '',
-            baazu: parsedData.measurements.sleeves || '',
-            ghera: parsedData.measurements.ghera || '',
-            shalwar: parsedData.measurements.shalwar || '',
-            paincha: parsedData.measurements.paincha || '',
-            asan: parsedData.measurements.asan || '',
-            galla: parsedData.measurements.galla || ''
-          });
-        }
-        alert("✅ AI ne data parse kar ke fields fill kar di hain! Aik baar check kar lein.");
-      } else {
-        alert("❌ AI data ko sahi se samajh nahi saka, dobara koshish karein.");
-      }
-    } catch (err) {
-      console.error(err);
-      alert("⚠️ Extraction error setup failed.");
-    } finally {
-      setIsAiLoading(false);
-    }
   };
 
   const getClientTotalReceived = (client) => {
@@ -121,7 +74,7 @@ export default function Clients({ data, setClients, onDelete }) {
 
   const currentTotalBill = ((Number(silayiPrice) || 0) + (Number(pKarhayiPrice) || 0) + (Number(gKarhayiPrice) || 0)) * (Number(suitCount) || 1);
 
-  // Direct Toggle with Guaranteed PascalCase Status
+  // SENIOR REFINE: Direct Toggle with Guaranteed PascalCase Status
   const toggleStatusDirectly = (clientId, currentStatus) => {
     const nextStatus = currentStatus === 'Delivered' ? 'Pending' : 'Delivered';
     const targetArray = data.map((c) => (c.id === clientId ? { ...c, status: nextStatus } : c));
@@ -140,7 +93,6 @@ export default function Clients({ data, setClients, onDelete }) {
     setGKarhayiPrice(client.gKarhayi || '');
     setDeliveryDate(client.deliveryDate || '');
     setOrderStatus(client.status || 'Pending');
-    setAiRawInput(''); // Clear for crisp transition
     setSelectedClient(client); 
     setShowAddModal(true);
   };
@@ -157,8 +109,6 @@ export default function Clients({ data, setClients, onDelete }) {
     setGKarhayiPrice('');
     setDeliveryDate('');
     setOrderStatus('Pending');
-    setAiRawInput('');
-    setNaapForm({ lambaai: '', teera: '', baazu: '', ghera: '', shalwar: '', paincha: '', asan: '', galla: '' });
     setSelectedClient(null);
     setShowAddModal(true);
   };
@@ -191,7 +141,7 @@ export default function Clients({ data, setClients, onDelete }) {
     } else {
       const today = new Date().toISOString().split('T')[0];
       const newClientRecord = {
-        id: String(Date.now()),
+        id: String(Date.now()), // String format standard synchronization
         name: clientName.trim(),
         phone: clientPhone.trim(),
         totalSuits: Number(suitCount) || 1,
@@ -203,8 +153,8 @@ export default function Clients({ data, setClients, onDelete }) {
         deliveryDate: deliveryDate,
         status: orderStatus,
         payments: [], 
-        naap: naapForm, // Carry down auto-filled specs smoothly
-        naapImage: '' 
+        naap: { lambaai: '', teera: '', baazu: '', ghera: '', shalwar: '', paincha: '', asan: '', galla: '' },
+        naapImage: '' // Schema layout expansion safeguard
       };
       setClients([newClientRecord, ...data]);
     }
@@ -255,7 +205,7 @@ export default function Clients({ data, setClients, onDelete }) {
     window.open(`https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodeURIComponent(message)}`, '_blank');
   };
 
-  // Converts Image File to Super-Light Base64 String (<40KB)
+  // 🔥 SENIOR COMPRESSION FLOW: Converts Image File to Super-Light Base64 String (<40KB)
   const processAndCompressFile = (file) => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -265,7 +215,7 @@ export default function Clients({ data, setClients, onDelete }) {
         img.src = event.target.result;
         img.onload = () => {
           const canvas = document.createElement('canvas');
-          const MAX_WIDTH = 800; 
+          const MAX_WIDTH = 800; // Resolution balance drop factor
           let width = img.width;
           let height = img.height;
 
@@ -279,6 +229,7 @@ export default function Clients({ data, setClients, onDelete }) {
           const ctx = canvas.getContext('2d');
           ctx.drawImage(img, 0, 0, width, height);
 
+          // 0.5 strict image scaling ensures size stays around 30KB - 40KB
           const superCompressedBase64 = canvas.toDataURL('image/jpeg', 0.5);
           resolve(superCompressedBase64);
         };
@@ -295,6 +246,8 @@ export default function Clients({ data, setClients, onDelete }) {
     try {
       setIsCompressing(true);
       setActiveGuideText('⚡ Image ko super-compress kiya ja raha hai space bachanay ke liye...');
+      
+      // Temporary state visualization handler
       setImagePreview(URL.createObjectURL(file));
       
       const compressedString = await processAndCompressFile(file);
@@ -303,7 +256,7 @@ export default function Clients({ data, setClients, onDelete }) {
       setActiveGuideText('✅ Image target size (30KB-50KB) mein convert ho kar sync ho chuki hai!');
     } catch (error) {
       alert('⚠️ Image compress karne mein masla aaya: ' + error.message);
-    } Velvet {
+    } finally {
       setIsCompressing(false);
     }
   };
@@ -311,6 +264,8 @@ export default function Clients({ data, setClients, onDelete }) {
   const openNaapManager = (client) => {
     setSelectedClient(client);
     setNaapForm(client.naap || { lambaai: '', teera: '', baazu: '', ghera: '', shalwar: '', paincha: '', asan: '', galla: '' });
+    
+    // Recovery existing persistent configurations safely
     setNaapImageBase64(client.naapImage || '');
     setImagePreview(client.naapImage || null);
     
@@ -319,6 +274,7 @@ export default function Clients({ data, setClients, onDelete }) {
   };
 
   const executeSaveNaap = () => {
+    // Injecting naapForm specs AND compressed image string seamlessly inside client record
     const updatedArray = data.map((c) => 
       c.id === selectedClient.id 
         ? { ...c, naap: naapForm, naapImage: naapImageBase64 } 
@@ -326,6 +282,8 @@ export default function Clients({ data, setClients, onDelete }) {
     );
     setClients(updatedArray);
     setShowNaapModal(false);
+    
+    // Clear localized component view states
     setImagePreview(null);
     setNaapImageBase64('');
   };
@@ -379,7 +337,7 @@ export default function Clients({ data, setClients, onDelete }) {
         </div>
         <div>
           <span className="text-[9px] font-black text-rose-400 block uppercase tracking-wider">🚨 Urgent</span>
-          <span className="text-xs font-black text-rose-400">{metrics.urgentCount} Orders</span>
+          <span className="text-xs font-black text-rose-400 font-black">{metrics.urgentCount} Orders</span>
         </div>
         <div>
           <span className="text-[9px] font-black text-emerald-400 block uppercase tracking-wider">Total Udhaar</span>
@@ -568,31 +526,6 @@ export default function Clients({ data, setClients, onDelete }) {
             <h4 className="font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 via-amber-200 to-yellow-500 text-base border-b border-white/5 pb-2 tracking-wide">
               {isEditing ? '📝 EDIT CLIENT PROFILE ORDER' : '📋 CLIENT SUIT ORDER REGISTRY'}
             </h4>
-
-            {/* 🔥 INTEGRATED REVOLUTIONARY AI BOX FOR QUICK TEXT PARSING */}
-            {!isEditing && (
-              <div className="bg-slate-950/60 p-3 rounded-2xl border border-yellow-500/20 space-y-2">
-                <div className="flex justify-between items-center">
-                  <label className="text-[10px] font-black text-yellow-400 uppercase tracking-wider block">✨ AI Magic Input (Roman Urdu/English)</label>
-                  {isAiLoading && <span className="text-[9px] text-yellow-500 animate-pulse font-bold">Parsing Data...</span>}
-                </div>
-                <textarea
-                  rows="2"
-                  value={aiRawInput}
-                  onChange={(e) => setAiRawInput(e.target.value)}
-                  placeholder="Yahan likhein: Kamran ka suit hai lambaai 38 baazu 22... ya voice note text copy krein"
-                  className="w-full p-2 text-xs rounded-xl border border-white/5 bg-slate-900/80 text-slate-200 placeholder-slate-500 font-bold focus:outline-none focus:border-yellow-500/40 resize-none"
-                />
-                <button
-                  type="button"
-                  disabled={isAiLoading}
-                  onClick={handleAiAutoFill}
-                  className="w-full bg-gradient-to-r from-yellow-500/20 to-amber-500/20 border border-yellow-500/30 text-yellow-400 font-black text-[11px] py-1.5 rounded-xl active:scale-95 transition-transform disabled:opacity-40"
-                >
-                  {isAiLoading ? '⚡ Processing Vector Matrix...' : '✨ Magic Auto-Fill Form'}
-                </button>
-              </div>
-            )}
             
             <div className="space-y-3">
               <div>
@@ -687,7 +620,7 @@ export default function Clients({ data, setClients, onDelete }) {
               ))}
             </div>
 
-            {/* CAMERA & IMAGE BOX INTEGRATION INSIDE VAULT */}
+            {/* 🔥 CAMERA & IMAGE BOX INTEGRATION INSIDE VAULT */}
             <div className="bg-slate-950/40 p-3 rounded-2xl border border-dashed border-white/10 space-y-3">
               <label className="text-[10px] font-black text-slate-400 uppercase block tracking-wider">
                 📸 Register Page Photo Link ({isCompressing ? 'Compressing...' : 'Ready'})

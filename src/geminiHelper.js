@@ -1,22 +1,60 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-// Vercel par jo key ka naam save hua tha, wahi yahan call kiya hai
 const apiKey = import.meta.env.VITE_GEM_API_KEY;
 const genAI = new GoogleGenerativeAI(apiKey);
 
-export const parseTailoringInput = async (userInput) => {
+// ==========================================
+// 1. REGISTRY PROMPT: For Customer & Order Details
+// ==========================================
+export const parseOrderRegistry = async (userInput) => {
   try {
-    // Fast aur accurate model for structured data
     const model = genAI.getGenerativeModel({
       model: "gemini-1.5-flash",
-      systemInstruction: `Aap gul-tailors web app k intelligent assistant hain. Aapka kaam tailor ya customer k aam text, Roman Urdu, English, ya voice note data ko samajhna aur usy clean, standardized JSON m convert krna hai.
+      systemInstruction: `Aap gul-tailors web app k intelligent assistant hain. Aapka kaam tailor ya customer k text ya voice data se order aur registry ki details nikalna hai.
       
       Strict Formatting Rules:
-      1. Aapka response hamesha sirf aur sirf aik valid JSON object hona chahiye, koi markdown backticks (\`\`\`json) ya extra text ya explanation nahi honi chahiye.
-      2. Agar koi measurement ya field text m maujood na ho, to uski value null rkhni hai.
-      3. Naap (measurements) m sirf numeric values (e.g., 38.5, 40) rkhni hain, inches ya " ki zarorat nahi.
+      1. Response sirf aur sirf valid JSON hona chahiye. Koi markdown backticks ya extra text nahi.
+      2. Jo field text m na ho, uski value empty string "" rkhni hai ya specified default value.
       
-      Tailoring Vocabulary Mapping (Roman Urdu & Shortcuts):
+      Expected JSON Format:
+      {
+        "customer_name": "Customer ka naam (agar bataya ho, warna '')",
+        "phone_number": "Agar text m koi phone number ya mobile number ho (jaise 923... ya 03...), warna ''",
+        "order_status": "Hamesha 'pending' rkhna hai jab tak text m 'completed' ya 'delivered' na bola jaye",
+        "total_suits": "Suits ki tadad (numeric value, e.g. 1, 2, 3). Agar text m zikr na ho to default 1 rkhna hai",
+        "is_urgent": true (agar text m 'urgent', 'jaldi', 'emergency' jesa zikr ho) warna false,
+        "delivery_date": "YYYY-MM-DD format m agar koi date ya hint ho (e.g., '30 tak' ya 'haftay baad'), warna ''"
+      }`,
+    });
+
+    const result = await model.generateContent({
+      contents: [{ role: "user", parts: [{ text: userInput }] }],
+      generationConfig: { responseMimeType: "application/json" },
+    });
+
+    let responseText = result.response.text().trim();
+    responseText = responseText.replace(/^```json/i, "").replace(/```$/, "").trim();
+    return JSON.parse(responseText);
+  } catch (error) {
+    console.error("Order Registry Parsing Error:", error);
+    return null;
+  }
+};
+
+// ==========================================
+// 2. NAAP PROMPT: For Tailoring Measurements Only
+// ==========================================
+export const parseTailoringMeasurements = async (userInput) => {
+  try {
+    const model = genAI.getGenerativeModel({
+      model: "gemini-1.5-flash",
+      systemInstruction: `Aap gul-tailors web app k intelligent assistant hain. Aapka kaam sirf aur sirf suit k naap (measurements) aur design details ko process krna hai.
+      
+      Strict Formatting Rules:
+      1. Response sirf aur sirf valid JSON hona chahiye.
+      2. Naap (measurements) m sirf numeric digits rkhne hain (e.g. 38.5, 40), inches likhne ki zarorat nahi. Agar koi naap na ho to use empty string "" rkhna hai.
+      
+      Tailoring Vocabulary Mapping:
       - "Naap/Lambai/Length" -> length
       - "Chaati/Chest" -> chest
       - "Kamar/Waist" -> waist
@@ -28,53 +66,47 @@ export const parseTailoringInput = async (userInput) => {
       - "Asan" -> asan
       - "Paicha/Bottom" -> paicha
 
-      Style Notes Extraction:
-      - Pocket details (e.g., single pocket, side pocket, front pocket).
-      - Collar/Gala type (e.g., Ban, Soft Ban, Regular Collar, V-Neck, Gol Gala).
-      - Cuff/Bazu style (e.g., Gol cuff, Square cuff, Simple bazu).
-      - Daman type (e.g., Gol ghera, Straight/Choras ghera).
-      - Stitching details (e.g., Double silai, Kacha, Tayaar naap).
-      
       Expected JSON Format:
       {
-        "customer_name": "Customer ka naam (agar bataya ho, warna null)",
-        "dress_type": "Shalwar Kameez / Kurta / Pent Shirt / Waistcoat / Pant / Shirt",
+        "dress_type": "Shalwar Kameez / Kurta / Pent Shirt / Waistcoat (Default: 'Shalwar Kameez')",
         "measurements": {
-          "length": null,
-          "chest": null,
-          "waist": null,
-          "shoulder": null,
-          "sleeves": null,
-          "collar": null,
-          "daman": null,
-          "trouser_length": null,
-          "asan": null,
-          "paicha": null
+          "length": "",
+          "chest": "",
+          "waist": "",
+          "shoulder": "",
+          "sleeves": "",
+          "collar": "",
+          "daman": "",
+          "trouser_length": "",
+          "asan": "",
+          "paicha": ""
         },
-        "style_notes": "Design details jaise pocket, collar type, cuff style, double silai, etc.",
-        "delivery_date": "YYYY-MM-DD format"
+        "style_notes": "Design details jaise pocket style, collar type, cuff style, double silai, etc. (Warna '')"
       }`,
     });
 
-    // JSON output generate krne k liye setting
     const result = await model.generateContent({
       contents: [{ role: "user", parts: [{ text: userInput }] }],
-      generationConfig: {
-        responseMimeType: "application/json",
-      },
+      generationConfig: { responseMimeType: "application/json" },
     });
 
     let responseText = result.response.text().trim();
+    responseText = responseText.replace(/^```json/i, "").replace(/```$/, "").trim();
     
-    // 🔥 SENIOR DEV FIXED BUG MATRIX: Cleaning markdown or unexpected string wraps
-    if (responseText.startsWith("```")) {
-      responseText = responseText.replace(/^```json/i, "").replace(/```$/, "").trim();
-    }
+    const parsedData = JSON.parse(responseText);
 
-    // JSON parse kr k return krein gy
-    return JSON.parse(responseText);
+    // Protection layer: Ensure no nested property is null
+    if (!parsedData.measurements) parsedData.measurements = {};
+    const keys = ["length", "chest", "waist", "shoulder", "sleeves", "collar", "daman", "trouser_length", "asan", "paicha"];
+    keys.forEach(key => {
+      if (parsedData.measurements[key] === null || parsedData.measurements[key] === undefined) {
+        parsedData.measurements[key] = "";
+      }
+    });
+
+    return parsedData;
   } catch (error) {
-    console.error("Gemini AI Integration Error:", error);
-    return null; // System crash na ho, fallback return kray
+    console.error("Tailoring Measurements Parsing Error:", error);
+    return null;
   }
 };

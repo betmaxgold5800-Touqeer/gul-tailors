@@ -77,7 +77,17 @@ export const parseTailoringInput = async (userInput) => {
 
     const mSource = parsedData.measurements || parsedData || {};
 
-    // FRONTEND KEY NAMES MATCHING MATRIX
+    // Standardize all size keys ahead of time
+    const finalLambaai = String(mSource.lambaai || mSource.length || mSource.lambai || "");
+    const finalTeera = String(mSource.teera || mSource.shoulder || mSource.tera || "");
+    const finalBaazu = String(mSource.baazu || mSource.sleeves || mSource.bazu || mSource.baju || "");
+    const finalGhera = String(mSource.ghera || mSource.daman || mSource.gera || "");
+    const finalShalwar = String(mSource.shalwar || mSource.trouser || mSource.shalwar_length || "");
+    const finalPaincha = String(mSource.paincha || mSource.poncha || mSource.pancha || mSource.paicha || "");
+    const finalAsan = String(mSource.asan || mSource.asand || "");
+    const finalGalla = String(mSource.galla || mSource.collar || mSource.gala || "");
+
+    // FRONTEND KEY NAMES MATCHING MATRIX WITH SINGLE LAYER ROOT AND CO-EXISTING CHILD MATRIX
     return {
       customer_name: detectedName,
       name: detectedName,
@@ -102,16 +112,26 @@ export const parseTailoringInput = async (userInput) => {
       pKarhayi: parsedData.pKarhayi || "",
       gKarhayi: parsedData.gKarhayi || "",
 
-      // Mapping both standard and explicit frontend structure keys
+      // Direct Root Injection (For Clients.jsx Size Vault instant lookup)
+      lambaai: finalLambaai,
+      teera: finalTeera,
+      baazu: finalBaazu,
+      ghera: finalGhera,
+      shalwar: finalShalwar,
+      paincha: finalPaincha,
+      asan: finalAsan,
+      galla: finalGalla,
+
+      // Nested Matrix Isolation Structure
       measurements: {
-        lambaai: String(mSource.lambaai || mSource.length || mSource.lambai || ""),
-        teera: String(mSource.teera || mSource.shoulder || mSource.tera || ""),
-        baazu: String(mSource.baazu || mSource.sleeves || mSource.bazu || mSource.baju || ""),
-        ghera: String(mSource.ghera || mSource.daman || mSource.gera || ""),
-        shalwar: String(mSource.shalwar || mSource.trouser || mSource.shalwar_length || ""),
-        paincha: String(mSource.paincha || mSource.poncha || mSource.pancha || mSource.paicha || ""),
-        asan: String(mSource.asan || mSource.asand || ""),
-        galla: String(mSource.galla || mSource.collar || mSource.gala || "")
+        lambaai: finalLambaai,
+        teera: finalTeera,
+        baazu: finalBaazu,
+        ghera: finalGhera,
+        shalwar: finalShalwar,
+        paincha: finalPaincha,
+        asan: finalAsan,
+        galla: finalGalla
       }
     };
   } catch (error) {
@@ -120,6 +140,7 @@ export const parseTailoringInput = async (userInput) => {
       customer_name: "", name: "",
       phone_number: "", whatsapp_mobile: "", whatsapp_number: "",
       order_status: "Pending", total_suits: "1", is_urgent: false, delivery_date: "", dress_type: "Shalwar Kameez", style_notes: "",
+      lambaai: "", teera: "", baazu: "", ghera: "", shalwar: "", paincha: "", asan: "", galla: "",
       measurements: { lambaai: "", teera: "", baazu: "", ghera: "", shalwar: "", paincha: "", asan: "", galla: "" }
     };
   }

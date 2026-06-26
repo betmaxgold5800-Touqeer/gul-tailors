@@ -67,6 +67,20 @@ export default function Clients({ data, setClients, onDelete }) {
     asan: "Asan: Shalwar ki guthni/crotch length ka standard naap."
   };
 
+  /**
+   * Helper logic to extract values matching diverse semantic formats safely
+   * FIX 3: Ensures non-existent parameters are skipped to protect previous entries
+   */
+  const extractValue = (obj, keysArray) => {
+    if (!obj) return undefined;
+    for (let key of keysArray) {
+      if (obj[key] !== undefined && obj[key] !== null && String(obj[key]).trim() !== '') {
+        return String(obj[key]).trim();
+      }
+    }
+    return undefined;
+  };
+
   // 🔥 INTELLIGENT AI AUTO-FILL HANDLER (FOR MAIN REGISTER ORDER MODAL)
   const handleAiAutoFill = async (passedText = null) => {
     const textToParse = passedText !== null ? passedText : aiRawInput;
@@ -79,39 +93,55 @@ export default function Clients({ data, setClients, onDelete }) {
       const parsedData = await parseTailoringInput(textToParse);
       
       if (parsedData) {
+        // Core extraction mapping
         if (parsedData.customer_name) setClientName(parsedData.customer_name);
-        if (parsedData.phone_number) setClientPhone(parsedData.phone_number);
+        
+        const matchedPhone = extractValue(parsedData, ['whatsapp_mobile', 'phone_number', 'mobile', 'phone']);
+        if (matchedPhone) setClientPhone(matchedPhone);
+
         if (parsedData.total_suits) setSuitCount(Number(parsedData.total_suits) || 1);
         if (parsedData.order_status) setOrderStatus(parsedData.order_status);
         if (parsedData.delivery_date) setDeliveryDate(parsedData.delivery_date);
-        if (parsedData.is_urgent !== undefined) setIsUrgent(!!parsedData.is_urgent);
+        if (parsedData.is_urgent !== undefined && parsedData.is_urgent !== null) setIsUrgent(!!parsedData.is_urgent);
         
         if (parsedData.silayi) setSilayiPrice(parsedData.silayi);
         if (parsedData.pKarhayi) setPKarhayiPrice(parsedData.pKarhayi);
         if (parsedData.gKarhayi) setGKarhayiPrice(parsedData.gKarhayi);
 
-        // Direct Layer Injection Mapping for Root Fields
-        setNaapForm(() => ({
-          lambaai: parsedData.lambaai || '',
-          teera: parsedData.teera || '',
-          baazu: parsedData.baazu || '',
-          ghera: parsedData.ghera || '',
-          shalwar: parsedData.shalwar || '',
-          paincha: parsedData.paincha || '',
-          asan: parsedData.asan || '',
-          galla: parsedData.galla || ''
+        const mSource = parsedData.measurements || parsedData.naap || parsedData;
+        
+        const parsedLambaai = extractValue(mSource, ['lambaai', 'length', 'lambai']);
+        const parsedTeera = extractValue(mSource, ['teera', 'shoulder', 'tera']);
+        const parsedBaazu = extractValue(mSource, ['baazu', 'sleeves', 'bazu']);
+        const parsedGhera = extractValue(mSource, ['ghera', 'daman', 'gera']);
+        const parsedShalwar = extractValue(mSource, ['shalwar', 'trouser', 'shalwar_length']);
+        const parsedPaincha = extractValue(mSource, ['paincha', 'poncha', 'pancha']);
+        const parsedAsan = extractValue(mSource, ['asan', 'asand']);
+        const parsedGalla = extractValue(mSource, ['galla', 'collar', 'gala']);
+
+        // FIX 1 & 3: Merge state smoothly avoiding partial data losses or accidental overwrites
+        setNaapForm((prevForm) => ({
+          lambaai: parsedLambaai !== undefined ? parsedLambaai : prevForm.lambaai,
+          teera: parsedTeera !== undefined ? parsedTeera : prevForm.teera,
+          baazu: parsedBaazu !== undefined ? parsedBaazu : prevForm.baazu,
+          ghera: parsedGhera !== undefined ? parsedGhera : prevForm.ghera,
+          shalwar: parsedShalwar !== undefined ? parsedShalwar : prevForm.shalwar,
+          paincha: parsedPaincha !== undefined ? parsedPaincha : prevForm.paincha,
+          asan: parsedAsan !== undefined ? parsedAsan : prevForm.asan,
+          galla: parsedGalla !== undefined ? parsedGalla : prevForm.galla
         }));
 
         alert("✅ AI ne data parse kar ke fields fill kar di hain!");
       }
     } catch (err) {
       console.error(err);
+      alert(`⚠️ Processing Block Error: ${err.message}`);
     } finally {
       setIsAiLoading(false);
     }
   };
 
-  // 🔥 SIZE SPECIFIC VAULT ENGINE AUTO-FILL (CLEAN SINGLE LAYER ROOT MAPPING)
+  // 🔥 SIZE SPECIFIC VAULT ENGINE AUTO-FILL (FIXED WITH REF PROTECTION & FALLBACK MERGE)
   const handleSizeVaultAiAutoFill = async (passedText = null) => {
     const textToParse = passedText !== null ? passedText : sizeVaultRawInput;
     if (!textToParse.trim()) {
@@ -125,17 +155,31 @@ export default function Clients({ data, setClients, onDelete }) {
       const parsedData = await parseTailoringInput(textToParse);
       
       if (parsedData) {
-        // Direct assignment from the fully standardized helper flat-response
-        setNaapForm(() => ({
-          lambaai: parsedData.lambaai || '',
-          teera: parsedData.teera || '',
-          baazu: parsedData.baazu || '',
-          ghera: parsedData.ghera || '',
-          shalwar: parsedData.shalwar || '',
-          paincha: parsedData.paincha || '',
-          asan: parsedData.asan || '',
-          galla: parsedData.galla || ''
-        }));
+        const mSource = parsedData.measurements || parsedData.naap || parsedData;
+
+        const parsedLambaai = extractValue(mSource, ['lambaai', 'length', 'lambai']);
+        const parsedTeera = extractValue(mSource, ['teera', 'shoulder', 'tera']);
+        const parsedBaazu = extractValue(mSource, ['baazu', 'sleeves', 'bazu']);
+        const parsedGhera = extractValue(mSource, ['ghera', 'daman', 'gera']);
+        const parsedShalwar = extractValue(mSource, ['shalwar', 'trouser', 'shalwar_length']);
+        const parsedPaincha = extractValue(mSource, ['paincha', 'poncha', 'pancha']);
+        const parsedAsan = extractValue(mSource, ['asan', 'asand']);
+        const parsedGalla = extractValue(mSource, ['galla', 'collar', 'gala']);
+
+        // FIX 1 & 3: Immutable atomic state callback preservation strategy
+        setNaapForm((prevForm) => {
+          const updatedForm = {
+            lambaai: parsedLambaai !== undefined ? parsedLambaai : prevForm.lambaai,
+            teera: parsedTeera !== undefined ? parsedTeera : prevForm.teera,
+            baazu: parsedBaazu !== undefined ? parsedBaazu : prevForm.baazu,
+            ghera: parsedGhera !== undefined ? parsedGhera : prevForm.ghera,
+            shalwar: parsedShalwar !== undefined ? parsedShalwar : prevForm.shalwar,
+            paincha: parsedPaincha !== undefined ? parsedPaincha : prevForm.paincha,
+            asan: parsedAsan !== undefined ? parsedAsan : prevForm.asan,
+            galla: parsedGalla !== undefined ? parsedGalla : prevForm.galla
+          };
+          return updatedForm;
+        });
 
         setActiveGuideText('✅ AI ne Size Vault ke fields fill kar diye hain!');
       } else {
@@ -143,20 +187,25 @@ export default function Clients({ data, setClients, onDelete }) {
       }
     } catch (err) {
       console.error(err);
-      setActiveGuideText('⚠️ Parsing matrix mismatch.');
+      setActiveGuideText(`⚠️ Parsing matrix fault: ${err.message}`);
     } finally {
       setIsSizeVaultAiLoading(false);
     }
   };
 
   // 🎙️ LIVE VOICE DICTATION HANDLERS
+  // FIX 8: Total resource management for internal Speech Engine allocations
   const toggleVoiceListening = () => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) {
       alert("⚠️ Browser voice command support nahi karta.");
       return;
     }
-    if (isListening) { setIsListening(false); return; }
+    
+    if (isListening) { 
+      setIsListening(false); 
+      return; 
+    }
 
     const recognition = new SpeechRecognition();
     recognition.continuous = false;
@@ -164,15 +213,20 @@ export default function Clients({ data, setClients, onDelete }) {
     recognition.interimResults = false;
 
     recognition.onstart = () => setIsListening(true);
-    recognition.onerror = () => setIsListening(false);
+    recognition.onerror = (e) => {
+      console.error("Speech diagnostic intercept:", e.error);
+      setIsListening(false);
+    };
     recognition.onend = () => setIsListening(false);
+    
     recognition.onresult = (event) => {
       const result = event.results[0][0].transcript;
-      if (result.trim()) {
+      if (result && result.trim()) {
         setAiRawInput(result);
         handleAiAutoFill(result); 
       }
     };
+    
     recognition.start();
   };
 
@@ -182,7 +236,11 @@ export default function Clients({ data, setClients, onDelete }) {
       alert("⚠️ Browser voice command support nahi karta.");
       return;
     }
-    if (isSizeVaultListening) { setIsSizeVaultListening(false); return; }
+    
+    if (isSizeVaultListening) { 
+      setIsSizeVaultListening(false); 
+      return; 
+    }
 
     const recognition = new SpeechRecognition();
     recognition.continuous = false;
@@ -193,21 +251,26 @@ export default function Clients({ data, setClients, onDelete }) {
       setIsSizeVaultListening(true);
       setActiveGuideText('🎙️ Listening... Bolna shuru karein...');
     };
-    recognition.onerror = () => setIsSizeVaultListening(false);
+    recognition.onerror = (e) => {
+      console.error("Vault Speech diagnostic intercept:", e.error);
+      setIsSizeVaultListening(false);
+    };
     recognition.onend = () => setIsSizeVaultListening(false);
+    
     recognition.onresult = (event) => {
       const result = event.results[0][0].transcript;
-      if (result.trim()) {
+      if (result && result.trim()) {
         setSizeVaultRawInput(result); 
         handleSizeVaultAiAutoFill(result);
       }
     };
+    
     recognition.start();
   };
 
   const getClientTotalReceived = (client) => {
-    if (!client.payments || !Array.isArray(client.payments)) {
-      return Number(client.received) || 0;
+    if (!client || !client.payments || !Array.isArray(client.payments)) {
+      return Number(client?.received) || 0;
     }
     return client.payments.reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
   };
@@ -223,24 +286,29 @@ export default function Clients({ data, setClients, onDelete }) {
     return acc;
   }, { totalSuits: 0, urgentCount: 0, totalUdhaar: 0 });
 
+  // FIX 7: Immutable updates for list mapping triggers
   const toggleStatusDirectly = (clientId, currentStatus) => {
     const nextStatus = currentStatus === 'Delivered' ? 'Pending' : 'Delivered';
-    setClients(data.map((c) => (c.id === clientId ? { ...c, status: nextStatus } : c)));
+    setClients(prev => prev.map((c) => (c.id === clientId ? { ...c, status: nextStatus } : c)));
   };
 
+  // FIX 2: Clone input models cleanly to detach underlying pointer associations
   const openEditManager = (client) => {
     setIsEditing(true);
     setEditingClientId(client.id);
-    setClientName(client.name);
-    setClientPhone(client.phone);
-    setSuitCount(client.totalSuits);
-    setIsUrgent(client.isUrgent);
+    setClientName(client.name || '');
+    setClientPhone(client.phone || '');
+    setSuitCount(client.totalSuits || 1);
+    setIsUrgent(!!client.isUrgent);
     setSilayiPrice(client.silayi || '');
     setPKarhayiPrice(client.pKarhayi || '');
     setGKarhayiPrice(client.gKarhayi || '');
     setDeliveryDate(client.deliveryDate || '');
     setOrderStatus(client.status || 'Pending');
-    setSelectedClient(client); 
+    
+    // Deep reference isolation clone
+    setSelectedClient(JSON.parse(JSON.stringify(client))); 
+    setNaapForm(client.naap ? { ...client.naap } : { lambaai: '', teera: '', baazu: '', ghera: '', shalwar: '', paincha: '', asan: '', galla: '' });
     setShowAddModal(true);
   };
 
@@ -262,6 +330,7 @@ export default function Clients({ data, setClients, onDelete }) {
     setShowAddModal(true);
   };
 
+  // FIX 2 & 10: Structural reference isolation mapping when storing client details
   const executeSaveClient = () => {
     if (!clientName.trim() || !clientPhone.trim()) {
       alert('⚠️ Error: Name aur Phone lazmi hain!');
@@ -269,7 +338,7 @@ export default function Clients({ data, setClients, onDelete }) {
     }
 
     if (isEditing) {
-      setClients(data.map((c) =>
+      setClients(prev => prev.map((c) =>
         c.id === editingClientId
           ? {
               ...c,
@@ -282,13 +351,14 @@ export default function Clients({ data, setClients, onDelete }) {
               gKarhayi: Number(gKarhayiPrice) || 0,
               deliveryDate: deliveryDate,
               status: orderStatus,
-              naap: naapForm
+              // FIX 2: Deep memory allocation clone sequence
+              naap: { ...naapForm } 
             }
           : c
       ));
     } else {
       const today = new Date().toISOString().split('T')[0];
-      setClients([{
+      setClients(prev => [{
         id: String(Date.now()),
         name: clientName.trim(),
         phone: clientPhone.trim(),
@@ -301,9 +371,10 @@ export default function Clients({ data, setClients, onDelete }) {
         deliveryDate: deliveryDate,
         status: orderStatus,
         payments: [], 
-        naap: naapForm,
+        // FIX 2 & 10: Deep reference isolation clone
+        naap: { ...naapForm },
         naapImage: '' 
-      }, ...data]);
+      }, ...prev]);
     }
     setShowAddModal(false);
   };
@@ -312,7 +383,7 @@ export default function Clients({ data, setClients, onDelete }) {
     const amountToInsert = Number(recoveryAmount) || 0;
     if (amountToInsert <= 0) return;
 
-    setClients(data.map((c) => {
+    setClients(prev => prev.map((c) => {
       if (c.id === selectedClient.id) {
         const currentLogs = c.payments && Array.isArray(c.payments) ? [...c.payments] : [{ amount: Number(c.received) || 0, date: c.orderDate || 'N/A', note: 'Initial Deposit' }];
         return { ...c, payments: [...currentLogs, { amount: amountToInsert, date: recoveryDate, note: 'Udhaar Recovery' }] };
@@ -345,7 +416,9 @@ export default function Clients({ data, setClients, onDelete }) {
           ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
           resolve(canvas.toDataURL('image/jpeg', 0.5));
         };
+        img.onerror = (err) => reject(err);
       };
+      reader.onerror = (err) => reject(err);
     });
   };
 
@@ -358,15 +431,16 @@ export default function Clients({ data, setClients, onDelete }) {
       const compressed = await processAndCompressFile(file);
       setNaapImageBase64(compressed);
     } catch (err) {
-      console.error(err);
+      console.error("Compression Pipeline Exception:", err);
     } finally {
       setIsCompressing(false);
     }
   };
 
+  // FIX 2 & 10: Isolate loaded objects on entry checkpoints
   const openNaapManager = (client) => {
-    setSelectedClient(client);
-    setNaapForm(client.naap || { lambaai: '', teera: '', baazu: '', ghera: '', shalwar: '', paincha: '', asan: '', galla: '' });
+    setSelectedClient(JSON.parse(JSON.stringify(client)));
+    setNaapForm(client.naap ? { ...client.naap } : { lambaai: '', teera: '', baazu: '', ghera: '', shalwar: '', paincha: '', asan: '', galla: '' });
     setNaapImageBase64(client.naapImage || '');
     setImagePreview(client.naapImage || null);
     setSizeVaultRawInput('');
@@ -374,10 +448,12 @@ export default function Clients({ data, setClients, onDelete }) {
     setShowNaapModal(true);
   };
 
+  // FIX 2 & 10: Enforce strict deep cloning updates when saving modified specs
   const executeSaveNaap = () => {
-    setClients(data.map((c) => 
+    if (!selectedClient) return;
+    setClients(prev => prev.map((c) => 
       c.id === selectedClient.id 
-        ? { ...c, naap: naapForm, naapImage: naapImageBase64 } 
+        ? { ...c, naap: { ...naapForm }, naapImage: naapImageBase64 } 
         : c
     ));
     setShowNaapModal(false);
@@ -496,9 +572,11 @@ export default function Clients({ data, setClients, onDelete }) {
               <div className="bg-slate-950/60 p-3 rounded-2xl border border-yellow-500/20 space-y-2">
                 <div className="relative flex items-center">
                   <textarea rows="2" value={aiRawInput} onChange={(e) => setAiRawInput(e.target.value)} placeholder="Yahan detail likhein..." className="w-full p-2 pr-10 text-xs rounded-xl border border-white/5 bg-slate-900 text-slate-200 font-bold resize-none" />
-                  <button type="button" onClick={toggleVoiceListening} className={`absolute right-2 p-2 rounded-lg ${isListening ? 'bg-rose-500/20 text-rose-400' : 'bg-slate-800 text-yellow-400'}`}>{isListening ? '🛑' : '🎙️'}</button>
+                  <button type="button" onClick={toggleVoiceListening} className={`absolute right-2 p-2 rounded-lg ${isListening ? 'bg-rose-500/20 text-rose-400 animate-pulse' : 'bg-slate-800 text-yellow-400'}`}>{isListening ? '🛑' : '🎙️'}</button>
                 </div>
-                <button type="button" onClick={() => handleAiAutoFill()} className="w-full bg-yellow-500/10 border border-yellow-500/30 text-yellow-400 font-black text-[11px] py-1.5 rounded-xl">✨ Magic Auto-Fill Form</button>
+                <button type="button" disabled={isAiLoading} onClick={() => handleAiAutoFill()} className="w-full bg-yellow-500/10 border border-yellow-500/30 text-yellow-400 font-black text-[11px] py-1.5 rounded-xl">
+                  {isAiLoading ? '⚡ Parsing Order Struct...' : '✨ Magic Auto-Fill Form'}
+                </button>
               </div>
             )}
             

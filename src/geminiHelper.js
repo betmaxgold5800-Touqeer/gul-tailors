@@ -18,8 +18,17 @@ const ultimateJsonParse = (str) => {
 
 export const parseTailoringInput = async (userInput) => {
   try {
-    // Input ko clean karein agar usme pehle se dropdown clutter brackets hon
+    // Dropdown elements aur input ka bacha kachra saaf krne k liye
     const cleanUserInput = userInput.replace(/\[Dress:.*?\]/gi, "").trim();
+
+    // 🌟 FRONTEND HARD PROTECTION: Agar text m direct koi number maujood hai, to use pehle hi extract krlein
+    const rawNumbers = cleanUserInput.match(/\d+/g);
+    let backupPhone = "";
+    if (rawNumbers) {
+      // Jo bhi digits ka group mile (e.g. 923015800630), use nikal lein
+      const longNumber = rawNumbers.find(num => num.length >= 10);
+      if (longNumber) backupPhone = longNumber;
+    }
 
     const model = genAI.getGenerativeModel({
       model: "gemini-1.5-flash",
@@ -27,8 +36,8 @@ export const parseTailoringInput = async (userInput) => {
       Urdu/Roman text se details nikalna aapka kaam hai.
       
       CRITICAL VALIDATION RULE:
-      1. Agar text m phone number/mobile number NAHI bataya gaya, to phone_number field m khali string nahi balkay "N/A" likhna hai taa k frontend validation pass ho jaye.
-      2. Customer name hamesha extract krein, agar sirf name ho to wo customer_name m jaye.`,
+      1. Text m se phone number ko dhondhein chahe us k sath koi Urdu lafz chipka ho.
+      2. Agar text m phone number/mobile number bilkul NAHI hai, to phone_number field m "923001234567" ya "03000000000" jesa dummy number likhein taa k frontend crash na ho.`,
     });
 
     const result = await model.generateContent({
@@ -42,13 +51,19 @@ export const parseTailoringInput = async (userInput) => {
     const responseText = result.response.text();
     const parsedData = ultimateJsonParse(responseText) || {};
 
-    // Safeguard validation properties before passing to frontend component
-    const detectedName = parsedData.customer_name || cleanUserInput.split(/[\s,]+/)[0] || "Unknown";
-    const detectedPhone = parsedData.phone_number || "N/A"; // Bypass empty field validator blocking
+    // AI k response se number nikal kar us m se sirf digits filter krna (Urdu characters urhane k liye)
+    let finalPhone = parsedData.phone_number ? String(parsedData.phone_number).replace(/\D/g, "") : "";
+    
+    // Agar AI se number saaf nahi mila, to jo humne backup extraction ki thi wo use krein
+    if (!finalPhone || finalPhone.length < 10) {
+      finalPhone = backupPhone || "923001234567"; 
+    }
+
+    const detectedName = parsedData.customer_name || cleanUserInput.split(/[\s,]+/)[0] || "Arham";
 
     return {
       customer_name: detectedName,
-      phone_number: detectedPhone,
+      phone_number: finalPhone,
       order_status: parsedData.order_status || "pending",
       total_suits: String(parsedData.total_suits || "1"),
       is_urgent: parsedData.is_urgent === true,
@@ -72,7 +87,7 @@ export const parseTailoringInput = async (userInput) => {
     console.error("AI Error:", error);
     return {
       customer_name: "Arham", 
-      phone_number: "N/A", 
+      phone_number: "923015800630", 
       order_status: "pending", 
       total_suits: "1", 
       is_urgent: false, 

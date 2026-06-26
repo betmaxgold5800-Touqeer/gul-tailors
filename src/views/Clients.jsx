@@ -106,14 +106,14 @@ export default function Clients({ data, setClients, onDelete }) {
 
         const mSource = parsedData.measurements || parsedData;
         setNaapForm(prev => ({
-          lambaai: extractValue(mSource, ['lambaai', 'length', 'lambai']) || prev.lambaai,
-          teera: extractValue(mSource, ['teera', 'shoulder', 'tera']) || prev.teera,
-          baazu: extractValue(mSource, ['baazu', 'sleeves', 'bazu', 'baju']) || prev.baazu,
-          ghera: extractValue(mSource, ['ghera', 'daman', 'gera']) || prev.ghera,
-          shalwar: extractValue(mSource, ['shalwar', 'trouser', 'shalwar_length']) || prev.shalwar,
-          paincha: extractValue(mSource, ['paincha', 'poncha', 'pancha', 'paicha']) || prev.paincha,
-          asan: extractValue(mSource, ['asan', 'asand']) || prev.asan,
-          galla: extractValue(mSource, ['galla', 'collar', 'gala']) || prev.galla
+          lambaai: extractValue(mSource, ['lambaai', 'length', 'lambai', 'لمبائی', 'لمبائ']) || prev.lambaai,
+          teera: extractValue(mSource, ['teera', 'shoulder', 'tera', 'تیra', 'تیرا']) || prev.teera,
+          baazu: extractValue(mSource, ['baazu', 'sleeves', 'bazu', 'baju', 'بازو']) || prev.baazu,
+          ghera: extractValue(mSource, ['ghera', 'daman', 'gera', 'گھیرا']) || prev.ghera,
+          shalwar: extractValue(mSource, ['shalwar', 'trouser', 'shalwar_length', 'شلوار']) || prev.shalwar,
+          paincha: extractValue(mSource, ['paincha', 'poncha', 'pancha', 'paicha', 'پانچہ', 'پانچ', 'پونچا']) || prev.paincha,
+          asan: extractValue(mSource, ['asan', 'asand', 'آسن', 'اسن']) || prev.asan,
+          galla: extractValue(mSource, ['galla', 'collar', 'gala', 'گلا', 'گلہ']) || prev.galla
         }));
 
         alert("✅ AI ne data parse kar ke fields fill kar di hain!");
@@ -146,14 +146,14 @@ export default function Clients({ data, setClients, onDelete }) {
 
         // Functional State Batching Matrix to prevent stale state values
         setNaapForm(prevNaap => {
-          const parsedLambaai = extractValue(mSource, ['lambaai', 'length', 'lambai']);
-          const parsedTeera = extractValue(mSource, ['teera', 'shoulder', 'tera']);
-          const parsedBaazu = extractValue(mSource, ['baazu', 'sleeves', 'bazu', 'baju']);
-          const parsedGhera = extractValue(mSource, ['ghera', 'daman', 'gera']);
-          const parsedShalwar = extractValue(mSource, ['shalwar', 'trouser', 'shalwar_length']);
-          const parsedPaincha = extractValue(mSource, ['paincha', 'poncha', 'pancha', 'paicha']);
-          const parsedAsan = extractValue(mSource, ['asan', 'asand']);
-          const parsedGalla = extractValue(mSource, ['galla', 'collar', 'gala']);
+          const parsedLambaai = extractValue(mSource, ['lambaai', 'length', 'lambai', 'لمبائی', 'لمبائ']);
+          const parsedTeera = extractValue(mSource, ['teera', 'shoulder', 'tera', 'تیra', 'تیرا']);
+          const parsedBaazu = extractValue(mSource, ['baazu', 'sleeves', 'bazu', 'baju', 'بازو']);
+          const parsedGhera = extractValue(mSource, ['ghera', 'daman', 'gera', 'گھیرا']);
+          const parsedShalwar = extractValue(mSource, ['shalwar', 'trouser', 'shalwar_length', 'شلوار']);
+          const parsedPaincha = extractValue(mSource, ['paincha', 'poncha', 'pancha', 'paicha', 'پانچہ', 'پانچ', 'پونچا']);
+          const parsedAsan = extractValue(mSource, ['asan', 'asand', 'آسن', 'اسن']);
+          const parsedGalla = extractValue(mSource, ['galla', 'collar', 'gala', 'گلا', 'گلہ']);
 
           return {
             lambaai: parsedLambaai !== '' ? parsedLambaai : prevNaap.lambaai,

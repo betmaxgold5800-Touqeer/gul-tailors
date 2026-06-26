@@ -47,8 +47,8 @@ export const parseTailoringInput = async (textToProcess) => {
   `;
 
   try {
-    // 🔥 FIXED ENDPOINT WITH COMPATIBLE MODEL VERSION FOR v1beta
-    const endpoint = `[https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=$](https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=$){API_KEY}`;
+    // 🔥 PRODUCTION STABLE v1 ENDPOINT MATRIX - ELIMINATES 404 AND BETA MISMATCHES
+    const endpoint = `[https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=$](https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=$){API_KEY}`;
     
     const response = await fetch(endpoint, {
       method: "POST",

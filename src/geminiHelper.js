@@ -1,4 +1,4 @@
-// Fetching verified environment variables explicitly for Vite bundle lifecycle
+// Fetching verified environment variables explicitly for Vite + Vercel runtime
 const API_KEY = import.meta.env.VITE_GEM_API_KEY;
 
 if (!API_KEY) {
@@ -59,29 +59,23 @@ export const parseTailoringInput = async (textToProcess) => {
     }
   `;
 
-  // Explicit version routing target with correct engine matrix mapping
-  const primaryEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`;
-  const backupEndpoint = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
+  // CLEAN PRODUCTION ENDPOINT WITHOUT FAILED CONFIG POOLS
+  const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
 
-  const payloadConfiguration = {
-    contents: [{
-      parts: [{ text: `${systemInstruction}\n\nInput Processing Target Data:\n"${textToProcess}"` }]
-    }],
-    generationConfig: {
-      responseMimeType: "application/json"
-    }
-  };
-
-  // Primary Run Routing Lifecycle
   try {
-    const response = await fetch(primaryEndpoint, {
+    const response = await fetch(endpoint, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payloadConfiguration)
+      body: JSON.stringify({
+        contents: [{
+          parts: [{ text: `${systemInstruction}\n\nInput Processing Target Data:\n"${textToProcess}"` }]
+        }]
+      })
     });
 
-    if (response.status === 404 || !response.ok) {
-      throw new Error(`Primary Endpoint Destination Refused with status code ${response.status}`);
+    if (!response.ok) {
+      const errorDetails = await response.json().catch(() => ({}));
+      throw new Error(errorDetails?.error?.message || `HTTP Gateway State ${response.status}`);
     }
 
     const outputData = await response.json();
@@ -89,32 +83,8 @@ export const parseTailoringInput = async (textToProcess) => {
     if (!rawAiText) throw new Error("Empty processing chunk returned from data center.");
 
     return safeExtractJSON(rawAiText);
-
-  } catch (primaryError) {
-    console.warn("⚠️ Primary Execution Node failed or route was unmapped. Shifting traffic to stable layer...", primaryError.message);
-    
-    // Fallback Run Routing Lifecycle (Direct Mirror Pipeline Strategy)
-    try {
-      const fallbackResponse = await fetch(backupEndpoint, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payloadConfiguration)
-      });
-
-      if (!fallbackResponse.ok) {
-        const errorDetails = await fallbackResponse.json().catch(() => ({}));
-        throw new Error(errorDetails?.error?.message || `HTTP Gateway State ${fallbackResponse.status}`);
-      }
-
-      const fallbackData = await fallbackResponse.json();
-      const fallbackRawText = fallbackData?.candidates?.[0]?.content?.parts?.[0]?.text;
-      if (!fallbackRawText) throw new Error("Empty backup stream processed.");
-
-      return safeExtractJSON(fallbackRawText);
-
-    } catch (fallbackError) {
-      console.error("🛑 ALL ALLOCATED PRODUCTION DEPLOYMENT ROUTES CRASHED:", fallbackError.message);
-      throw new Error(`Parsing matrix fault: Gemini Engine Request Refused: All connection pooling options failed. Details: ${fallbackError.message}`);
-    }
+  } catch (err) {
+    console.error("🛑 ALL ALLOCATED PRODUCTION DEPLOYMENT ROUTES CRASHED:", err.message);
+    throw new Error(`Parsing matrix fault: ${err.message}`);
   }
 };

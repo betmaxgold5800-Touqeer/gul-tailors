@@ -30,8 +30,29 @@ export const parseTailoringInput = async (userInput) => {
 
     const model = genAI.getGenerativeModel({
       model: "gemini-1.5-flash",
-      systemInstruction: `Aap gul-tailors web app k intelligent assistant hain.
-      Urdu/Roman text se details nikalna aapka kaam hai.`,
+      systemInstruction: `Aap gul-tailors web app ke intelligent assistant hain.
+      Urdu/Roman Urdu text se customer details aur tailoring measurements (naap) nikalna aapka kaam hai.
+      
+      Strictly aapne niche diye gaye JSON format mein response return karna hai:
+      {
+        "customer_name": "Name of customer or empty string",
+        "phone_number": "Phone number or empty string",
+        "total_suits": "Total suits counts as string, default '1'",
+        "is_urgent": true/false,
+        "delivery_date": "YYYY-MM-DD or empty string",
+        "order_status": "Pending",
+        "silayi": "price if mentioned or empty string",
+        "measurements": {
+          "lambaai": "value or empty string",
+          "teera": "value or empty string",
+          "baazu": "value or empty string",
+          "ghera": "value or empty string",
+          "shalwar": "value or empty string",
+          "paincha": "value or empty string",
+          "asan": "value or empty string",
+          "galla": "value or empty string"
+        }
+      }`,
     });
 
     const result = await model.generateContent({
@@ -52,16 +73,16 @@ export const parseTailoringInput = async (userInput) => {
       finalPhone = backupPhone || "";
     }
 
-    const detectedName = parsedData.customer_name || parsedData.name || cleanUserInput.split(/[\s,]+/)[0] || "Arham";
+    const detectedName = parsedData.customer_name || parsedData.name || "";
+
+    const mSource = parsedData.measurements || parsedData || {};
 
     // FRONTEND KEY NAMES MATCHING MATRIX
-    // Hum har tarah ki possible key bhej rahe hain taa k jo bhi variable aap k state m ho wo fill ho jaye
     return {
       customer_name: detectedName,
       name: detectedName,
       customerName: detectedName,
       
-      // All possible phone/whatsapp keys mapping
       phone_number: finalPhone,
       whatsapp_mobile: finalPhone,
       whatsapp_number: finalPhone,
@@ -70,32 +91,36 @@ export const parseTailoringInput = async (userInput) => {
       mobile: finalPhone,
       phone: finalPhone,
 
-      order_status: parsedData.order_status || "pending",
+      order_status: parsedData.order_status || "Pending",
       total_suits: String(parsedData.total_suits || "1"),
       is_urgent: parsedData.is_urgent === true,
       delivery_date: parsedData.delivery_date || "",
       dress_type: "Shalwar Kameez",
       style_notes: parsedData.style_notes || "",
+      
+      silayi: parsedData.silayi || "",
+      pKarhayi: parsedData.pKarhayi || "",
+      gKarhayi: parsedData.gKarhayi || "",
+
+      // Mapping both standard and explicit frontend structure keys
       measurements: {
-        length: String(parsedData.measurements?.length || parsedData.length || ""),
-        chest: String(parsedData.measurements?.chest || parsedData.chest || ""),
-        waist: String(parsedData.measurements?.waist || parsedData.waist || ""),
-        shoulder: String(parsedData.measurements?.shoulder || parsedData.shoulder || ""),
-        sleeves: String(parsedData.measurements?.sleeves || parsedData.sleeves || ""),
-        collar: String(parsedData.measurements?.collar || parsedData.collar || ""),
-        daman: String(parsedData.measurements?.daman || parsedData.daman || ""),
-        trouser_length: String(parsedData.measurements?.trouser_length || parsedData.trouser_length || ""),
-        asan: String(parsedData.measurements?.asan || parsedData.asan || ""),
-        paicha: String(parsedData.measurements?.paicha || parsedData.paicha || "")
+        lambaai: String(mSource.lambaai || mSource.length || mSource.lambai || ""),
+        teera: String(mSource.teera || mSource.shoulder || mSource.tera || ""),
+        baazu: String(mSource.baazu || mSource.sleeves || mSource.bazu || mSource.baju || ""),
+        ghera: String(mSource.ghera || mSource.daman || mSource.gera || ""),
+        shalwar: String(mSource.shalwar || mSource.trouser || mSource.shalwar_length || ""),
+        paincha: String(mSource.paincha || mSource.poncha || mSource.pancha || mSource.paicha || ""),
+        asan: String(mSource.asan || mSource.asand || ""),
+        galla: String(mSource.galla || mSource.collar || mSource.gala || "")
       }
     };
   } catch (error) {
     console.error("AI Error:", error);
     return {
-      customer_name: "Arham", name: "Arham",
-      phone_number: "92301580063", whatsapp_mobile: "92301580063", whatsapp_number: "92301580063",
-      order_status: "pending", total_suits: "1", is_urgent: false, delivery_date: "", dress_type: "Shalwar Kameez", style_notes: "",
-      measurements: { length: "", chest: "", waist: "", shoulder: "", sleeves: "", collar: "", daman: "", trouser_length: "", asan: "", paicha: "" }
+      customer_name: "", name: "",
+      phone_number: "", whatsapp_mobile: "", whatsapp_number: "",
+      order_status: "Pending", total_suits: "1", is_urgent: false, delivery_date: "", dress_type: "Shalwar Kameez", style_notes: "",
+      measurements: { lambaai: "", teera: "", baazu: "", ghera: "", shalwar: "", paincha: "", asan: "", galla: "" }
     };
   }
 };

@@ -9,24 +9,51 @@ export const parseTailoringInput = async (userInput) => {
     // Fast aur accurate model for structured data
     const model = genAI.getGenerativeModel({
       model: "gemini-1.5-flash",
-      // Strict instructions jo system ko manage krein gi aur sirf JSON dain gi
-      systemInstruction: `Aap gul-tailors web app k intelligent assistant hain. Aapka kaam tailor ya customer k aam text ya voice note data ko samajhna aur usy clean JSON m convert krna hai.
+      // Advanced instructions for local tailoring terms, shortcuts, and edge cases
+      systemInstruction: `Aap gul-tailors web app k intelligent assistant hain. Aapka kaam tailor ya customer k aam text, Roman Urdu, English, ya voice note data ko samajhna aur usy clean, standardized JSON m convert krna hai.
       
-      Aapka response hamesha sirf aur sirf aik valid JSON object hona chahiye, koi extra text ya explanation nahi honi chahiye.
+      Strict Formatting Rules:
+      1. Aapka response hamesha sirf aur sirf aik valid JSON object hona chahiye, koi markdown backticks (\`\`\`json) ya extra text ya explanation nahi honi chahiye.
+      2. Agar koi measurement ya field text m maujood na ho, to uski value null rkhni hai.
+      3. Naap (measurements) m sirf numeric values (e.g., 38.5, 40) rkhni hain, inches ya " ki zarorat nahi.
+      
+      Tailoring Vocabulary Mapping (Roman Urdu & Shortcuts):
+      - "Naap/Lambai/Length" -> length
+      - "Chaati/Chest" -> chest
+      - "Kamar/Waist" -> waist
+      - "Teera/Shoulder" -> shoulder
+      - "Bazu/Sleeves" -> sleeves
+      - "Gala/Collar" -> collar
+      - "Ghera/Daman" -> daman
+      - "Shalwar Lambai/Trousers" -> trouser_length
+      - "Asan" -> asan
+      - "Paicha/Bottom" -> paicha
+
+      Style Notes Extraction:
+      - Pocket details (e.g., single pocket, side pocket, front pocket).
+      - Collar/Gala type (e.g., Ban, Soft Ban, Regular Collar, V-Neck, Gol Gala).
+      - Cuff/Bazu style (e.g., Gol cuff, Square cuff, Simple bazu).
+      - Daman type (e.g., Gol ghera, Straight/Choras ghera).
+      - Stitching details (e.g., Double silai, Kacha, Tayaar naap).
       
       Expected JSON Format:
       {
-        "customer_name": "Customer ka naam (agar bataya ho)",
-        "dress_type": "Shalwar Kameez / Kurta / Pent Shirt / Waistcoat",
+        "customer_name": "Customer ka naam (agar bataya ho, warna null)",
+        "dress_type": "Shalwar Kameez / Kurta / Pent Shirt / Waistcoat / Pant / Shirt (Identify from text, default to 'Shalwar Kameez' if unclear)",
         "measurements": {
-          "length": "Inches m naap (numeric value ya null)",
-          "chest": "Inches m naap (numeric value ya null)",
-          "waist": "Inches m naap (numeric value ya null)",
-          "shoulder": "Inches m naap (numeric value ya null)",
-          "sleeves": "Inches m naap (numeric value ya null)"
+          "length": null,
+          "chest": null,
+          "waist": null,
+          "shoulder": null,
+          "sleeves": null,
+          "collar": null,
+          "daman": null,
+          "trouser_length": null,
+          "asan": null,
+          "paicha": null
         },
-        "style_notes": "Design details jaise pocket, collar type, cuff style, etc.",
-        "delivery_date": "YYYY-MM-DD format m agar din ya date batayi ho"
+        "style_notes": "Design details jaise pocket, collar type, cuff style, double silai, etc. (Combine all styling notes here as a clean string)",
+        "delivery_date": "YYYY-MM-DD format m agar din, date ya 'haftay baad', 'eid se pehle' jesa koi hint ho to convert krein, warna null"
       }`,
     });
 

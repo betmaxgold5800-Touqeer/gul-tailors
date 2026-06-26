@@ -1,13 +1,13 @@
-import { GoogleGenAI } from '@google/generative-ai';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
-// Vercel aur Local dono ke liye correct variable key verify karna
+// Vercel aur Local dono ke liye variable check
 const API_KEY = import.meta.env.VITE_GEM_API_KEY;
 
 if (!API_KEY) {
-  console.error("🚨 CRITICAL CONFIGURATION ERROR: VITE_GEM_API_KEY is missing in your panel.");
+  console.error("🚨 CRITICAL CONFIGURATION ERROR: VITE_GEM_API_KEY is missing.");
 }
 
-// JSON data ko safely clean aur parse karne ka behtareen helper
+// Safely JSON clean aur parse karne ka helper
 const safeExtractJSON = (rawString) => {
   if (!rawString || typeof rawString !== 'string') return null;
   try {
@@ -19,7 +19,7 @@ const safeExtractJSON = (rawString) => {
     const firstBrace = cleanText.indexOf('{');
     const lastBrace = cleanText.lastIndexOf('}');
     if (firstBrace === -1 || lastBrace === -1) {
-      throw new Error("Invalid output layout: No structural json boundaries located.");
+      throw new Error("Invalid output layout: No json boundaries located.");
     }
     const isolatedJson = cleanText.substring(firstBrace, lastBrace + 1);
     return JSON.parse(isolatedJson);
@@ -36,11 +36,11 @@ export const parseTailoringInput = async (textToProcess) => {
   if (!textToProcess || !textToProcess.trim()) return null;
 
   try {
-    // 🛠️ USING OFFICIAL GOOGLE SDK - ELIMINATES ALL 404 URL ROUTING ISSUES FOREVER
-    const ai = new GoogleGenAI({ apiKey: API_KEY });
+    // 🔥 CORRECTED SYNTAX: GoogleGenerativeAI ka use kiya hai
+    const genAI = new GoogleGenerativeAI(API_KEY);
     
-    // Using the absolute standard production model
-    const model = ai.getGenerativeModel({ model: "gemini-1.5-flash" });
+    // Standard stable model
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
     const systemInstruction = `
       You are an expert tailoring data extraction engine. Parse the given Urdu or English text.

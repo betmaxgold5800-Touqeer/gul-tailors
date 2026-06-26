@@ -115,16 +115,16 @@ export default function Clients({ data, setClients, onDelete }) {
         const parsedAsan = extractValue(mSource, ['asan', 'asand', 'آسن', 'اسن']);
         const parsedGalla = extractValue(mSource, ['galla', 'collar', 'gala', 'گلا', 'گلہ']);
 
-        setNaapForm(prev => ({
-          lambaai: parsedLambaai !== '' ? parsedLambaai : prev.lambaai,
-          teera: parsedTeera !== '' ? parsedTeera : prev.teera,
-          baazu: parsedBaazu !== '' ? parsedBaazu : prev.baazu,
-          ghera: parsedGhera !== '' ? parsedGhera : prev.ghera,
-          shalwar: parsedShalwar !== '' ? parsedShalwar : prev.shalwar,
-          paincha: parsedPaincha !== '' ? parsedPaincha : prev.paincha,
-          asan: parsedAsan !== '' ? parsedAsan : prev.asan,
-          galla: parsedGalla !== '' ? parsedGalla : prev.galla
-        }));
+        setNaapForm({
+          lambaai: parsedLambaai !== '' ? parsedLambaai : '',
+          teera: parsedTeera !== '' ? parsedTeera : '',
+          baazu: parsedBaazu !== '' ? parsedBaazu : '',
+          ghera: parsedGhera !== '' ? parsedGhera : '',
+          shalwar: parsedShalwar !== '' ? parsedShalwar : '',
+          paincha: parsedPaincha !== '' ? parsedPaincha : '',
+          asan: parsedAsan !== '' ? parsedAsan : '',
+          galla: parsedGalla !== '' ? parsedGalla : ''
+        });
 
         alert("✅ AI ne data parse kar ke fields fill kar di hain!");
       }
@@ -135,7 +135,7 @@ export default function Clients({ data, setClients, onDelete }) {
     }
   };
 
-  // 🔥 SIZE SPECIFIC VAULT ENGINE AUTO-FILL (INSTANT STATE PATCHER)
+  // 🔥 SIZE SPECIFIC VAULT ENGINE AUTO-FILL (SENIOR IMPLEMENTATION USING REFERENCE TEAR-DOWN)
   const handleSizeVaultAiAutoFill = async (passedText = null) => {
     const textToParse = passedText !== null ? passedText : sizeVaultRawInput;
     if (!textToParse.trim()) {
@@ -149,7 +149,6 @@ export default function Clients({ data, setClients, onDelete }) {
       const parsedData = await parseTailoringInput(textToParse);
       
       if (parsedData) {
-        // Safe extraction layer across root level or sub-nested objects
         const mSource = parsedData.measurements && Object.keys(parsedData.measurements).length > 0 
           ? parsedData.measurements 
           : parsedData;
@@ -163,17 +162,17 @@ export default function Clients({ data, setClients, onDelete }) {
         const parsedAsan = extractValue(mSource, ['asan', 'asand', 'آسن', 'اسن']);
         const parsedGalla = extractValue(mSource, ['galla', 'collar', 'gala', 'گلا', 'گلہ']);
 
-        // Directly functionalizing state assignment to bypass batching failures
-        setNaapForm(prevNaap => ({
-          lambaai: parsedLambaai !== '' ? parsedLambaai : prevNaap.lambaai,
-          teera: parsedTeera !== '' ? parsedTeera : prevNaap.teera,
-          baazu: parsedBaazu !== '' ? parsedBaazu : prevNaap.baazu,
-          ghera: parsedGhera !== '' ? parsedGhera : prevNaap.ghera,
-          shalwar: parsedShalwar !== '' ? parsedShalwar : prevNaap.shalwar,
-          paincha: parsedPaincha !== '' ? parsedPaincha : prevNaap.paincha,
-          asan: parsedAsan !== '' ? parsedAsan : prevNaap.asan,
-          galla: parsedGalla !== '' ? parsedGalla : prevNaap.galla
-        }));
+        // Destructuring memory allocation to enforce absolute controlled field update
+        setNaapForm({
+          lambaai: parsedLambaai !== '' ? parsedLambaai : '',
+          teera: parsedTeera !== '' ? parsedTeera : '',
+          baazu: parsedBaazu !== '' ? parsedBaazu : '',
+          ghera: parsedGhera !== '' ? parsedGhera : '',
+          shalwar: parsedShalwar !== '' ? parsedShalwar : '',
+          paincha: parsedPaincha !== '' ? parsedPaincha : '',
+          asan: parsedAsan !== '' ? parsedAsan : '',
+          galla: parsedGalla !== '' ? parsedGalla : ''
+        });
 
         setActiveGuideText('✅ AI ne Size Vault ke fields fill kar diye hain!');
       } else {

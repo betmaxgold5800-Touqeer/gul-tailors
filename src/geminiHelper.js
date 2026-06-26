@@ -1,15 +1,10 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
-
 const API_KEY = import.meta.env.VITE_GEM_API_KEY;
 
 if (!API_KEY) {
-  console.error("🚨 CRITICAL CONFIGURATION ERROR: VITE_GEM_API_KEY is missing.");
+  console.error("🚨 CRITICAL CONFIGURATION ERROR: VITE_GEM_API_KEY is missing in production environment.");
 }
 
-// 🛠️ FORCING STABLE ROUTING TO OVERRIDE THE SDK's DEFAULT v1BETA 404 BLOCKS
-const genAI = new GoogleGenerativeAI(API_KEY, { apiVersion: 'v1' });
-const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-
+// JSON boundaries locate aur parse karne ka static helper
 const safeExtractJSON = (rawString) => {
   if (!rawString || typeof rawString !== 'string') return null;
   try {
@@ -21,12 +16,12 @@ const safeExtractJSON = (rawString) => {
     const firstBrace = cleanText.indexOf('{');
     const lastBrace = cleanText.lastIndexOf('}');
     if (firstBrace === -1 || lastBrace === -1) {
-      throw new Error("Invalid output layout: No json boundaries located.");
+      throw new Error("Invalid output layout: No explicit structural json block bounded.");
     }
     const isolatedJson = cleanText.substring(firstBrace, lastBrace + 1);
     return JSON.parse(isolatedJson);
   } catch (error) {
-    console.error("❌ JSON PARSING EXCEPTION:", error.message);
+    console.error("❌ PARSING MATRIX EXCEPTION:", error.message);
     throw new Error(`Parsing Engine Mismatch: ${error.message}`);
   }
 };
@@ -40,9 +35,8 @@ export const parseTailoringInput = async (textToProcess) => {
   const systemInstruction = `
     You are an expert tailoring data extraction engine. Parse the given Urdu or English text.
     Extract customer specifications cleanly into the following flat JSON object layout. Do NOT invent values.
-    If a value is not mentioned, return null for that key.
+    If a value is not mentioned, return null for that key. Do not output anything else except valid JSON.
     
-    Expected Response Format (Strict JSON):
     {
       "lambaai": "string/number or null",
       "teera": "string/number or null",
@@ -56,10 +50,29 @@ export const parseTailoringInput = async (textToProcess) => {
   `;
 
   try {
-    const prompt = `${systemInstruction}\n\nInput Text to Parse:\n"${textToProcess}"`;
-    const result = await model.generateContent(prompt);
-    const rawAiText = result.response.text();
+    // 🔥 FORCED EXPLICIT PRODUCTION ROUTING DIRECT TO STABLE V1 REPOSITORY
+    const endpoint = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
+    
+    const response = await fetch(endpoint, {
+      method: "POST",
+      headers: { 
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        contents: [{
+          parts: [{ text: `${systemInstruction}\n\nInput Text to Parse:\n"${textToProcess}"` }]
+        }]
+      })
+    });
 
+    if (!response.ok) {
+      const errorPayload = await response.json().catch(() => ({}));
+      const errorMessage = errorPayload?.error?.message || `HTTP Server Gateway Error ${response.status}`;
+      throw new Error(`Gemini Engine Request Refused: ${errorMessage}`);
+    }
+
+    const outputData = await response.json();
+    const rawAiText = outputData?.candidates?.[0]?.content?.parts?.[0]?.text;
     if (!rawAiText) throw new Error("Empty processing stream returned from Google Gemini.");
 
     return safeExtractJSON(rawAiText);

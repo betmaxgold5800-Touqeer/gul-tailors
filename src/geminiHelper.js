@@ -3,11 +3,32 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 const apiKey = import.meta.env.VITE_GEM_API_KEY;
 const genAI = new GoogleGenerativeAI(apiKey);
 
+// Safe JSON Parsing Utility to prevent crashes
+const safeJsonParse = (str) => {
+  try {
+    // Clean any hidden unicode line terminators or backslash issues
+    let cleanStr = str
+      .replace(/[\u0000-\u0019]+/g, "")
+      .replace(/^```json/i, "")
+      .replace(/```$/, "")
+      .trim();
+    return JSON.parse(cleanStr);
+  } catch (e) {
+    console.error("JSON Clean Parse Error:", e);
+    // Regex fallback if JSON parsing still complains about a specific character
+    try {
+      const fixedStr = str.replace(/\\/g, "\\\\");
+      return JSON.parse(fixedStr);
+    } catch (innerError) {
+      return null;
+    }
+  }
+};
+
 // ========================================================
-// 1. BACKWARD COMPATIBILITY: Purane code ko crash se bachane k liye
+// 1. BACKWARD COMPATIBILITY: Auto routing to registry logic
 // ========================================================
 export const parseTailoringInput = async (userInput) => {
-  // Agar aapka purana component ise call kare, to yeh auto Registry wala kaam karega
   return await parseOrderRegistry(userInput);
 };
 
@@ -18,31 +39,47 @@ export const parseOrderRegistry = async (userInput) => {
   try {
     const model = genAI.getGenerativeModel({
       model: "gemini-1.5-flash",
-      systemInstruction: `Aap gul-tailors web app k intelligent assistant hain. Aapka kaam tailor ya customer k text ya voice data se order aur registry ki details nikalna hai.
+      systemInstruction: `Aap gul-tailors web app k intelligent assistant hain. Aapka kaam Urdu script, Roman Urdu, ya English text se order registry details nikalna hai.
       
       Strict Formatting Rules:
-      1. Response sirf aur sirf valid JSON hona chahiye. Koi markdown backticks ya extra text nahi.
-      2. Jo field text m na ho, uski value empty string "" rkhni hai.
+      1. Response MUST be a single clean valid JSON object. No markdown, no explanations.
+      2. All JSON keys MUST be in standard English alphabets.
+      3. Values can extract Urdu characters if it's a name, but convert dates and phone numbers strictly to standard western digits (0-9).
+      4. If a value is missing, return an empty string "".
       
       Expected JSON Format:
       {
-        "customer_name": "Customer ka naam (agar bataya ho, warna '')",
-        "phone_number": "Agar text m koi phone number ya mobile number ho (jaise 923... ya 03...), warna ''",
-        "order_status": "Hamesha 'pending' rkhna hai jab tak text m 'completed' ya 'delivered' na bola jaye",
-        "total_suits": "Suits ki tadad (numeric value, e.g. 1, 2, 3). Agar text m zikr na ho to default 1 rkhna hai",
-        "is_urgent": true (agar text m 'urgent', 'jaldi', 'emergency' jesa zikr ho) warna false,
-        "delivery_date": "YYYY-MM-DD format m agar koi date ya hint ho, warna ''"
+        "customer_name": "Customer name (Extract from Urdu or Roman text, default '')",
+        "phone_number": "Extract any phone number as standard digits, default ''",
+        "order_status": "pending",
+        "total_suits": "1",
+        "is_urgent": false,
+        "delivery_date": ""
       }`,
     });
 
     const result = await model.generateContent({
       contents: [{ role: "user", parts: [{ text: userInput }] }],
-      generationConfig: { responseMimeType: "application/json" },
+      generationConfig: { 
+        responseMimeType: "application/json",
+        temperature: 0.1 // Low temperature makes the output very strict and predictable
+      },
     });
 
-    let responseText = result.response.text().trim();
-    responseText = responseText.replace(/^```json/i, "").replace(/```$/, "").trim();
-    return JSON.parse(responseText);
+    const responseText = result.response.text();
+    const parsedData = safeJsonParse(responseText);
+
+    if (!parsedData) throw new Error("Failed to parse clean JSON matrix");
+    
+    // Ensure numbers are strings to avoid frontend numeric input mutation bugs
+    return {
+      customer_name: parsedData.customer_name || "",
+      phone_number: parsedData.phone_number || "",
+      order_status: parsedData.order_status || "pending",
+      total_suits: parsedData.total_suits ? String(parsedData.total_suits) : "1",
+      is_urgent: !!parsedData.is_urgent,
+      delivery_date: parsedData.delivery_date || ""
+    };
   } catch (error) {
     console.error("Order Registry Parsing Error:", error);
     return null;
@@ -56,27 +93,15 @@ export const parseTailoringMeasurements = async (userInput) => {
   try {
     const model = genAI.getGenerativeModel({
       model: "gemini-1.5-flash",
-      systemInstruction: `Aap gul-tailors web app k intelligent assistant hain. Aapka kaam sirf aur sirf suit k naap (measurements) aur design details ko process krna hai.
+      systemInstruction: `Aap gul-tailors web app k intelligent assistant hain. Aapka kaam suit k naap aur design details process krna hai.
       
       Strict Formatting Rules:
-      1. Response sirf aur sirf valid JSON hona chahiye.
-      2. Naap (measurements) m sirf numeric digits rkhne hain (e.g. 38.5, 40). Agar koi naap na ho to use empty string "" rkhna hai.
+      1. Response must be pure standard JSON.
+      2. Measurements keys must be exactly as defined below. Values must be numeric digits only or "".
       
-      Tailoring Vocabulary Mapping:
-      - "Naap/Lambai/Length" -> length
-      - "Chaati/Chest" -> chest
-      - "Kamar/Waist" -> waist
-      - "Teera/Shoulder" -> shoulder
-      - "Bazu/Sleeves" -> sleeves
-      - "Gala/Collar" -> collar
-      - "Ghera/Daman" -> daman
-      - "Shalwar Lambai/Trousers" -> trouser_length
-      - "Asan" -> asan
-      - "Paicha/Bottom" -> paicha
-
       Expected JSON Format:
       {
-        "dress_type": "Shalwar Kameez / Kurta / Pent Shirt / Waistcoat",
+        "dress_type": "Shalwar Kameez",
         "measurements": {
           "length": "",
           "chest": "",
@@ -89,25 +114,30 @@ export const parseTailoringMeasurements = async (userInput) => {
           "asan": "",
           "paicha": ""
         },
-        "style_notes": "Design details jaise pocket style, collar type, cuff style, double silai, etc. (Warna '')"
+        "style_notes": ""
       }`,
     });
 
     const result = await model.generateContent({
       contents: [{ role: "user", parts: [{ text: userInput }] }],
-      generationConfig: { responseMimeType: "application/json" },
+      generationConfig: { 
+        responseMimeType: "application/json",
+        temperature: 0.1
+      },
     });
 
-    let responseText = result.response.text().trim();
-    responseText = responseText.replace(/^```json/i, "").replace(/```$/, "").trim();
-    
-    const parsedData = JSON.parse(responseText);
+    const responseText = result.response.text();
+    const parsedData = safeJsonParse(responseText);
+
+    if (!parsedData) throw new Error("Failed to parse measurements matrix");
 
     if (!parsedData.measurements) parsedData.measurements = {};
     const keys = ["length", "chest", "waist", "shoulder", "sleeves", "collar", "daman", "trouser_length", "asan", "paicha"];
     keys.forEach(key => {
       if (parsedData.measurements[key] === null || parsedData.measurements[key] === undefined) {
         parsedData.measurements[key] = "";
+      } else {
+        parsedData.measurements[key] = String(parsedData.measurements[key]);
       }
     });
 
